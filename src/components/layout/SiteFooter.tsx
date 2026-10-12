@@ -86,7 +86,6 @@ export default function SiteFooter() {
 
       <div className="footer-bottom-bar">
         <span>© 2026 {t.brand}. {language === "bn" ? "সর্বস্বত্ব সংরক্ষিত।" : "All rights reserved."}</span>
-        <span>{t.footerMadeWith}</span>
       </div>
     </footer>
   );

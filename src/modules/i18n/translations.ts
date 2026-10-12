@@ -45,7 +45,7 @@ export const translations: Record<Language, Translations> = {
     // Landing Page
     heroBadge: "Cheap-Bazar 2.0 • The Modern E-Commerce Platform for Bangladesh",
     heroHeading1: "Create your online store in minutes.",
-    heroHeadingGradient: "Sell across Bangladesh in ৳ Taka.",
+    heroHeadingGradient: "Sell across Bangladesh.",
     heroDesc: "The all-in-one multi-tenant e-commerce platform. Zero code, instant storefronts, bKash & COD ready, double-entry wallet, and built-in ad boosts for modern creators and businesses.",
     heroSubtitle2: "No coding required. Instant subdomains & custom domains, automated double-entry ledger, bKash & COD ready, and built-in ad boosts for creators.",
     startForFree: "Create Your Store (Free)",
@@ -138,7 +138,7 @@ export const translations: Record<Language, Translations> = {
     footerPlatform: "Platform",
     footerMerchants: "Merchants",
     footerSecurity: "Security & Trust",
-    footerMadeWith: "Made with ❤️ in Bangladesh. All transactions processed in Bangladeshi Taka (৳ BDT).",
+    footerMadeWith: "",
 
     // Storefront & Templates
     classicTagline: "Freshly made, honestly priced.",
@@ -258,7 +258,7 @@ export const translations: Record<Language, Translations> = {
     // Landing Page
     heroBadge: "চিপ-বাজার ২.০ • বাংলাদেশের আধুনিক ই-কমার্স প্ল্যাটফর্ম",
     heroHeading1: "কয়েক মিনিটেই তৈরি করুন নিজস্ব অনলাইন স্টোর।",
-    heroHeadingGradient: "সারা বাংলাদেশে বিক্রি করুন টাকায় (৳)।",
+    heroHeadingGradient: "সারা বাংলাদেশে বিক্রি করুন।",
     heroDesc: "উদ্যোক্তাদের জন্য অল-ইন-ওয়ান মাল্টি-টেন্যান্ট ই-কমার্স প্ল্যাটফর্ম। কোনো কোডিং ছাড়াই তাৎক্ষণিক স্টোরফ্রন্ট, বিকাশ ও ক্যাশ অন ডেলিভারি, ডাবল-এন্ট্রি ওয়ালেট এবং স্পন্সরড বুস্ট।",
     heroSubtitle2: "কোনো কোডিং প্রয়োজন নেই। তাৎক্ষণিক সাবডোমেন ও কাস্টম ডোমেন, স্বয়ংক্রিয় ডাবল-এন্ট্রি লেজার, বিকাশ ও ক্যাশ অন ডেলিভারি এবং অন্তর্নির্মিত বিজ্ঞাপন বুস্ট।",
     startForFree: "ফ্রিতে দোকান তৈরি করুন",
@@ -351,7 +351,7 @@ export const translations: Record<Language, Translations> = {
     footerPlatform: "প্ল্যাটফর্ম",
     footerMerchants: "মার্চেন্ট সুবিধা",
     footerSecurity: "নিরাপত্তা ও স্বচ্ছতা",
-    footerMadeWith: "বাংলাদেশের ভালোবাসায় তৈরি ❤️ সব হিসাব বাংলাদেশী টাকায় (৳ BDT) পরিচালিত।",
+    footerMadeWith: "",
 
     // Storefront & Templates
     classicTagline: "তাজা ও সেরা মানের পণ্য, সাশ্রয়ী মূল্যে।",
