@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SELLER
+  BUYER
+  ADMIN
+  PRO_BUYER
+}
+
+enum StoreStatus {
+  ACTIVE
+  WARNING
+  COD_BLOCKED
+  PAUSED
+  DELISTED
+  SUSPENDED
+  BANNED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         Role      @default(SELLER)
+  store        Store?
+  sessions     Session[]
+  createdAt    DateTime  @default(now())
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+}
+
+model Store {
+  id           String      @id @default(cuid())
+  name         String
+  slug         String      @unique
+  customDomain String?     @unique
+  template     String      // "classic" | "modern" -- fixed built-in templates
+  status       StoreStatus @default(ACTIVE)
+  kycVerified  Boolean     @default(false)
+  ownerId      String      @unique
+  owner        User        @relation(fields: [ownerId], references: [id])
+  products     Product[]
+  createdAt    DateTime    @default(now())
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  storeId     String
+  store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  name        String
+  description String   @default("")
+  price       Decimal  @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  image       String?
+  createdAt   DateTime @default(now())
+
+  @@index([storeId])
+}
+
