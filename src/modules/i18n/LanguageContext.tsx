@@ -10,6 +10,7 @@ interface LanguageContextType {
   setLanguage: (lang: Language) => void;
   t: Translations;
   formatMoney: (amount: number) => string;
+  formatTaka: (amount: number, l?: Language) => string;
   toNumerals: (val: number | string) => string;
 }
 
@@ -60,6 +61,7 @@ export function LanguageProvider({
         setLanguage,
         t: translations[lang],
         formatMoney,
+        formatTaka: (n: number, l?: Language) => formatTaka(n, l || lang),
         toNumerals,
       }}
     >
@@ -78,6 +80,7 @@ export function useLanguage() {
       setLanguage: () => {},
       t: translations.en,
       formatMoney: (n: number) => formatTaka(n, "en"),
+      formatTaka: (n: number, l?: Language) => formatTaka(n, l || "en"),
       toNumerals: (v: number | string) => String(v),
     };
   }

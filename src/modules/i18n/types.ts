@@ -17,12 +17,98 @@ export interface Translations {
   heroHeading1: string;
   heroHeadingGradient: string;
   heroDesc: string;
+  heroSubtitle2: string;
   startForFree: string;
   viewDemo: string;
+  noCreditCard: string;
   creatorsSectionTitle: string;
   creatorsSectionSub: string;
   noStores: string;
   productsCount: string;
+  visitStore: string;
+
+  // Trust Stats
+  statVolumeVal: string;
+  statVolumeLabel: string;
+  statSetupVal: string;
+  statSetupLabel: string;
+  statFreeVal: string;
+  statFreeLabel: string;
+  statNationwideVal: string;
+  statNationwideLabel: string;
+
+  // Interactive Preview
+  previewStoreName: string;
+  previewStoreTagline: string;
+  previewItem1: string;
+  previewItem2: string;
+  previewClassic: string;
+  previewModern: string;
+  previewCartReserved: string;
+
+  // Core Features / Bento
+  featuresHeading: string;
+  featuresSub: string;
+  feat1Title: string;
+  feat1Desc: string;
+  feat2Title: string;
+  feat2Desc: string;
+  feat3Title: string;
+  feat3Desc: string;
+  feat4Title: string;
+  feat4Desc: string;
+  feat5Title: string;
+  feat5Desc: string;
+  feat6Title: string;
+  feat6Desc: string;
+
+  // How It Works
+  howItWorksHeading: string;
+  howItWorksSub: string;
+  step1Title: string;
+  step1Desc: string;
+  step2Title: string;
+  step2Desc: string;
+  step3Title: string;
+  step3Desc: string;
+
+  // Pricing
+  pricingHeading: string;
+  pricingSub: string;
+  planStarterName: string;
+  planStarterPrice: string;
+  planStarterPeriod: string;
+  planStarterDesc: string;
+  planGrowthName: string;
+  planGrowthPrice: string;
+  planGrowthPeriod: string;
+  planGrowthDesc: string;
+  planGrowthBadge: string;
+  planEnterpriseName: string;
+  planEnterprisePrice: string;
+  planEnterprisePeriod: string;
+  planEnterpriseDesc: string;
+  choosePlan: string;
+
+  // Testimonials
+  testimonialsHeading: string;
+  testimonialsSub: string;
+
+  // FAQ
+  faqHeading: string;
+  faqSub: string;
+
+  // Final CTA
+  finalCtaHeading: string;
+  finalCtaSub: string;
+  finalCtaButton: string;
+
+  // Footer
+  footerAbout: string;
+  footerPlatform: string;
+  footerMerchants: string;
+  footerSecurity: string;
+  footerMadeWith: string;
 
   // Storefront & Templates
   classicTagline: string;

@@ -43,16 +43,102 @@ export const translations: Record<Language, Translations> = {
     footerText: "Multi-tenant marketplace scaffold — Phase 1: store creation + inventory.",
 
     // Landing Page
-    heroBadge: "Cheap-Bazar 2.0 is now live",
-    heroHeading1: "Your storefront,",
-    heroHeadingGradient: "reimagined.",
-    heroDesc: "Spin up a fully managed ecommerce platform in seconds. No code, zero configuration. We handle the design, payments, and infrastructure so you can focus on selling in Bangladeshi Taka.",
-    startForFree: "Start for free",
-    viewDemo: "View demo",
-    creatorsSectionTitle: "Loved by modern creators",
-    creatorsSectionSub: "Discover what others are building with Cheap-Bazar.",
-    noStores: "No stores yet. Be the first.",
+    heroBadge: "Cheap-Bazar 2.0 • The Modern E-Commerce Platform for Bangladesh",
+    heroHeading1: "Create your online store in minutes.",
+    heroHeadingGradient: "Sell across Bangladesh in ৳ Taka.",
+    heroDesc: "The all-in-one multi-tenant e-commerce platform. Zero code, instant storefronts, bKash & COD ready, double-entry wallet, and built-in ad boosts for modern creators and businesses.",
+    heroSubtitle2: "No coding required. Instant subdomains & custom domains, automated double-entry ledger, bKash & COD ready, and built-in ad boosts for creators.",
+    startForFree: "Create Your Store (Free)",
+    viewDemo: "Explore Live Stores",
+    noCreditCard: "No credit card required • Instant setup • 100% Free starter tier",
+    creatorsSectionTitle: "Loved by modern creators & brands",
+    creatorsSectionSub: "Discover live storefronts already thriving on Cheap-Bazar.",
+    noStores: "No stores yet. Be the first to launch!",
     productsCount: "products",
+    visitStore: "Visit Store ↗",
+
+    // Trust Stats
+    statVolumeVal: "৳ 150K+",
+    statVolumeLabel: "Daily GMV Processed",
+    statSetupVal: "60 Sec",
+    statSetupLabel: "Average Store Launch",
+    statFreeVal: "0% Free",
+    statFreeLabel: "Forever Starter Plan",
+    statNationwideVal: "64 Districts",
+    statNationwideLabel: "Nationwide COD Ready",
+
+    // Interactive Preview
+    previewStoreName: "Dhaka Artisan Bakery",
+    previewStoreTagline: "Handcrafted fresh sourdough & buttery croissants daily in Dhaka.",
+    previewItem1: "Sourdough Artisan Loaf",
+    previewItem2: "French Butter Croissant",
+    previewClassic: "Classic Template",
+    previewModern: "Modern Template",
+    previewCartReserved: "🔒 15-Min Stock Reservation Active",
+
+    // Core Features / Bento
+    featuresHeading: "Everything you need to sell across Bangladesh",
+    featuresSub: "Engineered specifically for local merchants, wholesale suppliers, and fast-growing brands.",
+    feat1Title: "Instant Multi-Tenant Storefronts",
+    feat1Desc: "Get a dedicated storefront with a unique slug or connect your custom .com / .com.bd domain with automated edge SSL routing.",
+    feat2Title: "Dual Retail & Wholesale Engine",
+    feat2Desc: "Offer consumer retail pricing alongside bulk wholesale rates with Minimum Order Quantities (MOQ) for high-volume B2B buyers.",
+    feat3Title: "bKash, Nagad & Cash on Delivery",
+    feat3Desc: "Accept instant mobile payments or fulfill nationwide Cash on Delivery with automated wallet hold mechanics and courier reconciliation.",
+    feat4Title: "Double-Entry Immutable Ledger",
+    feat4Desc: "Bank-grade financial bookkeeping. Every credit, debit, hold, platform fee, and withdrawal is securely recorded with tenant RLS isolation.",
+    feat5Title: "Ad Manager & Sponsored Slots",
+    feat5Desc: "Boost your store visibility across the marketplace. Book sponsored banner placements and top catalog search slots directly.",
+    feat6Title: "Smart 15-Minute Stock Holds",
+    feat6Desc: "Eliminate overselling and duplicate bookings. Stock is automatically reserved for 15 minutes during checkout to protect inventory.",
+
+    // How It Works
+    howItWorksHeading: "Launch your business in 3 simple steps",
+    howItWorksSub: "Start selling today with zero technical expertise.",
+    step1Title: "1. Create Account & Pick Template",
+    step1Desc: "Sign up in 30 seconds and select either our clean Classic or vibrant Modern storefront design.",
+    step2Title: "2. Add Products in Bangladeshi Taka (৳)",
+    step2Desc: "Upload photos, set retail and bulk wholesale rates, and track live stock counts with low-inventory alerts.",
+    step3Title: "3. Share Your Link & Receive Orders",
+    step3Desc: "Share your storefront across Facebook, Instagram, or WhatsApp. Fulfill orders and withdraw profits to your bank or bKash.",
+
+    // Pricing
+    pricingHeading: "Transparent pricing in Bangladeshi Taka",
+    pricingSub: "Choose the plan that fits your business scale. Upgrade or cancel anytime.",
+    planStarterName: "Starter",
+    planStarterPrice: "৳ 0",
+    planStarterPeriod: "/ forever free",
+    planStarterDesc: "Perfect for independent artisans, home bakers, and new online ventures.",
+    planGrowthName: "Pro Growth",
+    planGrowthPrice: "৳ 999",
+    planGrowthPeriod: "/ month",
+    planGrowthDesc: "For established merchants and wholesale suppliers needing custom domains and zero fees.",
+    planGrowthBadge: "Most Popular",
+    planEnterpriseName: "Enterprise",
+    planEnterprisePrice: "৳ 2,499",
+    planEnterprisePeriod: "/ month",
+    planEnterpriseDesc: "For retail chains and large distributors requiring multi-staff access and dedicated support.",
+    choosePlan: "Choose Plan",
+
+    // Testimonials
+    testimonialsHeading: "Trusted by Bangladeshi Merchants",
+    testimonialsSub: "Hear how creators and businesses are accelerating their revenue with Cheap-Bazar.",
+
+    // FAQ
+    faqHeading: "Frequently Asked Questions",
+    faqSub: "Everything you need to know about setting up your online store on Cheap-Bazar.",
+
+    // Final CTA
+    finalCtaHeading: "Ready to take your business online?",
+    finalCtaSub: "Join hundreds of merchants selling across Bangladesh. Start your free store in under a minute.",
+    finalCtaButton: "Create Your Store Now",
+
+    // Footer
+    footerAbout: "The next-generation multi-tenant e-commerce platform built for Bangladeshi merchants, wholesale suppliers, and fast-growing brands.",
+    footerPlatform: "Platform",
+    footerMerchants: "Merchants",
+    footerSecurity: "Security & Trust",
+    footerMadeWith: "Made with ❤️ in Bangladesh. All transactions processed in Bangladeshi Taka (৳ BDT).",
 
     // Storefront & Templates
     classicTagline: "Freshly made, honestly priced.",
@@ -170,16 +256,102 @@ export const translations: Record<Language, Translations> = {
     footerText: "মাল্টি-টেন্যান্ট মার্কেটপ্লেস — ফেজ ১: স্টোর তৈরি + পণ্য ইনভেন্টরি।",
 
     // Landing Page
-    heroBadge: "চিপ-বাজার ২.০ এখন লাইভ",
-    heroHeading1: "আপনার নিজস্ব ই-কমার্স স্টোর,",
-    heroHeadingGradient: "নতুন আঙ্গিকে।",
-    heroDesc: "কয়েক সেকেন্ডের মধ্যেই চালু করুন আপনার সম্পূর্ণ নিয়ন্ত্রিত অনলাইন মার্কেটপ্লেস। কোনো কোডিং বা ঝামেলা ছাড়াই বাংলাদেশী টাকায় পণ্য বিক্রি শুরু করুন।",
-    startForFree: "ফ্রিতে শুরু করুন",
-    viewDemo: "ডেমো দেখুন",
-    creatorsSectionTitle: "আধুনিক উদ্যোক্তাদের প্রিয় পছন্দ",
-    creatorsSectionSub: "চিপ-বাজারে অন্যান্য উদ্যোক্তারা কী তৈরি করছেন তা দেখুন।",
-    noStores: "এখনো কোনো দোকান খোলা হয়নি। আপনিই প্রথম হোন।",
+    heroBadge: "চিপ-বাজার ২.০ • বাংলাদেশের আধুনিক ই-কমার্স প্ল্যাটফর্ম",
+    heroHeading1: "কয়েক মিনিটেই তৈরি করুন নিজস্ব অনলাইন স্টোর।",
+    heroHeadingGradient: "সারা বাংলাদেশে বিক্রি করুন টাকায় (৳)।",
+    heroDesc: "উদ্যোক্তাদের জন্য অল-ইন-ওয়ান মাল্টি-টেন্যান্ট ই-কমার্স প্ল্যাটফর্ম। কোনো কোডিং ছাড়াই তাৎক্ষণিক স্টোরফ্রন্ট, বিকাশ ও ক্যাশ অন ডেলিভারি, ডাবল-এন্ট্রি ওয়ালেট এবং স্পন্সরড বুস্ট।",
+    heroSubtitle2: "কোনো কোডিং প্রয়োজন নেই। তাৎক্ষণিক সাবডোমেন ও কাস্টম ডোমেন, স্বয়ংক্রিয় ডাবল-এন্ট্রি লেজার, বিকাশ ও ক্যাশ অন ডেলিভারি এবং অন্তর্নির্মিত বিজ্ঞাপন বুস্ট।",
+    startForFree: "ফ্রিতে দোকান তৈরি করুন",
+    viewDemo: "লাইভ স্টোরগুলো দেখুন",
+    noCreditCard: "কোনো ক্রেডিট কার্ড লাগবে না • তাৎক্ষণিক অ্যাক্টিভেশন • সম্পূর্ণ ফ্রি স্টার্টার প্ল্যান",
+    creatorsSectionTitle: "আধুনিক উদ্যোক্তা ও ব্র্যান্ডের বিশ্বস্ত পছন্দ",
+    creatorsSectionSub: "চিপ-বাজারে সফলভাবে পরিচালিত লাইভ স্টোরফ্রন্টগুলো ঘুরে দেখুন।",
+    noStores: "এখনো কোনো দোকান খোলা হয়নি। আপনিই প্রথম শুরু করুন!",
     productsCount: "টি পণ্য",
+    visitStore: "দোকান ভিজিট করুন ↗",
+
+    // Trust Stats
+    statVolumeVal: "৳ ১,৫০,০০০+",
+    statVolumeLabel: "দৈনিক লেনদেন",
+    statSetupVal: "৬০ সেকেন্ড",
+    statSetupLabel: "স্টোর চালুর গড় সময়",
+    statFreeVal: "০% ফ্রি",
+    statFreeLabel: "চিরতরে ফ্রি স্টার্টার টিয়ার",
+    statNationwideVal: "৬৪ জেলা",
+    statNationwideLabel: "সারা দেশে ক্যাশ অন ডেলিভারি",
+
+    // Interactive Preview
+    previewStoreName: "ঢাকা কারিগর বেকারি",
+    previewStoreTagline: "প্রতিদিন তাজা কাঠকয়লার চুলোয় তৈরি সোয়ার্ডো পাউরুটি ও বাটার ক্রস্যান্ট।",
+    previewItem1: "আর্টিসান সোয়ার্ডো রুটি",
+    previewItem2: "ফ্রেঞ্চ বাটার ক্রস্যান্ট",
+    previewClassic: "ক্লাসিক টেমপ্লেট",
+    previewModern: "মডার্ন টেমপ্লেট",
+    previewCartReserved: "🔒 ১৫ মিনিটের স্টক রিজার্ভেশন সক্রিয়",
+
+    // Core Features / Bento
+    featuresHeading: "বাংলাদেশে পণ্য বিক্রির সম্পূর্ণ সমাধান",
+    featuresSub: "স্থানীয় ব্যবসায়ী, পাইকারি বিক্রেতা ও দ্রুত বর্ধনশীল ব্র্যান্ডের জন্য বিশেষভাবে প্রস্তুত।",
+    feat1Title: "তাৎক্ষণিক মাল্টি-টেন্যান্ট স্টোরফ্রন্ট",
+    feat1Desc: "পাবেন নিজস্ব স্টোর লিঙ্ক বা যুক্ত করুন আপনার নিজস্ব .com / .com.bd ডোমেন, সাথে স্বয়ংক্রিয় এজ SSL এনক্রিপশন।",
+    feat2Title: "খুচরা ও পাইকারি ডাবল ইঞ্জিন",
+    feat2Desc: "একই সাথে সাধারণ ক্রেতাদের জন্য খুচরা এবং বাল্ক বায়ারদের জন্য মিনিমাম অর্ডার কোয়ান্টিটিসহ (MOQ) পাইকারি মূল্য নির্ধারণ করুন।",
+    feat3Title: "বিকাশ, নগদ ও ক্যাশ অন ডেলিভারি",
+    feat3Desc: "মোবাইল ওয়ালেটে তাৎক্ষণিক পেমেন্ট নিন অথবা স্বয়ংক্রিয় লেজার হোল্ড ও কুরিয়ার রিকনসিলিয়েশনসহ সারা দেশে ক্যাশ অন ডেলিভারি দিন।",
+    feat4Title: "নিরাপদ ডাবল-এন্ট্রি লেজার ও ওয়ালেট",
+    feat4Desc: "ব্যাংক লেভেল স্বচ্ছ হিসাবরক্ষণ। প্রতিটি জমা, খরচ, রিফান্ড ও কমিশন নিখুঁতভাবে পোস্টগ্রেস RLS আইসোলেশনে সংরক্ষিত।",
+    feat5Title: "বিজ্ঞাপন ম্যানেজার ও স্পন্সরড বুস্ট",
+    feat5Desc: "মার্কেটপ্লেসে আপনার পণ্যের বিক্রি বাড়ান। সরাসরি ড্যাশবোর্ড থেকে স্পন্সরড ব্যানার ও টপ সার্চ স্লট বুক করুন।",
+    feat6Title: "স্বয়ংক্রিয় ১৫ মিনিটের স্টক লক",
+    feat6Desc: "অতিরিক্ত বুকিং বা স্টক বিভ্রাট প্রতিরোধ করুন। চেকআউট করার সময় স্বয়ংক্রিয়ভাবে ১৫ মিনিটের জন্য স্টক লক থাকে।",
+
+    // How It Works
+    howItWorksHeading: "৩টি সহজ ধাপে শুরু করুন আপনার ব্যবসা",
+    howItWorksSub: "কোনো কারিগরি জ্ঞান ছাড়াই আজই পণ্য বিক্রি শুরু করুন।",
+    step1Title: "১. অ্যাকাউন্ট খুলুন ও টেমপ্লেট বেছে নিন",
+    step1Desc: "মাত্র ৩০ সেকেন্ডে সাইন আপ করে বেছে নিন পরিচ্ছন্ন ক্লাসিক অথবা আধুনিক ফ্যাশনেবল টেমপ্লেট।",
+    step2Title: "২. পণ্য ও মূল্য যুক্ত করুন টাকায় (৳)",
+    step2Desc: "ছবি আপলোড করুন, পণ্যের বিবরণ লিখুন এবং খুচরা ও পাইকারি দাম নির্ধারণ করুন।",
+    step3Title: "৩. লিঙ্ক শেয়ার করুন ও অর্ডার গ্রহণ করুন",
+    step3Desc: "ফেসবুক, ইনস্টাগ্রাম বা হোয়াটসঅ্যাপে লিঙ্ক শেয়ার করুন। ড্যাশবোর্ড থেকে অর্ডার ট্র্যাক করে টাকা তুলুন ব্যাংকে বা বিকাশে।",
+
+    // Pricing
+    pricingHeading: "স্বচ্ছ প্রাইসিং প্ল্যান — বাংলাদেশী টাকায়",
+    pricingSub: "আপনার ব্যবসার পরিধি অনুযায়ী সঠিক প্ল্যান বেছে নিন। যেকোনো সময় আপগ্রেড বা বাতিল করতে পারবেন।",
+    planStarterName: "প্রারম্ভিক (Starter)",
+    planStarterPrice: "৳ ০",
+    planStarterPeriod: "/ চিরতরে ফ্রি",
+    planStarterDesc: "নতুন উদ্যোক্তা ও ঘরোয়া ব্যবসার জন্য উপযুক্ত।",
+    planGrowthName: "প্রবৃদ্ধি (Growth)",
+    planGrowthPrice: "৳ ৯৯৯",
+    planGrowthPeriod: "/ মাস",
+    planGrowthDesc: "প্রতিষ্ঠিত ব্র্যান্ড ও পাইকারি বিক্রেতাদের জন্য কাস্টম ডোমেন ও ০% প্ল্যাটফর্ম ফি।",
+    planGrowthBadge: "সবচেয়ে জনপ্রিয়",
+    planEnterpriseName: "প্রাতিষ্ঠানিক (Enterprise)",
+    planEnterprisePrice: "৳ ২,৪৯৯",
+    planEnterprisePeriod: "/ মাস",
+    planEnterpriseDesc: "বৃহৎ রিটেইল চেইন ও পাইকারি ডিস্ট্রিবিউটরদের জন্য মাল্টি-স্টাফ ও সার্বক্ষণিক সাপোর্ট।",
+    choosePlan: "প্ল্যান বেছে নিন",
+
+    // Testimonials
+    testimonialsHeading: "সফল বাংলাদেশী উদ্যোক্তাদের অভিজ্ঞতা",
+    testimonialsSub: "জেনে নিন কীভাবে ব্যবসায়ীরা চিপ-বাজারের মাধ্যমে নিজেদের সেল ও প্রবৃদ্ধি বৃদ্ধি করছেন।",
+
+    // FAQ
+    faqHeading: "সাধারণ জিজ্ঞাসা (FAQ)",
+    faqSub: "চিপ-বাজারে অনলাইন শপ চালু সংক্রান্ত প্রয়োজনীয় সব প্রশ্নের উত্তর।",
+
+    // Final CTA
+    finalCtaHeading: "আজই শুরু করুন আপনার অনলাইন শপ",
+    finalCtaSub: "সারা বাংলাদেশের শত শত মার্চেন্টের সাথে যুক্ত হোন। মাত্র এক মিনিটে ফ্রিতে চালু করুন আপনার স্টোর।",
+    finalCtaButton: "ফ্রিতে দোকান তৈরি করুন",
+
+    // Footer
+    footerAbout: "বাংলাদেশের উদ্যোক্তা ও পাইকারি ব্যবসায়ীদের জন্য নির্মিত পরবর্তী প্রজন্মের মাল্টি-টেন্যান্ট ই-কমার্স প্ল্যাটফর্ম।",
+    footerPlatform: "প্ল্যাটফর্ম",
+    footerMerchants: "মার্চেন্ট সুবিধা",
+    footerSecurity: "নিরাপত্তা ও স্বচ্ছতা",
+    footerMadeWith: "বাংলাদেশের ভালোবাসায় তৈরি ❤️ সব হিসাব বাংলাদেশী টাকায় (৳ BDT) পরিচালিত।",
 
     // Storefront & Templates
     classicTagline: "তাজা ও সেরা মানের পণ্য, সাশ্রয়ী মূল্যে।",
