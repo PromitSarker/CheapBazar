@@ -37,9 +37,6 @@ export default function SiteFooter() {
               <Link href="/signup">{t.createStore}</Link>
             </li>
             <li>
-              <Link href="/#pricing">{language === "bn" ? "প্রাইসিং প্ল্যান" : "Pricing Plans"}</Link>
-            </li>
-            <li>
               <Link href="/store/demo-bakery">{language === "bn" ? "ডেমো স্টোরফ্রন্ট" : "Live Demo Store"}</Link>
             </li>
           </ul>
