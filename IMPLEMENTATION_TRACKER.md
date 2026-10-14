@@ -24,9 +24,9 @@ The target architecture outlined in the system diagrams specifies an enterprise-
 | **1. Core Platform & Storefronts** | Diagram 1 | **100%** | 🟢 Identity & roles, merchant portal tabs, admin back-office, public storefronts with cart |
 | **2. Edge & Routing Layer** | Diagram 1 | **60%** | 🟡 Edge Middleware custom domain router & subdomain resolver |
 | **3. Aggregator & Search Projections** | Diagram 1 | **5%** | 🔴 Landing page store cards only; no Aggregator, tabs, or projections |
-| **4. Store Status Enforcer State Machine** | Diagram 2 | **25%** | 🟡 Wallet UI, threshold monitoring view, and admin status enforcer in place |
+| **4. Store Status Enforcer State Machine** | Diagram 2 | **75%** | 🟢 Wallet balances in DB, live SSLCommerz top-up, auto-transition from COD_BLOCKED to ACTIVE |
 | **5. Wholesale & Billing Lifecycle** | Diagram 3 | **0%** | 🔴 No Pro plans, tier pricing, MOQ, or billing lifecycle |
-| **6. Checkout, Payments & Ledger** | Diagram 4 | **20%** | 🟡 Cart drawer, stock reservation preview, and ledger audit table UI |
+| **6. Checkout, Payments & Ledger** | Diagram 4 | **85%** | 🟢 Native SSLCommerz v4 client, 2-step checkout, split-fee settlement, COD wallet holds, double-entry ledger rows |
 | **7. Ad Manager & Sponsored Engine** | Diagram 5 | **30%** | 🟡 Merchant ad booking UI, admin moderation panel, and sponsored storefront slots |
 
 

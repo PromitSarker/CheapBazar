@@ -20,7 +20,18 @@ export async function createSession(userId: string): Promise<string> {
   const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + WEEK_MS);
   await prisma.session.create({ data: { token, userId, expiresAt } });
-  cookies().set(COOKIE, token, { httpOnly: true, sameSite: "lax", path: "/", expires: expiresAt });
+  
+  const cookieOptions: any = {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    expires: expiresAt,
+    secure: process.env.NODE_ENV === "production",
+  };
+  if (process.env.COOKIE_DOMAIN) {
+    cookieOptions.domain = process.env.COOKIE_DOMAIN;
+  }
+  cookies().set(COOKIE, token, cookieOptions);
   return token;
 }
 

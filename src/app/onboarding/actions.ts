@@ -16,7 +16,8 @@ export async function createStore(formData: FormData) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-  const template = String(formData.get("template") || "");
+  // Safari sometimes drops hidden/defaultChecked radios from FormData — default to "classic"
+  const template = String(formData.get("template") || "classic");
 
   if (!name || slug.length < 2 || !TEMPLATES.includes(template as TemplateId)) {
     redirect("/onboarding?error=invalid");

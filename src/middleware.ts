@@ -70,6 +70,8 @@ export function middleware(request: NextRequest) {
     const isPlatformPath = [
       "/login",
       "/register",
+      "/signup",
+      "/onboarding",
       "/dashboard",
       "/admin",
       "/pricing",

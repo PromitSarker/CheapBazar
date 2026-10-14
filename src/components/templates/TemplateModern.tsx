@@ -112,7 +112,7 @@ function ModernContent({
         )}
       </main>
 
-      <CartDrawer storeName={store.name} />
+      <CartDrawer storeName={store.name} storeSlug={store.slug} />
       <footer className="tpl-footer">{t.poweredBy}</footer>
     </div>
   );

@@ -26,8 +26,12 @@ export default function OnboardingPage({ searchParams }: { searchParams: { error
           </span>
         </label>
 
-        <fieldset className="template-picker">
-          <legend>Choose a template</legend>
+        {/* Hidden fallback ensures Safari always sends a template value even if
+            the defaultChecked radio isn't serialized into FormData */}
+        <input type="hidden" name="template" value="classic" />
+
+        <div className="template-picker" role="group" aria-labelledby="template-legend">
+          <p id="template-legend" className="template-picker-legend">Choose a template</p>
           <label className="template-option">
             <input type="radio" name="template" value="classic" defaultChecked />
             <div className="template-preview preview-classic">
@@ -54,7 +58,7 @@ export default function OnboardingPage({ searchParams }: { searchParams: { error
               <span className="template-name">Modern — bold hero, clean product cards</span>
             </div>
           </label>
-        </fieldset>
+        </div>
 
         <button type="submit" className="button">
           Open my store
