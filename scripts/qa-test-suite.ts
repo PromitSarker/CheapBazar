@@ -34,8 +34,9 @@ async function runTestSuite() {
   }
 
   const product = store.products[0];
+  const anyStore = store as any;
   console.log(`Testing against Store: "${store.name}" (${store.slug})`);
-  console.log(`Initial Store Wallet: ৳${store.walletBalance}, Holds: ৳${store.walletHolds}`);
+  console.log(`Initial Store Wallet: ৳${anyStore.walletBalance ?? 0}, Holds: ৳${anyStore.walletHolds ?? 0}`);
   console.log(`Product: "${product.name}" (Price: ৳${product.price}, Stock: ${product.stock})\n`);
 
   // -----------------------------------------------------------------
