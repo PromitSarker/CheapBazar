@@ -35,37 +35,37 @@ export default function LandingView({ stores }: { stores: StoreItem[] }) {
     setTimeout(() => setAddedItemName(null), 1500);
   };
 
-  // FAQ Data tailored to Bangladesh e-commerce context
+  // FAQ Data tailored for everyday Bangladeshi sellers & shoppers
   const faqs = [
     {
-      q: language === "bn" ? "চিপ-বাজারে অনলাইন শপ চালু করতে কি কোনো ফি দিতে হবে?" : "Is there any setup fee to create a store on Cheap-Bazar?",
+      q: language === "bn" ? "চিপ-বাজারে অনলাইন শপ খুলতে কি কোনো টাকা লাগে?" : "Is there any cost to create an online store on Cheap-Bazar?",
       a: language === "bn"
-        ? "না, কোনো সেটআপ ফি বা মাসিক ফি নেই! আমাদের স্টার্টার প্ল্যানে যে কেউ সম্পূর্ণ ফ্রিতে নিজের ব্র্যান্ড নামে অনলাইন শপ তৈরি করে পণ্য বিক্রি শুরু করতে পারবেন।"
-        : "No, there is zero setup fee or upfront charge! With our Starter plan, anyone can launch an online storefront for free under their own brand name."
+        ? "না! সম্পূর্ণ ফ্রিতে যে কেউ নিজের অনলাইন দোকান চালু করতে পারবেন। কোনো মাসিক ফি বা গোপন চার্জ নেই।"
+        : "No, it is 100% free! Anyone can launch their online store with zero setup fee, no monthly charge, and no credit card required."
     },
     {
-      q: language === "bn" ? "কাস্টমারদের থেকে পেমেন্ট কীভাবে গ্রহণ করব?" : "How do I collect payments from customers?",
+      q: language === "bn" ? "বিক্রির টাকা কীভাবে আমার হাতে পাব?" : "How do I receive money from customer sales?",
       a: language === "bn"
-        ? "আপনি সরাসরি বিকাশ, নগদ, রকেট, ব্যাংক ট্রান্সফার এবং সারা বাংলাদেশে ক্যাশ অন ডেলিভারি (COD) এর মাধ্যমে পেমেন্ট গ্রহণ করতে পারবেন। প্রতিটি অর্ডারের টাকা আপনার ডাবল-এন্ট্রি ওয়ালেটে জমা হবে।"
-        : "You can accept payments via bKash, Nagad, Rocket, direct Bank Transfer, or nationwide Cash on Delivery (COD). All funds settle seamlessly into your merchant double-entry wallet."
+        ? "ক্রেতারা বিকাশ, নগদ, রকেটে অনলাইনে অথবা পার্সেল পেয়ে ক্যাশে টাকা দিতে পারবে। প্রতিটি বিক্রির টাকা আপনার ওয়ালেটে জমা হবে এবং যেকোনো সময় ১ ক্লিকে আপনার নিজের বিকাশ, নগদ বা ব্যাংক একাউন্টে তুলে নিতে পারবেন।"
+        : "Customers can pay online with bKash, Nagad, Rocket, or pay Cash on Delivery. All earnings appear in your wallet, and you can withdraw them directly into your personal bKash, Nagad, or Bank account anytime."
     },
     {
-      q: language === "bn" ? "আমি কি আমার নিজস্ব ডোমেন (.com বা .com.bd) ব্যবহার করতে পারব?" : "Can I connect my own custom domain (.com or .com.bd)?",
+      q: language === "bn" ? "দোকান চালাতে কি কম্পিউটার লাগবে, নাকি মোবাইল দিয়েই চলবে?" : "Do I need a computer or can I run this on my mobile phone?",
       a: language === "bn"
-        ? "হ্যাঁ! আপনার স্টোর ডিফল্টভাবে cheapbazar.com/store/your-shop ঠিকানায় চালু হবে। এছাড়াও আমাদের ড্যাশবোর্ড সেটিংস থেকে যেকোনো সময় নিজস্ব ডোমেন যুক্ত করে এজ SSL সহ চালাতে পারবেন।"
-        : "Yes! Your store immediately gets a dedicated address like cheapbazar.com/store/your-shop, and you can map your custom domain (.com or .com.bd) with automatic edge SSL from settings."
+        ? "আপনার হাতের সাধারণ স্মার্টফোনই যথেষ্ট! মোবাইল দিয়ে ছবি তুলে আপলোড করতে পারবেন, দাম বসাতে পারবেন এবং নতুন অর্ডার দেখতে পারবেন।"
+        : "Your smartphone is completely enough! You can take photos of your products, set prices, and manage customer orders right from your mobile phone."
     },
     {
-      q: language === "bn" ? "খুচরা ও পাইকারি ডাবল প্রাইসিং কীভাবে কাজ করে?" : "How does the dual retail and wholesale pricing engine work?",
+      q: language === "bn" ? "অর্ডারের পণ্য গ্রাহকের কাছে ডেলিভারি কীভাবে করব?" : "How do I deliver products to my customers?",
       a: language === "bn"
-        ? "সাধারণ ক্রেতাদের জন্য রেগুলার রিটেইল প্রাইস থাকবে এবং পাইকারি ক্রেতাদের জন্য মিনিমাম অর্ডার কোয়ান্টিটি (MOQ) সহ বিশেষ ডিসকাউন্টেড রেট নির্ধারণ করতে পারবেন।"
-        : "You can set everyday retail rates for individual shoppers while configuring bulk wholesale pricing with Minimum Order Quantities (MOQ) for high-volume B2B buyers."
+        ? "আপনি রেডএক্স, স্টেডফাস্ট, সুন্দরবন বা আপনার পছন্দের যেকোনো লোকাল কুরিয়ার সার্ভিসের মাধ্যমে পণ্য ডেলিভারি দিতে পারবেন। গ্রাহক পার্সেল পেয়ে ক্যাশ টাকা দিলে কুরিয়ার আপনাকে টাকা দিয়ে দেবে।"
+        : "You can deliver nationwide using any local courier service (like Steadfast, RedX, Sundarban, or Paperfly). Customers pay cash when they receive the parcel."
     },
     {
-      q: language === "bn" ? "স্টক রিজার্ভেশন (১৫ মিনিট লক) বলতে কী বোঝায়?" : "What is the 15-minute stock reservation guarantee?",
+      q: language === "bn" ? "আমি কি একই সাথে খুচরা ও পাইকারি বিক্রি করতে পারব?" : "Can I sell both retail and bulk wholesale?",
       a: language === "bn"
-        ? "যখন কোনো কাস্টমার চেকআউট শুরু করে, তখন পণ্যটি অন্য কারও কাছে বিক্রি হওয়া রোধ করতে ১৫ মিনিটের জন্য লক থাকে। এতে অতিরিক্ত অর্ডার বা স্টক অমিলের ঝামেলা হয় না।"
-        : "When a customer enters the checkout flow, inventory is locked for 15 minutes to prevent overselling and inventory collisions, giving buyers time to complete payment."
+        ? "হ্যাঁ! সাধারণ ক্রেতাদের জন্য খুচরা ১ পিসের দাম দিয়ে রাখবেন, আর যারা বেশি কিনবে (যেমন ৬ বা ১২ পিস) তাদের জন্য বিশেষ পাইকারি ছাড়ের দাম সেট করে রাখতে পারবেন।"
+        : "Yes! You can set regular retail prices for individual shoppers, and also configure special discounted prices for bulk wholesale buyers who order in larger quantities."
     }
   ];
 
@@ -130,7 +130,7 @@ export default function LandingView({ stores }: { stores: StoreItem[] }) {
               </div>
               <div className="preview-address-bar">
                 <span>🔒</span>
-                <span>cheapbazar.com/store/demo-bakery</span>
+                <span>cheapbazar.com/store/tushar-fashion</span>
               </div>
               <div className="preview-template-switch">
                 <button
@@ -164,10 +164,10 @@ export default function LandingView({ stores }: { stores: StoreItem[] }) {
                 <div
                   className="preview-store-avatar"
                   style={{
-                    background: previewTemplate === "modern" ? "linear-gradient(135deg, #2563eb, #1e40af)" : "#18181b",
+                    background: previewTemplate === "modern" ? "linear-gradient(135deg, #db2777, #be185d)" : "#18181b",
                   }}
                 >
-                  🥖
+                  👗
                 </div>
                 <div className="preview-store-title">
                   <h4>
@@ -190,15 +190,15 @@ export default function LandingView({ stores }: { stores: StoreItem[] }) {
             <div className="preview-products-grid">
               {/* Product 1 */}
               <div className="preview-product-card">
-                <div className="preview-prod-img-box" style={{ background: "#fef3c7" }}>
-                  🍞
+                <div className="preview-prod-img-box" style={{ background: "#fce7f3" }}>
+                  👗
                 </div>
                 <h5 className="preview-prod-name">{t.previewItem1}</h5>
                 <p className="muted small" style={{ margin: 0 }}>
-                  {language === "bn" ? "৪৮ ঘণ্টার ফারমেন্টেশন, কাঠের চুলোয় তৈরি।" : "48-hr slow fermentation, wood-fired crust."}
+                  {language === "bn" ? "খাঁটি সুতি সুতা দিয়ে বোনা ঐতিহ্যবাহী জামদানি শাড়ি।" : "Handloom woven soft cotton authentic Jamdani saree."}
                 </p>
                 <div className="preview-prod-footer">
-                  <span className="preview-price">{formatTaka(450, language)}</span>
+                  <span className="preview-price">{formatTaka(1450, language)}</span>
                   <button
                     type="button"
                     className="preview-add-btn"
@@ -211,15 +211,15 @@ export default function LandingView({ stores }: { stores: StoreItem[] }) {
 
               {/* Product 2 */}
               <div className="preview-product-card">
-                <div className="preview-prod-img-box" style={{ background: "#ffedd5" }}>
-                  🥐
+                <div className="preview-prod-img-box" style={{ background: "#e0f2fe" }}>
+                  👔
                 </div>
                 <h5 className="preview-prod-name">{t.previewItem2}</h5>
                 <p className="muted small" style={{ margin: 0 }}>
-                  {language === "bn" ? "ফ্রেঞ্চ বাটারে ৩ দিনে স্তরযুক্ত ক্রিস্পি ক্রস্যান্ট।" : "Laminated over 3 days with French butter."}
+                  {language === "bn" ? "আরামদায়ক প্রিমিয়াম সুতি কাপড়ে নিখুঁত সুতার কাজ।" : "Comfortable premium breathable cotton with neat embroidery."}
                 </p>
                 <div className="preview-prod-footer">
-                  <span className="preview-price">{formatTaka(220, language)}</span>
+                  <span className="preview-price">{formatTaka(850, language)}</span>
                   <button
                     type="button"
                     className="preview-add-btn"
@@ -234,7 +234,9 @@ export default function LandingView({ stores }: { stores: StoreItem[] }) {
             {/* Preview Footer Strip */}
             <div className="preview-footer-strip">
               <span>{t.previewCartReserved}</span>
-              <span className="small">⚡ 24hr Fast Courier Delivery</span>
+              <span className="small">
+                {language === "bn" ? "🚚 সারা দেশে দ্রুত হোম ডেলিভারি" : "🚚 Fast Nationwide Home Delivery"}
+              </span>
             </div>
           </div>
         </div>
@@ -430,14 +432,14 @@ export default function LandingView({ stores }: { stores: StoreItem[] }) {
             <div className="testimonial-stars">★★★★★</div>
             <p className="testimonial-quote">
               {language === "bn"
-                ? "“আমরা মাত্র ৫ মিনিটে আমাদের বেকারি অনলাইন করেছি। কাস্টমাররা সরাসরি বিকাশ বা ক্যাশ অন ডেলিভারিতে অর্ডার করতে পারছে। প্রথম সপ্তাহেই আমাদের বিক্রি ৫০% বৃদ্ধি পেয়েছে!”"
-                : "“We took our artisan bakery online in just 5 minutes. Customers can order seamlessly with bKash or COD. Our weekly sales increased by over 50%!”"}
+                ? "“আমরা মাত্র ৫ মিনিটে আমাদের বুটিক শপ অনলাইন করেছি। কাস্টমাররা সরাসরি বিকাশ বা ক্যাশ অন ডেলিভারিতে অর্ডার করতে পারছে। প্রথম মাসেই আমাদের বিক্রি দ্বিগুণ হয়ে গেছে!”"
+                : "“We took our boutique shop online in just 5 minutes. Customers can order seamlessly with bKash or COD. Our monthly sales doubled in the very first month!”"}
             </p>
             <div className="testimonial-author">
               <div className="author-avatar">TR</div>
               <div className="author-meta">
                 <strong>{language === "bn" ? "তানভীর রহমান" : "Tanvir Rahman"}</strong>
-                <span>{language === "bn" ? "মালিক, ঢাকা ক্রাফটস বেকারি" : "Founder, Dhaka Crafts"}</span>
+                <span>{language === "bn" ? "স্বত্বাধিকারী, রূপালী ফ্যাশন" : "Owner, Rupali Fashion"}</span>
               </div>
             </div>
           </div>
@@ -447,14 +449,14 @@ export default function LandingView({ stores }: { stores: StoreItem[] }) {
             <div className="testimonial-stars">★★★★★</div>
             <p className="testimonial-quote">
               {language === "bn"
-                ? "“খুচরা এবং পাইকারি দুটি আলাদা প্রাইসিং একসাথে পরিচালনা করার সুবিধা চিপ-বাজারের চেয়ে ভালো কোথাও পাইনি। ডাবল-এন্ট্রি লেজার আমার প্রতিটি টাকার নিখুঁত হিসাব রাখে।”"
-                : "“The dual retail and wholesale engine is phenomenal. I can supply bulk buyers and retail shoppers simultaneously without accounting mistakes.”"}
+                ? "“একই দোকানে সাধারণ ক্রেতাদের কাছে খুচরা আবার পাইকারি ব্যবসায়ীদের কাছে একসাথে বেশি পণ্য বিক্রি করতে পারছি। বিক্রির লাভ ও টাকার হিসাব ড্যাশবোর্ডে একদম পরিষ্কার থাকে—কোনো ভুল হয় না!”"
+                : "“I can easily sell single pieces to retail shoppers and bulk orders to wholesale clients from the same shop. The sales and profit calculations in the dashboard are crystal clear!”"}
             </p>
             <div className="testimonial-author">
               <div className="author-avatar" style={{ background: "linear-gradient(135deg, #10b981, #047857)" }}>FA</div>
               <div className="author-meta">
                 <strong>{language === "bn" ? "ফারজানা আক্তার" : "Farzana Akter"}</strong>
-                <span>{language === "bn" ? "স্বত্বাধিকারী, চট্টগ্রাম ফ্যাব্রিক হাব" : "Owner, CTG Fabric Hub"}</span>
+                <span>{language === "bn" ? "স্বত্বাধিকারী, চট্টগ্রাম ফেব্রিক হাব" : "Owner, CTG Fabric Hub"}</span>
               </div>
             </div>
           </div>
@@ -464,14 +466,14 @@ export default function LandingView({ stores }: { stores: StoreItem[] }) {
             <div className="testimonial-stars">★★★★★</div>
             <p className="testimonial-quote">
               {language === "bn"
-                ? "“১৫ মিনিটের স্টক রিজার্ভেশন ফিচারটি অসাধারণ। ফেসবুক লাইভে একসাথে শত শত কাস্টমার অর্ডার করলেও স্টক ডুপ্লিকেট হয় না। একদম নিশ্চিন্তে ব্যবসা চালাচ্ছি।”"
-                : "“The 15-minute stock hold feature is incredible. Even when we get massive surges during social sales, inventory never duplicates or oversells.”"}
+                ? "“ফেসবুক পেজে আগে ইনবক্সে মেসেজ সামলাতে দিনরাত শেষ হয়ে যেত। এখন কাস্টমারকে শুধু দোকানের লিঙ্ক পাঠিয়ে দিই, তারা নিজেরাই সাইজ ও রঙ দেখে অর্ডার করে ফেলে। সময় বেঁচে যায় এবং নিশ্চিন্তে ব্যবসা চালাচ্ছি।”"
+                : "“Handling hundreds of Facebook inbox messages used to take all day. Now I just share my store link and customers place their own orders. It saves hours of time and makes running the business stress-free!”"}
             </p>
             <div className="testimonial-author">
               <div className="author-avatar" style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)" }}>SA</div>
               <div className="author-meta">
                 <strong>{language === "bn" ? "সাইফুল আলম" : "Saiful Alam"}</strong>
-                <span>{language === "bn" ? "প্রতিষ্ঠাতা, সিলেট অর্গানিক হানি" : "Founder, Sylhet Organics"}</span>
+                <span>{language === "bn" ? "প্রতিষ্ঠাতা, সুন্দরবন অর্গানিক হানি" : "Founder, Sundarban Organics"}</span>
               </div>
             </div>
           </div>

@@ -18,10 +18,10 @@ export default function SiteFooter() {
           <p>{t.footerAbout}</p>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem" }}>
             <span style={{ fontSize: "0.75rem", background: "rgba(16, 185, 129, 0.1)", color: "#059669", padding: "3px 8px", borderRadius: "99px", fontWeight: 600 }}>
-              ✓ Postgres RLS Isolated
+              {language === "bn" ? "🔒 ১০০% সুরক্ষিত ও নিরাপদ" : "🔒 100% Safe & Secure"}
             </span>
             <span style={{ fontSize: "0.75rem", background: "rgba(59, 130, 246, 0.1)", color: "#2563eb", padding: "3px 8px", borderRadius: "99px", fontWeight: 600 }}>
-              🇧🇩 BDT (৳) Native
+              {language === "bn" ? "🇧🇩 ৬৪ জেলায় ডেলিভারি সুবিধা" : "🇧🇩 All 64 Districts Supported"}
             </span>
           </div>
         </div>
@@ -37,7 +37,7 @@ export default function SiteFooter() {
               <Link href="/signup">{t.createStore}</Link>
             </li>
             <li>
-              <Link href="/store/demo-bakery">{language === "bn" ? "ডেমো স্টোরফ্রন্ট" : "Live Demo Store"}</Link>
+              <Link href="/signup">{language === "bn" ? "১ মিনিটে শুরু করুন" : "Start in 1 Minute"}</Link>
             </li>
           </ul>
         </div>
@@ -72,13 +72,13 @@ export default function SiteFooter() {
               <Link href="/admin">{t.adminPortal}</Link>
             </li>
             <li>
-              <span className="small muted">{language === "bn" ? "ডাবল-এন্ট্রি লেজার ইঞ্জিন" : "Double-Entry Ledger"}</span>
+              <span className="small muted">{language === "bn" ? "টাকার শতভাগ সঠিক হিসাব" : "Accurate Balance & Accounts"}</span>
             </li>
             <li>
-              <span className="small muted">{language === "bn" ? "১৫-মিনিট স্টক লক গ্যারান্টি" : "15-Min Stock Lock"}</span>
+              <span className="small muted">{language === "bn" ? "বিকাশ ও ব্যাংক উত্তোলন" : "Direct bKash & Bank Payouts"}</span>
             </li>
             <li>
-              <span className="small muted">{language === "bn" ? "এজ ডোমেন রাউটার" : "Edge Tenant Resolver"}</span>
+              <span className="small muted">{language === "bn" ? "সারা দেশে ক্যাশ অন ডেলিভারি" : "Nationwide Cash on Delivery"}</span>
             </li>
           </ul>
         </div>
