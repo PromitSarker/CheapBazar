@@ -16,6 +16,11 @@ export class SSLCommerzClient {
     this.storeId = process.env.SSLCOMMERZ_STORE_ID || "testbox";
     this.storePasswd = process.env.SSLCOMMERZ_STORE_PASSWORD || "qwerty";
     this.isLive = process.env.SSLCOMMERZ_IS_LIVE === "true";
+
+    if (this.isLive && (!process.env.SSLCOMMERZ_STORE_ID || this.storeId === "testbox")) {
+      console.error("[SSLCommerzClient] CRITICAL: Live environment configured without valid SSLCOMMERZ_STORE_ID credentials!");
+    }
+
     this.baseUrl = this.isLive
       ? "https://securepay.sslcommerz.com"
       : "https://sandbox.sslcommerz.com";
@@ -139,6 +144,8 @@ export class SSLCommerzClient {
       bank_tran_id: params.bank_tran_id,
       refund_amount: String(params.refund_amount),
       refund_remarks: params.refund_remarks,
+      refund_trans_id: params.re_id,
+      refe_id: params.re_id,
       re_id: params.re_id,
       store_id: this.storeId,
       store_passwd: this.storePasswd,

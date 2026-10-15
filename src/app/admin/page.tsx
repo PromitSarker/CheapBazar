@@ -76,6 +76,17 @@ export default async function AdminOverviewPage() {
             Manage Users &rarr;
           </Link>
         </div>
+
+        <div className="card" style={{ padding: "1.5rem" }}>
+          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>💸</div>
+          <h3>Disbursements & Payouts</h3>
+          <p className="muted" style={{ fontSize: "0.9rem", marginBottom: "1.25rem" }}>
+            Review seller withdrawal requests, verify Bank and bKash destinations, and export BEFTN bulk files.
+          </p>
+          <Link href="/admin/payouts" className="button button-small button-outline">
+            Review Payouts &rarr;
+          </Link>
+        </div>
       </div>
     </div>
   );

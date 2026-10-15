@@ -55,14 +55,19 @@ export async function GET(request: Request) {
       const result = await sslcommerzService.handlePaymentValidation(valId, tranId);
       if (result.purpose === "STORE_ORDER" && result.storeSlug && result.orderNumber) {
         return NextResponse.redirect(
-          new URL(`/store/${result.storeSlug}/order/${result.orderNumber}?status=success`, APP_URL)
+          new URL(`/store/${result.storeSlug}/order/${result.orderNumber}?status=success`, APP_URL),
+          { status: 303 }
         );
       }
-      return NextResponse.redirect(new URL("/dashboard/wallet?status=topup_success", APP_URL));
-    } catch (e) {
-      // fallback
+      return NextResponse.redirect(new URL("/dashboard/wallet?status=topup_success", APP_URL), { status: 303 });
+    } catch (e: any) {
+      console.error("[SSLCommerz:success/GET] Validation error:", e);
+      return NextResponse.redirect(
+        new URL(`/payment/status?status=failed&error=${encodeURIComponent(e.message || "validation_error")}`, APP_URL),
+        { status: 303 }
+      );
     }
   }
 
-  return NextResponse.redirect(new URL("/payment/status?status=success", APP_URL));
+  return NextResponse.redirect(new URL("/payment/status?status=success", APP_URL), { status: 303 });
 }

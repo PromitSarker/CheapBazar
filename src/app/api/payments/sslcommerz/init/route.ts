@@ -14,6 +14,21 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Missing orderId" }, { status: 400 });
       }
 
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+      });
+
+      if (!order) {
+        return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      }
+
+      if (order.status !== "PENDING_PAYMENT") {
+        return NextResponse.json(
+          { error: `Order is not awaiting payment (current status: ${order.status})` },
+          { status: 400 }
+        );
+      }
+
       const result = await sslcommerzService.initiateOrderCheckout(orderId);
       return NextResponse.json(result);
     }

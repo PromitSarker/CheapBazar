@@ -263,15 +263,13 @@ export class SSLCommerzService {
           data: { status: "CONFIRMED" },
         });
 
-        // Decrement Product stock
+        // Decrement Product stock safely
         for (const item of order.items) {
+          const prod = await tx.product.findUnique({ where: { id: item.productId } });
+          const newStock = Math.max(0, (prod?.stock ?? 0) - item.quantity);
           await tx.product.update({
             where: { id: item.productId },
-            data: {
-              stock: {
-                decrement: item.quantity,
-              },
-            },
+            data: { stock: newStock },
           });
         }
 

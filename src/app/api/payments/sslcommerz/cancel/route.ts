@@ -25,8 +25,12 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const tranId = searchParams.get("tran_id") || "";
-  if (tranId) {
-    await sslcommerzService.handlePaymentFailure(tranId, "CANCELLED");
+  try {
+    if (tranId) {
+      await sslcommerzService.handlePaymentFailure(tranId, "CANCELLED");
+    }
+  } catch (error) {
+    console.error("[SSLCommerz:cancel/GET] Error:", error);
   }
-  return NextResponse.redirect(new URL(`/payment/status?status=cancelled&tran_id=${tranId}`, APP_URL));
+  return NextResponse.redirect(new URL(`/payment/status?status=cancelled&tran_id=${tranId}`, APP_URL), { status: 303 });
 }

@@ -38,17 +38,38 @@ export async function createSession(userId: string): Promise<string> {
 export async function getCurrentUser(): Promise<UserSession | null> {
   const token = cookies().get(COOKIE)?.value;
   if (!token) return null;
-  const session = await prisma.session.findUnique({
-    where: { token },
-    include: { user: true },
-  });
-  if (!session || session.expiresAt < new Date()) return null;
-  return {
-    id: session.user.id,
-    email: session.user.email,
-    name: session.user.name,
-    role: session.user.role as UserRole,
-  };
+  try {
+    const session = await prisma.session.findUnique({
+      where: { token },
+      include: { user: true },
+    });
+    if (!session || session.expiresAt < new Date()) return null;
+    return {
+      id: session.user.id,
+      email: session.user.email,
+      name: session.user.name,
+      role: session.user.role as UserRole,
+    };
+  } catch (err: any) {
+    console.warn("[getCurrentUser] Transient DB connection error, retrying...", err?.message);
+    try {
+      await new Promise((r) => setTimeout(r, 400));
+      const session = await prisma.session.findUnique({
+        where: { token },
+        include: { user: true },
+      });
+      if (!session || session.expiresAt < new Date()) return null;
+      return {
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+        role: session.user.role as UserRole,
+      };
+    } catch (retryErr) {
+      console.error("[getCurrentUser] DB unreachable after retry:", retryErr);
+      return null;
+    }
+  }
 }
 
 export async function requireUser(): Promise<UserSession> {
@@ -68,6 +89,12 @@ export async function requireRole(allowedRoles: UserRole | UserRole[]): Promise<
 
 export async function destroySession(): Promise<void> {
   const token = cookies().get(COOKIE)?.value;
-  if (token) await prisma.session.deleteMany({ where: { token } });
+  if (token) {
+    try {
+      await prisma.session.deleteMany({ where: { token } });
+    } catch (e) {
+      console.warn("[destroySession] Error deleting session token:", e);
+    }
+  }
   cookies().delete(COOKIE);
 }

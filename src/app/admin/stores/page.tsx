@@ -18,107 +18,132 @@ export default async function AdminStoresPage() {
         </span>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+      <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid #e2e8f0", backgroundColor: "#ffffff" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
-              <th style={{ padding: "0.85rem 1rem" }}>Store</th>
-              <th style={{ padding: "0.85rem 1rem" }}>Owner</th>
-              <th style={{ padding: "0.85rem 1rem" }}>Custom Domain</th>
-              <th style={{ padding: "0.85rem 1rem" }}>Catalog</th>
-              <th style={{ padding: "0.85rem 1rem" }}>KYC Status</th>
-              <th style={{ padding: "0.85rem 1rem" }}>Lifecycle Status</th>
-              <th style={{ padding: "0.85rem 1rem" }}>Actions</th>
+            <tr style={{ borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Store</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Owner</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Custom Domain</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Catalog</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>KYC Status</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Lifecycle Status</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {stores.map((s) => (
-              <tr key={s.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                <td style={{ padding: "0.85rem 1rem" }}>
-                  <strong style={{ display: "block" }}>{s.name}</strong>
-                  <a href={`/store/${s.slug}`} target="_blank" rel="noreferrer" style={{ fontSize: "0.8rem", color: "#38bdf8" }}>
+              <tr key={s.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                <td style={{ padding: "0.9rem 1.1rem" }}>
+                  <strong style={{ display: "block", color: "#0f172a" }}>{s.name}</strong>
+                  <a href={`/store/${s.slug}`} target="_blank" rel="noreferrer" style={{ fontSize: "0.82rem", color: "#0284c7", fontWeight: 500 }}>
                     /store/{s.slug} ↗
                   </a>
                 </td>
-                <td style={{ padding: "0.85rem 1rem" }}>
-                  <div>{s.owner.name}</div>
-                  <small className="muted">{s.owner.email}</small>
+                <td style={{ padding: "0.9rem 1.1rem" }}>
+                  <div style={{ fontWeight: 600, color: "#0f172a" }}>{s.owner.name}</div>
+                  <small style={{ color: "#64748b" }}>{s.owner.email}</small>
                 </td>
-                <td style={{ padding: "0.85rem 1rem", fontSize: "0.85rem", color: s.customDomain ? "#38bdf8" : "#71717a" }}>
+                <td style={{ padding: "0.9rem 1.1rem", fontSize: "0.85rem", color: s.customDomain ? "#0284c7" : "#94a3b8" }}>
                   {s.customDomain || "None"}
                 </td>
-                <td style={{ padding: "0.85rem 1rem" }}>
+                <td style={{ padding: "0.9rem 1.1rem", color: "#334155" }}>
                   {s._count.products} products ({s.template})
                 </td>
-                <td style={{ padding: "0.85rem 1rem" }}>
+                <td style={{ padding: "0.9rem 1.1rem" }}>
                   <form action={toggleStoreKYC}>
                     <input type="hidden" name="storeId" value={s.id} />
                     <input type="hidden" name="currentKyc" value={s.kycVerified ? "true" : "false"} />
                     <button
                       type="submit"
                       style={{
-                        background: "none",
-                        border: "none",
+                        background: s.kycVerified ? "#f0fdf4" : "#fefce8",
+                        border: s.kycVerified ? "1px solid #bbf7d0" : "1px solid #fef08a",
+                        borderRadius: "6px",
                         cursor: "pointer",
-                        padding: 0,
-                        fontSize: "0.8rem",
-                        fontWeight: 600,
-                        color: s.kycVerified ? "#4ade80" : "#facc15",
+                        padding: "0.25rem 0.55rem",
+                        fontSize: "0.78rem",
+                        fontWeight: 700,
+                        color: s.kycVerified ? "#15803d" : "#a16207",
                       }}
                     >
                       {s.kycVerified ? "✅ Verified" : "⏳ Pending"}
                     </button>
                   </form>
                 </td>
-                <td style={{ padding: "0.85rem 1rem" }}>
+                <td style={{ padding: "0.9rem 1.1rem" }}>
                   <span
                     style={{
                       display: "inline-block",
                       fontSize: "0.75rem",
-                      fontWeight: 600,
-                      padding: "0.2rem 0.5rem",
-                      borderRadius: "4px",
+                      fontWeight: 700,
+                      padding: "0.25rem 0.55rem",
+                      borderRadius: "6px",
                       backgroundColor:
                         s.status === "ACTIVE"
-                          ? "rgba(34, 197, 94, 0.15)"
+                          ? "#f0fdf4"
                           : s.status === "WARNING"
-                          ? "rgba(234, 179, 8, 0.15)"
-                          : "rgba(239, 68, 68, 0.15)",
+                          ? "#fefce8"
+                          : "#fef2f2",
                       color:
                         s.status === "ACTIVE"
-                          ? "#4ade80"
+                          ? "#15803d"
                           : s.status === "WARNING"
-                          ? "#facc15"
-                          : "#f87171",
+                          ? "#a16207"
+                          : "#b91c1c",
+                      border:
+                        s.status === "ACTIVE"
+                          ? "1px solid #bbf7d0"
+                          : s.status === "WARNING"
+                          ? "1px solid #fef08a"
+                          : "1px solid #fecaca",
                     }}
                   >
                     ● {s.status}
                   </span>
                 </td>
-                <td style={{ padding: "0.85rem 1rem" }}>
-                  <form action={changeStoreStatus} style={{ display: "flex", gap: "0.5rem" }}>
+                <td style={{ padding: "0.9rem 1.1rem" }}>
+                  <form action={changeStoreStatus} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <input type="hidden" name="storeId" value={s.id} />
                     <select
                       name="status"
                       defaultValue={s.status}
                       style={{
-                        padding: "0.3rem 0.5rem",
-                        fontSize: "0.8rem",
-                        background: "rgba(255,255,255,0.06)",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        borderRadius: "4px",
-                        color: "white",
+                        padding: "0.4rem 0.75rem",
+                        fontSize: "0.82rem",
+                        fontWeight: 600,
+                        backgroundColor: "#ffffff",
+                        border: "1.5px solid #cbd5e1",
+                        borderRadius: "6px",
+                        color: "#0f172a",
+                        cursor: "pointer",
+                        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+                        outline: "none",
                       }}
                     >
-                      <option value="ACTIVE">ACTIVE</option>
-                      <option value="WARNING">WARNING</option>
-                      <option value="COD_BLOCKED">COD_BLOCKED</option>
-                      <option value="PAUSED">PAUSED</option>
-                      <option value="DELISTED">DELISTED</option>
-                      <option value="SUSPENDED">SUSPENDED</option>
-                      <option value="BANNED">BANNED</option>
+                      <option value="ACTIVE" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>ACTIVE</option>
+                      <option value="WARNING" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>WARNING</option>
+                      <option value="COD_BLOCKED" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>COD_BLOCKED</option>
+                      <option value="PAUSED" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>PAUSED</option>
+                      <option value="DELISTED" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>DELISTED</option>
+                      <option value="SUSPENDED" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>SUSPENDED</option>
+                      <option value="BANNED" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>BANNED</option>
                     </select>
-                    <button type="submit" className="button button-small" style={{ padding: "0.3rem 0.6rem", fontSize: "0.75rem" }}>
+                    <button
+                      type="submit"
+                      className="button button-small"
+                      style={{
+                        padding: "0.4rem 0.8rem",
+                        fontSize: "0.78rem",
+                        fontWeight: 600,
+                        backgroundColor: "#09090b",
+                        color: "#ffffff",
+                        borderRadius: "6px",
+                        border: "none",
+                        cursor: "pointer",
+                        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+                      }}
+                    >
                       Set
                     </button>
                   </form>
