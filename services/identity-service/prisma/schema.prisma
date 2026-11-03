@@ -1,0 +1,78 @@
+// identity-service: authentication, sessions, users/roles, and the Store tenant
+// record (name, slug, template, custom domain, KYC). Owns identity_db.
+// Store STATUS and WALLET live in ledger-service, not here.
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SELLER
+  BUYER
+  ADMIN
+  PRO_BUYER
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         Role      @default(SELLER)
+  sessions     Session[]
+  store        Store?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// Only a SHA-256 of the session token is stored: a DB leak cannot be replayed.
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Store {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  customDomain String?  @unique
+  template     String   @default("classic") // "classic" | "modern"
+  kycVerified  Boolean  @default(false)
+  ownerId      String   @unique
+  owner        User     @relation(fields: [ownerId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model OutboxMessage {
+  id          String    @id
+  eventId     String
+  consumer    String
+  eventType   String
+  envelope    Json
+  attempts    Int       @default(0)
+  availableAt DateTime  @default(now())
+  deliveredAt DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([deliveredAt, availableAt])
+}
+
+model ProcessedEvent {
+  eventId     String   @id
+  eventType   String
+  processedAt DateTime @default(now())
+}
