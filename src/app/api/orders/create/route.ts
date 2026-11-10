@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sslcommerzService } from "@/modules/payments/sslcommerz/service";
 import { RateLimiter, clientIp } from "@/lib/security/ratelimit";
+import { servicesEnabled } from "@/lib/bff/client";
+import { placeOrderViaServices } from "@/lib/bff/orders";
+import { currentUserViaService } from "@/lib/bff/session";
 
 // COD griefing guard. Per-IP is best effort (X-Forwarded-For is spoofable on a direct
 // connection), so per-phone and a per-store ceiling back it up.
@@ -36,6 +39,16 @@ export async function POST(request: Request) {
       !ordersByStore.allow(String(storeSlug))
     ) {
       return NextResponse.json({ error: "Too many orders. Please wait a few minutes and try again." }, { status: 429 });
+    }
+
+    // Services path (USE_SERVICES=true): order-service decides prices, stock, fees and wallet holds.
+    if (servicesEnabled()) {
+      const buyer = await currentUserViaService();
+      const r = await placeOrderViaServices(body, {
+        buyerId: buyer?.id ?? null,
+        idempotencyKey: request.headers.get("idempotency-key") || undefined,
+      });
+      return NextResponse.json(r.body, { status: r.status });
     }
 
     const store = await prisma.store.findUnique({
