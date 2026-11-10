@@ -7,7 +7,7 @@ import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { logout } from "@/app/(auth)/actions";
 import type { UserSession } from "@/modules/identity/types";
 
-export default function SiteHeader({ user, marketplace = false }: { user: UserSession | null; marketplace?: boolean }) {
+export default function SiteHeader({ user, marketplace = false, unread = 0 }: { user: UserSession | null; marketplace?: boolean; unread?: number }) {
   const { t, language } = useLanguage();
 
   return (
@@ -27,6 +27,21 @@ export default function SiteHeader({ user, marketplace = false }: { user: UserSe
             )}
             {marketplace && user && user.role !== "ADMIN" && (
               <Link href="/orders" className="nav-link">My orders</Link>
+            )}
+            {marketplace && user && (
+              <Link
+                href="/notifications"
+                className="nav-link"
+                aria-label={(language === "bn" ? "নোটিফিকেশন" : "Notifications") + (unread > 0 ? ` (${unread})` : "")}
+                style={{ position: "relative" }}
+              >
+                🔔
+                {unread > 0 && (
+                  <span data-testid="bell-count" style={{ position: "absolute", top: -6, right: -8, background: "#ef4444", color: "#fff", borderRadius: 999, fontSize: "0.65rem", fontWeight: 700, minWidth: 16, height: 16, lineHeight: "16px", textAlign: "center", padding: "0 4px" }}>
+                    {unread > 99 ? "99+" : unread}
+                  </span>
+                )}
+              </Link>
             )}
             {user ? (
               <>
