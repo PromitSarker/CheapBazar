@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireStore } from "@/lib/tenant";
+import { servicesEnabled } from "@/lib/bff/client";
+import { addPayoutMethodViaServices, listPayoutMethodsViaServices, deletePayoutMethodViaServices } from "@/lib/bff/wallet";
 import type { PayoutMethodType, PayoutAccountType } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +10,11 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const store = await requireStore();
+
+    if (servicesEnabled()) {
+      const r = await listPayoutMethodsViaServices(store.id);
+      return NextResponse.json(r.body, { status: r.status });
+    }
 
     const methods = await prisma.storePayoutMethod.findMany({
       where: { storeId: store.id, isArchived: false },
@@ -53,6 +60,11 @@ export async function POST(request: Request) {
 
     if (!type) {
       return NextResponse.json({ error: "Payout method type is required" }, { status: 400 });
+    }
+
+    if (servicesEnabled()) {
+      const r = await addPayoutMethodViaServices(store.id, body);
+      return NextResponse.json(r.body, { status: r.status });
     }
 
     // Validation for Mobile Financial Services (MFS)
@@ -141,6 +153,11 @@ export async function DELETE(request: Request) {
 
     if (!id) {
       return NextResponse.json({ error: "Missing payout method ID" }, { status: 400 });
+    }
+
+    if (servicesEnabled()) {
+      const r = await deletePayoutMethodViaServices(store.id, id);
+      return NextResponse.json(r.body, { status: r.status });
     }
 
     // Check if any pending withdrawals are linked to this method

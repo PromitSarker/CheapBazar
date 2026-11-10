@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { TEMPLATES, TemplateId } from "@/lib/constants";
+import { servicesEnabled } from "@/lib/bff/client";
+import { getCurrentStore } from "@/lib/tenant";
+import { updateStoreViaServices } from "@/lib/bff/wallet";
 
 export async function updateStore(formData: FormData) {
   const user = await getCurrentUser();
@@ -23,6 +26,13 @@ export async function updateStore(formData: FormData) {
     redirect("/dashboard/settings?error=invalid");
   }
   
+  if (servicesEnabled()) {
+    const mine = await getCurrentStore();
+    if (!mine) redirect("/onboarding");
+    const r = await updateStoreViaServices(mine.id, user.id, { name, slug, template, customDomain });
+    redirect(r === "ok" ? "/dashboard/settings?success=1" : `/dashboard/settings?error=${r}`);
+  }
+
   const existingStore = await prisma.store.findUnique({ where: { slug } });
   
   if (existingStore && existingStore.ownerId !== user.id) {

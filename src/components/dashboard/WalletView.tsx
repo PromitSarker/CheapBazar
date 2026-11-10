@@ -47,6 +47,9 @@ interface WalletViewProps {
   initialPayoutMethods?: PayoutMethodItem[];
   initialWithdrawals?: WithdrawalItem[];
   initialStatusAlert?: string;
+  /** Services mode: top-ups are manual (pay the platform, submit the transaction id, admin approves). */
+  manualTopUp?: boolean;
+  topUpInstructions?: string;
 }
 
 export default function WalletView({
@@ -58,6 +61,8 @@ export default function WalletView({
   initialPayoutMethods = [],
   initialWithdrawals = [],
   initialStatusAlert,
+  manualTopUp = false,
+  topUpInstructions = "",
 }: WalletViewProps) {
   const { t, formatMoney, toNumerals } = useLanguage();
 
@@ -67,6 +72,9 @@ export default function WalletView({
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isLoadingTopUp, setIsLoadingTopUp] = useState(false);
   const [topUpError, setTopUpError] = useState<string | null>(null);
+  const [topUpMethod, setTopUpMethod] = useState("BKASH");
+  const [topUpTrxId, setTopUpTrxId] = useState("");
+  const [topUpDone, setTopUpDone] = useState<string | null>(null);
 
   // Payout Methods state
   const [payoutMethods, setPayoutMethods] = useState<PayoutMethodItem[]>(initialPayoutMethods);
@@ -153,6 +161,25 @@ export default function WalletView({
 
     setIsLoadingTopUp(true);
     setTopUpError(null);
+
+    if (manualTopUp) {
+      try {
+        const res = await fetch("/api/wallet/topup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: finalAmount, method: topUpMethod, trxId: topUpTrxId }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Could not submit the top-up.");
+        setTopUpDone("Top-up submitted. Your wallet is credited as soon as an admin confirms the payment.");
+        setTopUpTrxId("");
+      } catch (err: any) {
+        setTopUpError(err.message || "Could not submit the top-up.");
+      } finally {
+        setIsLoadingTopUp(false);
+      }
+      return;
+    }
 
     try {
       const res = await fetch("/api/payments/sslcommerz/init", {
@@ -1213,6 +1240,20 @@ export default function WalletView({
               Add funds in Bangladeshi Taka (৳ BDT) to keep your available balance above COD thresholds and maintain an Active storefront.
             </p>
 
+            {topUpDone && (
+              <div style={{
+                backgroundColor: "rgba(74, 222, 128, 0.15)",
+                border: "1px solid rgba(74, 222, 128, 0.3)",
+                color: "#4ade80",
+                padding: "0.75rem",
+                borderRadius: "6px",
+                fontSize: "0.85rem",
+                marginBottom: "1rem",
+              }}>
+                {topUpDone}
+              </div>
+            )}
+
             {topUpError && (
               <div style={{
                 backgroundColor: "rgba(239, 68, 68, 0.15)",
@@ -1274,6 +1315,40 @@ export default function WalletView({
               </div>
             </div>
 
+            {manualTopUp ? (
+              <div style={{ marginBottom: "1.5rem" }}>
+                <div style={{
+                  backgroundColor: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  borderRadius: "6px",
+                  padding: "0.75rem",
+                  fontSize: "0.8rem",
+                  color: "#a1a1aa",
+                  marginBottom: "0.75rem",
+                }}>
+                  Send the amount to the platform account, then enter the payment method and the transaction ID below.{" "}
+                  {topUpInstructions || "Ask support for the platform's payment account details."}
+                </div>
+                <select
+                  value={topUpMethod}
+                  onChange={(e) => setTopUpMethod(e.target.value)}
+                  style={{ width: "100%", padding: "0.6rem 0.75rem", borderRadius: "6px", marginBottom: "0.5rem", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }}
+                >
+                  <option value="BKASH">bKash</option>
+                  <option value="NAGAD">Nagad</option>
+                  <option value="ROCKET">Rocket</option>
+                  <option value="BANK">Bank transfer</option>
+                  <option value="CASH">Cash</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder="Transaction ID (TrxID)"
+                  value={topUpTrxId}
+                  onChange={(e) => setTopUpTrxId(e.target.value)}
+                  style={{ width: "100%", padding: "0.6rem 0.75rem", borderRadius: "6px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: "0.9rem" }}
+                />
+              </div>
+            ) : (
             <div style={{
               backgroundColor: "rgba(255,255,255,0.02)",
               border: "1px solid rgba(255,255,255,0.06)",
@@ -1285,6 +1360,7 @@ export default function WalletView({
             }}>
               🔒 Payment Gateway: <strong>SSLCommerz</strong> (Supported: bKash, Nagad, Rocket, VISA, Mastercard, Amex, DBBL Nexus).
             </div>
+            )}
 
             <button
               type="button"
@@ -1293,7 +1369,11 @@ export default function WalletView({
               className="button glow-button"
               style={{ width: "100%", padding: "0.85rem", fontSize: "1rem" }}
             >
-              {isLoadingTopUp
+              {manualTopUp
+                ? isLoadingTopUp
+                  ? "Submitting..."
+                  : `Submit ${formatMoney(customAmount ? parseFloat(customAmount) || 0 : topUpAmount)} top-up for review`
+                : isLoadingTopUp
                 ? "Connecting SSLCommerz..."
                 : `Pay ${formatMoney(customAmount ? parseFloat(customAmount) || 0 : topUpAmount)} via SSLCommerz`}
             </button>

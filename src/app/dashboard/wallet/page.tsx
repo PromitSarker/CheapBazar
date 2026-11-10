@@ -1,6 +1,8 @@
 import { requireStore } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
 import WalletView from "@/components/dashboard/WalletView";
+import { servicesEnabled } from "@/lib/bff/client";
+import { walletPageData } from "@/lib/bff/wallet";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +12,24 @@ export default async function WalletPage({
   searchParams?: { status?: string };
 }) {
   const store = await requireStore();
+
+  if (servicesEnabled()) {
+    const d = await walletPageData(store.id);
+    return (
+      <WalletView
+        storeId={store.id}
+        storeStatus={d.wallet.status}
+        totalBalance={d.wallet.balance}
+        walletHolds={d.wallet.holds}
+        initialLedgerEntries={d.ledgerEntries}
+        initialPayoutMethods={d.payoutMethods as any}
+        initialWithdrawals={d.withdrawals}
+        initialStatusAlert={searchParams?.status}
+        manualTopUp
+        topUpInstructions={process.env.TOPUP_INSTRUCTIONS || ""}
+      />
+    );
+  }
 
   const fullStore = await prisma.store.findUnique({
     where: { id: store.id },
