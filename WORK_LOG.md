@@ -3,6 +3,16 @@
 Notes on what was done to this project and its servers, newest first. No secrets are recorded here.
 Commits are authored as `Claude <noreply@anthropic.com>` (owner's instruction, 2026-11-10).
 
+## 2026-11-10 (chunk 12): notification bell and inbox (behind USE_SERVICES)
+
+- **Bell in the header** (logged-in users, services path only): a 🔔 with a red unread-count badge (99+ cap) linking to `/notifications`. The root layout asks notification-service for the count with a 1.2 s timeout and falls back to 0, so a notification outage can never slow down or break a page.
+- **`/notifications`** (404 while the flag is off; login required): the user's inbox, newest first, unread items marked with a blue edge, in English or Bengali following the `sf_lang` cookie (the service stores both). "Open" marks the item read and goes to its page (order list, wallet, ads, products...); "Mark all as read" clears the lot and disappears when nothing is unread.
+- **Safety:** the user id always comes from the session. "Open" looks the notification up in THAT user's own inbox and follows the link stored with it, never one posted in the form, so another user posting your notification id does nothing. Links are checked by `safeLink`: only same-site paths; `//host`, `https://`, `javascript:` and similar are ignored (the item is just marked read and the user stays on the inbox). Unit test `tests/web/notifications.test.ts` (web unit: 11).
+- `src/lib/bff/notifications.ts`, `src/app/notifications/{page,actions}`, `SiteHeader` (`unread` prop), root `layout.tsx`. No service code changed; the notification service already had the inbox API, templates and dedupe.
+- `scripts/e2e-bell.mjs`: 15 checks, re-runnable: the shop-created notification arrives through the real event bus; bell shows a count; anonymous sees no bell; a buyer's order notifies the seller; inbox lists it; another user cannot mark or follow it and does not see it; Open redirects to /dashboard/orders and marks it read; the count drops by one; an off-site link is ignored; Bengali copy via cookie; Mark all clears everything; badge disappears but the bell stays; the button hides.
+- Regression: checkout 9, portal 18, wallet 22, admin 21, ads 20, browse 21, billing 15, my orders 16, web unit 11, services 131, typecheck clean. Web rebuilt and `cheapbazar` restarted (flag off: 200, no bell).
+- Not done: live updating without a page load (the count refreshes on each navigation); push / browser notifications; per-user notification preferences; SMS and email providers are still unconfigured (those deliveries are logged as SKIPPED, never reported as sent).
+
 ## 2026-11-10 (chunk 11): buyer "My orders" with self-service cancel (behind USE_SERVICES)
 
 - **`/orders`** (404 while the flag is off; login required): every order the signed-in user placed while logged in, newest first: order number (links to the existing confirmation page), store, date, Cash on Delivery label, a Wholesale tag, status, total, items, courier + tracking number once shipped. Orders placed as a guest are not listed (they have no owner); the empty state says so.
