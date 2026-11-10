@@ -180,7 +180,7 @@ export function plan(env: EventEnvelope): Plan {
       const ok = d.status === "APPROVED";
       add({
         to: { userId: d.userId, storeId: d.storeId }, kind: ok ? "PAYMENT_APPROVED" : "PAYMENT_REJECTED", email: true, dedupe: eid,
-        link: d.purpose === "WALLET_TOPUP" ? "/dashboard/wallet" : "/account/pro",
+        link: d.purpose === "WALLET_TOPUP" ? "/dashboard/wallet" : "/pro",
         en: { title: ok ? "Payment approved" : "Payment rejected", body: `Your ${d.purpose === "WALLET_TOPUP" ? "wallet top-up" : "Pro plan payment"} of ${taka(d.amount)} was ${ok ? "approved" : "rejected"}.${d.note ? ` Note: ${d.note}` : ""}` },
         bn: { title: ok ? "পেমেন্ট অনুমোদিত" : "পেমেন্ট প্রত্যাখ্যাত", body: `আপনার ${d.purpose === "WALLET_TOPUP" ? "ওয়ালেট টপ-আপ" : "প্রো প্ল্যান পেমেন্ট"} ${takaBn(d.amount)} ${ok ? "অনুমোদিত" : "প্রত্যাখ্যাত"} হয়েছে।${d.note ? ` মন্তব্য: ${d.note}` : ""}` },
       });
@@ -199,7 +199,7 @@ export function plan(env: EventEnvelope): Plan {
       }[kind];
       add({
         to: { userId: d.userId, storeId: d.storeId }, kind: `SUBSCRIPTION_${kind}`, email: kind !== "ACTIVE", dedupe: eid,
-        link: "/account/pro",
+        link: "/pro",
         en: { title: `${planName}: ${kind.toLowerCase()}`, body: copy.en },
         bn: { title: `${planName}: ${kind === "ACTIVE" ? "সক্রিয়" : kind === "GRACE" ? "গ্রেস পিরিয়ড" : "মেয়াদোত্তীর্ণ"}`, body: copy.bn },
       });

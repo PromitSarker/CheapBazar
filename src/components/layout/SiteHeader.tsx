@@ -25,6 +25,9 @@ export default function SiteHeader({ user, marketplace = false }: { user: UserSe
             {marketplace && user && user.role !== "ADMIN" && (
               <Link href="/pro" className="nav-link">Buyer Pro</Link>
             )}
+            {marketplace && user && user.role !== "ADMIN" && (
+              <Link href="/orders" className="nav-link">My orders</Link>
+            )}
             {user ? (
               <>
                 {user.role === "ADMIN" && (
