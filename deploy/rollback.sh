@@ -3,7 +3,7 @@
 # Anything created since the cutover (orders, sign-ups, top-ups) lives only in the services' databases.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-LAST="$(ls -1d "$HOME"/cutover-backups/*/ 2>/dev/null | tail -1)"
+LAST="$(ls -1d "$HOME"/cutover-backups/*/ 2>/dev/null | tail -1 || true)"
 [ -n "$LAST" ] && [ -f "${LAST}env.bak" ] || { echo "no cutover backup found in ~/cutover-backups"; exit 1; }
 read -rp "Switch back to the monolith using ${LAST}env.bak? Type ROLLBACK: " ok
 [ "$ok" = ROLLBACK ] || { echo "not confirmed"; exit 1; }
