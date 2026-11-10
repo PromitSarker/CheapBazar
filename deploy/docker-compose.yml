@@ -1,0 +1,23 @@
+# Postgres for the 8 microservices (one database per service, one server).
+# Bound to localhost only. NOT the live Neon database: nothing here touches it.
+services:
+  services-db:
+    image: postgres:16-alpine
+    container_name: cheapbazar-services-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cheapbazar
+      POSTGRES_PASSWORD: ${PG_PASSWORD:?run deploy/gen-env.sh first}
+      POSTGRES_DB: postgres
+    ports:
+      - "127.0.0.1:${PG_PORT:-54330}:5432"
+    volumes:
+      - cheapbazar_services_pg:/var/lib/postgresql/data
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cheapbazar"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  cheapbazar_services_pg:

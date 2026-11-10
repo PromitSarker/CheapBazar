@@ -5,3 +5,4 @@ node_modules/
 
 # microservice generated Prisma clients
 services/*/generated/
+deploy/.env

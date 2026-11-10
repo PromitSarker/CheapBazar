@@ -49,12 +49,15 @@ The backend is done and the web app does not use it yet. All 8 microservices are
 - **Sponsored banners:** none render on storefronts or `/browse` yet.
 - **Translations:** every new screen needs English and Bengali strings.
 
-### 2. Deployment (not started)
+### 2. Deployment (mostly done 2026-11-10)
 
-- No `deploy/` folder, no pm2 ecosystem file, no gateway config, no per-service `.env` templates.
-- The only `docker-compose.yml` is a single Postgres with `postgres/postgres` published on port 5432.
-- Edge routing, CDN and WAF are not set up.
-- The event transport is signed HTTP. A RabbitMQ or Redis Streams transport is a drop-in behind an interface. The ad cache is in-memory (Redis needed for more than one `ad-service` instance).
+- **Done:** `deploy/` has a Postgres compose file (localhost only, port 54330), `gen-env.sh` (random secrets into a gitignored `deploy/.env`), `setup.sh` (creates the 8 databases and pushes the schemas), `ecosystem.config.cjs` (pm2, 8 services on 127.0.0.1:4001-4008) and a README.
+- **Verified on 103.228.38.69:** all 129 tests pass against that Postgres, all 8 services are online and answer `/health`, and requests without the internal token get 401.
+- **Still open:**
+  - Web-tier gateway/edge config, CDN and WAF.
+  - Per-service `.env` split (all services share one `deploy/.env` for now).
+  - The event transport is signed HTTP. A RabbitMQ or Redis Streams transport is a drop-in behind an interface. The ad cache is in-memory (Redis needed for more than one `ad-service` instance).
+  - pm2 is not set to start on boot (needs sudo).
 
 ### 3. Data migration and cutover (not started)
 
@@ -105,7 +108,7 @@ The backend is done and the web app does not use it yet. All 8 microservices are
   - plaintext session tokens
 - **Seed accounts:** `prisma/seed.mjs` creates `admin@storeforge.dev`, `demo@storeforge.dev` and `buyer@storeforge.dev` with known weak passwords. If `db:seed` was ever run against the live database, those logins are live. Check and remove them.
 - **Pending in the web tier:** rate limiting (audit #8) and upload validation (audit #13) cannot be fixed in the services. They must be built in the new web layer.
-- **Uncommitted work:** the `services/payment-billing-service/` folder and edits to 19 files are not committed. Commit `215a909` holds the foundation and the other 7 services.
+- **Commits:** all service work is committed and merged to `main` (PR #1).
 - **Migration risk:** the cutover moves real money balances out of the live Neon database, so rehearse it on a copy first.
 - **Never run `db push` or the tests against the live Neon database.** The tests refuse non-local hosts.
 
