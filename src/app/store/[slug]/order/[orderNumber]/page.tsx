@@ -2,6 +2,37 @@ import React from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { servicesEnabled } from "@/lib/bff/client";
+import { getOrderViewViaServices, type OrderView } from "@/lib/bff/orders";
+
+async function loadOrder(slug: string, orderNumber: string): Promise<{ store: { name: string; slug: string }; order: OrderView } | null> {
+  if (servicesEnabled()) {
+    const r = await getOrderViewViaServices(slug, orderNumber);
+    return r ? { store: { name: r.storeName, slug: r.storeSlug }, order: r.order } : null;
+  }
+  const store = await prisma.store.findUnique({ where: { slug } });
+  if (!store) return null;
+  const o = await prisma.order.findUnique({
+    where: { orderNumber },
+    include: { items: { include: { product: true } }, payment: true },
+  });
+  if (!o || o.storeId !== store.id) return null;
+  return {
+    store: { name: store.name, slug: store.slug },
+    order: {
+      orderNumber: o.orderNumber,
+      paymentMethod: o.paymentMethod,
+      status: o.status,
+      totalAmount: Number(o.totalAmount),
+      buyerName: o.buyerName,
+      buyerPhone: o.buyerPhone,
+      shippingAddress: o.shippingAddress,
+      shippingCity: o.shippingCity,
+      items: o.items.map((it) => ({ id: it.id, name: it.product.name, quantity: it.quantity, lineTotal: Number(it.price) * it.quantity })),
+      payment: o.payment ? { tranId: o.payment.tranId, cardType: o.payment.cardType, bankTranId: o.payment.bankTranId } : null,
+    },
+  };
+}
 import { formatTaka } from "@/modules/i18n/translations";
 
 interface PageProps {
@@ -17,25 +48,9 @@ interface PageProps {
 export const dynamic = "force-dynamic";
 
 export default async function OrderConfirmationPage({ params, searchParams }: PageProps) {
-  const store = await prisma.store.findUnique({
-    where: { slug: params.slug },
-  });
-
-  if (!store) {
-    return notFound();
-  }
-
-  const order = await prisma.order.findUnique({
-    where: { orderNumber: params.orderNumber },
-    include: {
-      items: { include: { product: true } },
-      payment: true,
-    },
-  });
-
-  if (!order || order.storeId !== store.id) {
-    return notFound();
-  }
+  const loaded = await loadOrder(params.slug, params.orderNumber);
+  if (!loaded) return notFound();
+  const { store, order } = loaded;
 
   const isPaid = order.status === "CONFIRMED";
 
@@ -114,11 +129,11 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pa
             {order.items.map((it) => (
               <li key={it.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                 <div>
-                  <span style={{ fontWeight: 600 }}>{it.product.name}</span>
+                  <span style={{ fontWeight: 600 }}>{it.name}</span>
                   <span className="muted" style={{ marginLeft: "0.5rem" }}>&times; {it.quantity}</span>
                 </div>
                 <div style={{ fontWeight: 600 }}>
-                  {formatTaka(Number(it.price) * it.quantity)}
+                  {formatTaka(it.lineTotal)}
                 </div>
               </li>
             ))}
@@ -126,7 +141,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pa
 
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.2rem", fontWeight: 700, paddingTop: "0.5rem" }}>
             <span>Total</span>
-            <span style={{ color: "#38bdf8" }}>{formatTaka(Number(order.totalAmount))}</span>
+            <span style={{ color: "#38bdf8" }}>{formatTaka(order.totalAmount)}</span>
           </div>
         </div>
 

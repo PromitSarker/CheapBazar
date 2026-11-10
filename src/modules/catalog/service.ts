@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db";
 import { withTenant } from "@/lib/rls";
+import { servicesEnabled } from "@/lib/bff/client";
+import { getStorefrontViaServices } from "@/lib/bff/storefront";
 
 export interface ProductVM {
   id: string;
@@ -20,6 +22,7 @@ export interface StoreVM {
 }
 
 export async function getPublicStoreWithProducts(identifier: string) {
+  if (servicesEnabled()) return getStorefrontViaServices(identifier);
   // Can be resolved either by slug or by custom domain
   const store = await prisma.store.findFirst({
     where: {

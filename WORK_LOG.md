@@ -3,6 +3,18 @@
 Notes on what was done to this project and its servers, newest first. No secrets are recorded here.
 Commits are authored as `Claude <noreply@anthropic.com>` (owner's instruction, 2026-11-10).
 
+## 2026-11-10 (chunk 3): storefront and checkout on the services (behind USE_SERVICES)
+
+Rewired the public storefront, checkout and order confirmation page to the services. All of it is behind `USE_SERVICES=true`; with the flag off (the live setting) the pages use the monolith exactly as before.
+
+- `src/lib/bff/storefront.ts`: store from identity (`/tenants/resolve`, custom domain then slug), status from ledger, products from catalog (RETAIL channel). Same view model the templates already use.
+- `src/lib/bff/orders.ts`: `placeOrderViaServices` keeps the cart drawer's contract (`{success, redirectUrl, orderNumber}` or `{error}`); prices, stock, fee and wallet hold are decided by order-service. `getOrderViewViaServices` backs the order page and refuses an order shown under another store's URL.
+- `/api/orders/create`: rate limits run first, then the services path when the flag is on. The logged-in buyer (if any) comes from identity-service.
+- The order confirmation page loads through one `loadOrder()` with a monolith branch and a services branch, sharing one view model.
+- `scripts/e2e-checkout.mjs`: end-to-end smoke test. Start a second web instance with the flag on (`USE_SERVICES=true INTERNAL_AUTH_SECRET=... npm start -- -p 3100`), then run `INTERNAL_AUTH_SECRET=... node scripts/e2e-checkout.mjs`. It seeds its own seller, store and product in the services' databases (never Neon). 9 checks pass: storefront render, 404s, COD order, confirmation page, stock 5 to 3, 5% fee hold (25 on 500), oversell rejected, negative quantity rejected.
+- Verified: typecheck clean; live site (flag off) still 200 on home, storefront and login. The temporary test instance on :3100 was stopped.
+- Not done in this chunk: online (SSLCommerz) checkout through payment-billing (switched off), buyer login pages on the services, seller order status updates (`/api/orders/status`), middleware custom-domain lookup.
+
 ## 2026-11-10 (chunk 2): web-tier security and service client
 
 Built the first part of the web-tier ("BFF") layer. Nothing here switches the live site to the services.
