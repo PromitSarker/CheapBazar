@@ -3,6 +3,16 @@
 Notes on what was done to this project and its servers, newest first. No secrets are recorded here.
 Commits are authored as `Claude <noreply@anthropic.com>` (owner's instruction, 2026-11-10).
 
+## 2026-11-10 (chunk 14): guided cutover script and rollback (nothing cut over yet)
+
+- Owner said "keep as it is" for the open choices, which I read as: keep the defaults (`--wallets=carry`, `--seed-accounts=lock`, retail money flows stay, prices stay as the placeholders until set in /admin/billing). Not read as permission to take the live site down: the real cutover also needs the admin email and password, which only the owner should type.
+- Re-ran the full rehearsal on fresh live data with the defaults: `REHEARSAL OK`.
+- `deploy/cutover.sh --check`: preflight (all 8 services healthy, Neon readable, build fresh, nothing already cut over) plus the migration dry run. Safe to run any time. Run on the server: CHECK OK.
+- `deploy/cutover.sh` (interactive; refuses to run without a terminal): asks for the admin email, name, password twice, `TOPUP_INSTRUCTIONS`, and a typed `CUTOVER`; saves backups to `~/cutover-backups/<time>/` (`.env`, every legacy Neon table as CSV, dumps of the current service databases); rehearses on a copy with the exact flags; stops the site and services; recreates empty service databases; dry-runs and applies the migration; starts the services and waits for the event outboxes to drain; runs the 22 verification checks; writes `USE_SERVICES`, `INTERNAL_AUTH_SECRET`, `TOPUP_INSTRUCTIONS` (and `COOKIE_INSECURE` while the site is plain http) into `.env`; restarts the web app; smoke-tests (new admin logs in as ADMIN, `/`, `/browse`, `/login`, `/signup` and every storefront return 200). Any failure before the end restores the old `.env` and restarts the site on the monolith automatically (Neon is only ever read). It only counts as done after the smoke test passes.
+- `deploy/rollback.sh`: after a completed cutover, restores the pre-cutover `.env` (after a typed `ROLLBACK`) and restarts the web app. Tested only for its no-backup guard.
+- The `.env` writer was tested through Next's own env loader. Found and fixed: dotenv does not unescape `\` or `\"`, so those are stripped/replaced (`"` becomes `'`) and `$` is escaped, otherwise a payment-instructions text with quotes or a taka sign would be stored wrongly.
+- **Not tested end to end on production**, on purpose: it takes the live site down. Its parts were each proven: preflight and dry run on the server, the migration/verify/smoke sequence in the rehearsal, `setup.sh` earlier, the env writer, the rollback guard. The first real run is therefore the first full run of the glue between them; that is why every step before the final one auto-restores the site.
+
 ## 2026-11-10 (chunk 13): HOME_HERO ad spot on the home page (behind USE_SERVICES)
 
 - The `HOME_HERO` ad slot (marketplace home, capacity 3, placeholder ৳1500/day) was sellable in the dashboard and moderated in /admin/ads, but nothing displayed it. The home page now shows up to three live HOME_HERO banners, labelled "Sponsored" / "স্পনসরড", in a strip between the hero and the feature section, i.e. above the sample-store cards. They use the same `SponsoredBanner` as the storefront and /browse (`rel="sponsored noopener"`).
