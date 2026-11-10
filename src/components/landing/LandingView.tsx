@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/modules/i18n/LanguageContext";
+import SponsoredBanner from "@/components/sponsored/SponsoredBanner";
 
 interface StoreItem {
   id: string;
@@ -14,7 +15,7 @@ interface StoreItem {
   sampleProducts?: { name: string; price: number }[];
 }
 
-export default function LandingView({ stores }: { stores: StoreItem[] }) {
+export default function LandingView({ stores, heroAds = [] }: { stores: StoreItem[]; heroAds?: { headline: string; imageUrl: string; targetUrl: string }[] }) {
   const { t, language, toNumerals, formatTaka } = useLanguage();
 
   // Interactive Live Preview Card State
@@ -241,6 +242,15 @@ export default function LandingView({ stores }: { stores: StoreItem[] }) {
           </div>
         </div>
       </section>
+
+      {/* Paid HOME_HERO banners (services path only; heroAds is empty otherwise) */}
+      {heroAds.length > 0 && (
+        <section className="hero-sponsored" style={{ maxWidth: 760, margin: "0 auto 1.5rem", padding: "0 1rem" }}>
+          {heroAds.slice(0, 3).map((a, i) => (
+            <SponsoredBanner key={i} ad={a} label={language === "bn" ? "স্পনসরড" : "Sponsored"} accent="#f59e0b" />
+          ))}
+        </section>
+      )}
 
       {/* =========================================================================
           3. CORE PLATFORM CAPABILITIES (BENTO GRID)

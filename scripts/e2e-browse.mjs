@@ -165,4 +165,20 @@ await svc("ad", "POST", "/admin/ads/tick", {});
 html = ""; for (let i = 0; i < 20; i++) { html = await (await web(`/browse?q=${word}`)).text(); if (html.includes(`Browse Promo ${run}`)) break; await sleep(500); }
 assert.match(html, new RegExp(`Browse Promo ${run}`)); ok("a live BROWSE_TOP ad is shown above the results");
 
+console.log("home page hero ad…");
+await svc("ledger", "POST", `/wallets/${A.id}/topup`, { amount: 5000, reference: `hero-${run}`, method: "CASH" });
+const tomorrow = new Date(Date.now() + 6 * 3600_000 + 86_400_000).toISOString().slice(0, 10);
+const hero = await svc("ad", "POST", "/ads/bookings", {
+  slot: "HOME_HERO", storeId: A.id, ownerId: s1.user.id, headline: `Hero Promo ${run}`, imageUrl: "/uploads/abcdefgh12.png", targetUrl: `/store/brw1-${run}`,
+  startDate: tomorrow, endDate: tomorrow,
+});
+html = await (await web("/")).text();
+assert.ok(!html.includes(`Hero Promo ${run}`)); ok("a pending HOME_HERO booking is not shown on the home page");
+await svc("ad", "PATCH", `/admin/ads/${hero.booking.id}/review`, { decision: "APPROVE", admin: "e2e" });
+psql("ads_db", `UPDATE "AdBooking" SET "startDate" = (now() AT TIME ZONE 'Asia/Dhaka')::date, "endDate" = (now() AT TIME ZONE 'Asia/Dhaka')::date WHERE id = '${hero.booking.id}'`);
+await svc("ad", "POST", "/admin/ads/tick", {});
+html = ""; for (let i = 0; i < 20; i++) { html = await (await web("/")).text(); if (html.includes(`Hero Promo ${run}`)) break; await sleep(500); }
+assert.match(html, new RegExp(`Hero Promo ${run}`)); assert.match(html, /Sponsored/); assert.match(html, /rel="sponsored/); ok("an approved, live HOME_HERO ad is shown on the home page, labelled Sponsored");
+assert.ok(html.indexOf(`Hero Promo ${run}`) < html.indexOf('id="explore"')); ok("it appears above the sample-store section");
+
 console.log(`\n${passed} checks passed`);

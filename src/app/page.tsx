@@ -1,13 +1,14 @@
 import { prisma } from "@/lib/db";
 import LandingView from "@/components/landing/LandingView";
 import { servicesEnabled } from "@/lib/bff/client";
-import { storeDirectoryViaServices } from "@/lib/bff/browse";
+import { storeDirectoryViaServices, marketplaceAds } from "@/lib/bff/browse";
 
 export const dynamic = "force-dynamic";
 
 export default async function LandingPage() {
   if (servicesEnabled()) {
-    return <LandingView stores={await storeDirectoryViaServices(8).catch(() => [])} />;
+    const [stores, heroAds] = await Promise.all([storeDirectoryViaServices(8).catch(() => []), marketplaceAds("HOME_HERO")]);
+    return <LandingView stores={stores} heroAds={heroAds} />;
   }
   const stores = await prisma.store.findMany({
     take: 8,
