@@ -1,0 +1,210 @@
+// ledger-service: double-entry accounting, seller wallets, COD fee holds, the
+// Store Status Enforcer, payout methods and withdrawals. Owns ledger_db.
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum StoreStatus {
+  ACTIVE
+  WARNING
+  COD_BLOCKED
+  PAUSED
+  DELISTED
+  SUSPENDED
+  BANNED
+}
+
+enum LedgerAccountType {
+  STORE_WALLET
+  PLATFORM_CASH
+  PLATFORM_FEE_REVENUE
+  PLATFORM_AD_REVENUE
+  PLATFORM_SUBSCRIPTION_REVENUE
+  PAYOUT_CLEARING
+  GATEWAY_CLEARING
+  PLATFORM_EQUITY
+}
+
+enum HoldStatus {
+  HELD
+  SETTLED
+  RELEASED
+}
+
+enum PayoutMethodType {
+  BKASH
+  NAGAD
+  ROCKET
+  BANK_TRANSFER
+}
+
+enum PayoutAccountType {
+  PERSONAL
+  MERCHANT
+  AGENT
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+// A seller wallet. balance is a CACHE of the STORE_WALLET ledger account
+// (credits - debits) and is only ever changed by the ledger code, in the same
+// transaction as the postings. available = balance - holds.
+model Wallet {
+  storeId         String      @id
+  ownerId         String?
+  balance         Decimal     @default(0) @db.Decimal(12, 2)
+  holds           Decimal     @default(0) @db.Decimal(12, 2)
+  status          StoreStatus @default(ACTIVE)
+  statusReason    String?
+  statusChangedAt DateTime    @default(now())
+  lastAlertAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([status])
+}
+
+// One COD platform-fee hold per order.
+model Hold {
+  id         String     @id @default(cuid())
+  storeId    String
+  reference  String     @unique // order number
+  amount     Decimal    @db.Decimal(12, 2)
+  status     HoldStatus @default(HELD)
+  createdAt  DateTime   @default(now())
+  resolvedAt DateTime?
+
+  @@index([storeId, status])
+}
+
+model LedgerAccount {
+  id        String            @id @default(cuid())
+  code      String            @unique // "STORE_WALLET:<storeId>" | "PLATFORM_CASH" ...
+  type      LedgerAccountType
+  storeId   String?
+  name      String
+  postings  LedgerPosting[]
+  createdAt DateTime          @default(now())
+
+  @@index([storeId])
+}
+
+model LedgerTransaction {
+  id             String          @id @default(cuid())
+  kind           String
+  reference      String?
+  description    String
+  idempotencyKey String          @unique
+  reversesId     String?         @unique
+  postings       LedgerPosting[]
+  createdAt      DateTime        @default(now())
+
+  @@index([reference])
+  @@index([kind])
+}
+
+model LedgerPosting {
+  id            String            @id @default(cuid())
+  transactionId String
+  transaction   LedgerTransaction @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+  accountId     String
+  account       LedgerAccount     @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  debit         Decimal           @default(0) @db.Decimal(14, 2)
+  credit        Decimal           @default(0) @db.Decimal(14, 2)
+  createdAt     DateTime          @default(now())
+
+  @@index([transactionId])
+  @@index([accountId])
+}
+
+// Seller-facing statement (what the wallet page lists). Insert-only too.
+model StatementEntry {
+  id            String   @id @default(cuid())
+  storeId       String
+  transactionId String?
+  entryType     String
+  description   String
+  debit         Decimal? @db.Decimal(12, 2)
+  credit        Decimal? @db.Decimal(12, 2)
+  ledgerTxId    String?
+  createdAt     DateTime @default(now())
+
+  @@index([storeId, createdAt])
+}
+
+model PayoutMethod {
+  id            String            @id @default(cuid())
+  storeId       String
+  type          PayoutMethodType
+  accountType   PayoutAccountType @default(PERSONAL)
+  isDefault     Boolean           @default(false)
+  isArchived    Boolean           @default(false)
+  phoneNumber   String?
+  bankName      String?
+  branchName    String?
+  routingNumber String?
+  accountName   String?
+  accountNumber String?
+  coolingUntil  DateTime?
+  withdrawals   Withdrawal[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([storeId])
+}
+
+model Withdrawal {
+  id               String           @id @default(cuid())
+  withdrawalNumber String           @unique
+  storeId          String
+  payoutMethodId   String
+  payoutMethod     PayoutMethod     @relation(fields: [payoutMethodId], references: [id])
+  amount           Decimal          @db.Decimal(12, 2)
+  fee              Decimal          @default(0) @db.Decimal(12, 2)
+  netAmount        Decimal          @db.Decimal(12, 2)
+  status           WithdrawalStatus @default(PENDING)
+  disbursementTxId String?
+  rejectionReason  String?
+  processedAt      DateTime?
+  processedBy      String?
+  ledgerTxId       String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([storeId])
+  @@index([status])
+}
+
+// ---- event bus plumbing (identical in every service) ----------------------
+model OutboxMessage {
+  id          String    @id
+  eventId     String
+  consumer    String
+  eventType   String
+  envelope    Json
+  attempts    Int       @default(0)
+  availableAt DateTime  @default(now())
+  deliveredAt DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([deliveredAt, availableAt])
+}
+
+model ProcessedEvent {
+  eventId     String   @id
+  eventType   String
+  processedAt DateTime @default(now())
+}

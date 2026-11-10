@@ -1,0 +1,73 @@
+// aggregator-service: CQRS read side. Builds the Retail Index and Wholesale Index
+// purely from events (catalog + identity + ledger + billing) and serves search with
+// Pro paywall enforcement. It never writes to or reads from other services' databases.
+// Owns search_db.
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// One row per product. `deleted` is a tombstone so a late, stale "updated" event
+// can never resurrect a deleted product. sourceTs orders events from the producer.
+model ListingIndex {
+  productId        String   @id
+  storeId          String
+  name             String   @default("")
+  description      String   @default("")
+  image            String?
+  price            Decimal  @default(0) @db.Decimal(10, 2)
+  stock            Int      @default(0)
+  channel          String   @default("RETAIL") // RETAIL | WHOLESALE | BOTH
+  moq              Int      @default(1)
+  wholesalePrice   Decimal? @db.Decimal(10, 2)
+  tiers            Json     @default("[]")
+  searchText       String   @default("")
+  productCreatedAt DateTime @default(now())
+  deleted          Boolean  @default(false)
+  sourceTs         DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([storeId])
+  @@index([deleted, channel, productCreatedAt(sort: Desc)])
+}
+
+// Store facts the index needs. Three independent versions (info / status / plan) so
+// events about different aspects never overwrite each other out of order.
+model StoreProjection {
+  storeId          String   @id
+  slug             String   @default("")
+  name             String   @default("")
+  ownerId          String?
+  template         String   @default("classic")
+  customDomain     String?
+  status           String   @default("ACTIVE")
+  infoTs           DateTime @default(dbgenerated("'1970-01-01 00:00:00'::timestamp"))
+  statusTs         DateTime @default(dbgenerated("'1970-01-01 00:00:00'::timestamp"))
+  updatedAt        DateTime @updatedAt
+}
+
+model OutboxMessage {
+  id          String    @id
+  eventId     String
+  consumer    String
+  eventType   String
+  envelope    Json
+  attempts    Int       @default(0)
+  availableAt DateTime  @default(now())
+  deliveredAt DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([deliveredAt, availableAt])
+}
+
+model ProcessedEvent {
+  eventId     String   @id
+  eventType   String
+  processedAt DateTime @default(now())
+}

@@ -1,0 +1,97 @@
+// notification-service: turns domain events into in-app notifications, email and SMS
+// (with a retrying delivery log), and receives signed courier webhooks which it
+// republishes as ShipmentUpdated. Owns notifications_db.
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DeliveryChannel {
+  EMAIL
+  SMS
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENT
+  FAILED  // gave up after max attempts
+  SKIPPED // no provider configured / not deliverable (never reported as sent)
+}
+
+// What the user sees in the bell menu. Bilingual: the web tier picks the language.
+model Notification {
+  id         String    @id @default(cuid())
+  userId     String
+  storeId    String?
+  kind       String
+  title      String
+  body       String
+  titleBn    String    @default("")
+  bodyBn     String    @default("")
+  link       String?
+  // Unique: replays and throttled alerts collapse into one row.
+  dedupeKey  String    @unique
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, readAt, createdAt(sort: Desc)])
+}
+
+// Outbound email/SMS with retry state. Failure here never fails event handling.
+model Delivery {
+  id            String          @id @default(cuid())
+  channel       DeliveryChannel
+  toUserId      String?         // email: address resolved from identity at send time
+  toAddress     String?         // sms: phone; email: explicit address if known
+  subject       String?
+  body          String
+  status        DeliveryStatus  @default(PENDING)
+  attempts      Int             @default(0)
+  lastError     String?
+  nextAttemptAt DateTime        @default(now())
+  sentAt        DateTime?
+  dedupeKey     String          @unique
+  createdAt     DateTime        @default(now())
+
+  @@index([status, nextAttemptAt])
+}
+
+// One row per distinct courier callback, so retried webhooks are idempotent.
+model CourierEvent {
+  id             String   @id @default(cuid())
+  courier        String
+  eventRef       String
+  orderNumber    String
+  rawStatus      String
+  mappedStatus   String?
+  trackingNumber String?
+  createdAt      DateTime @default(now())
+
+  @@unique([courier, eventRef])
+}
+
+model OutboxMessage {
+  id          String    @id
+  eventId     String
+  consumer    String
+  eventType   String
+  envelope    Json
+  attempts    Int       @default(0)
+  availableAt DateTime  @default(now())
+  deliveredAt DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([deliveredAt, availableAt])
+}
+
+model ProcessedEvent {
+  eventId     String   @id
+  eventType   String
+  processedAt DateTime @default(now())
+}
