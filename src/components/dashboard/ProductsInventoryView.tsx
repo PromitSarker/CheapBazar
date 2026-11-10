@@ -72,9 +72,13 @@ export default function ProductsInventoryView({
 
       {error && (
         <p className="error" style={{ marginBottom: "1rem" }}>
-          {language === "bn"
-            ? "অনুগ্রহ করে পণ্যের সঠিক নাম এবং বৈধ মূল্য প্রদান করুন।"
-            : "Please provide a valid name and price."}
+          {error === "image"
+            ? language === "bn"
+              ? "ছবিটি গ্রহণযোগ্য নয়। ৫ MB এর কম PNG, JPEG, GIF বা WebP ছবি দিন।"
+              : "That image was not accepted. Use a PNG, JPEG, GIF or WebP file under 5 MB."
+            : language === "bn"
+              ? "অনুগ্রহ করে পণ্যের সঠিক নাম এবং বৈধ মূল্য প্রদান করুন।"
+              : "Please provide a valid name and price."}
         </p>
       )}
 
