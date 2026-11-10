@@ -18,7 +18,7 @@ export function normalizeSlug(raw: string): string {
   return String(raw ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
-function validateSlug(slug: string) {
+export function validateSlug(slug: string) {
   if (slug.length < 2 || slug.length > 40) throw new HttpError(400, "Store URL must be 2-40 characters (letters, numbers, hyphens).", "VALIDATION");
   if (RESERVED_SLUGS.has(slug)) throw new HttpError(400, "That store URL is reserved. Choose another.", "SLUG_RESERVED");
 }
