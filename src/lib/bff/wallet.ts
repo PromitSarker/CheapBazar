@@ -105,7 +105,7 @@ export const submitTopUpViaServices = (storeId: string, userId: string, amount: 
         purpose: "WALLET_TOPUP", storeId, userId, amount, method, trxId,
         idempotencyKey: crypto.createHash("sha256").update(`${storeId}|${method}|${trxId}`).digest("hex").slice(0, 40),
       }),
-    (p) => ({ success: true, status: p.status ?? "PENDING", reference: p.id ?? p.reference ?? null })
+    (p) => ({ success: true, duplicate: !!p.duplicate, status: p.payment?.status ?? "PENDING", reference: p.payment?.reference ?? null })
   );
 
 export const listTopUpsViaServices = (storeId: string) =>

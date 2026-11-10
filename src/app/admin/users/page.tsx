@@ -3,7 +3,7 @@ import { changeUserRole } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage({ searchParams }: { searchParams?: { error?: string } }) {
   const users = await getAllUsersForAdmin();
 
   return (
@@ -21,6 +21,8 @@ export default async function AdminUsersPage() {
           {users.length} Platform Users
         </span>
       </div>
+
+      {searchParams?.error && <p className="error">{searchParams.error}</p>}
 
       <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid #e2e8f0", backgroundColor: "#ffffff" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/modules/identity/service";
+import { servicesEnabled } from "@/lib/bff/client";
+import { payoutExportViaServices } from "@/lib/bff/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +15,13 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const format = searchParams.get("format") || "beftn"; // "beftn" | "bkash" | "all"
+
+    if (servicesEnabled()) {
+      const f = await payoutExportViaServices(format);
+      return new NextResponse(f.body, {
+        headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="${f.filename}"` },
+      });
+    }
 
     // Fetch all PENDING withdrawals
     const pendingWithdrawals = await prisma.withdrawalRequest.findMany({

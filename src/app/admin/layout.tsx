@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireRole } from "@/modules/identity/service";
+import { servicesEnabled } from "@/lib/bff/client";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <span className="dash-nav-icon">📢</span>
               <span>Ad Moderation</span>
             </Link>
+            {servicesEnabled() && (
+              <Link href="/admin/topups" className="dash-nav-item">
+                <span className="dash-nav-icon">💳</span>
+                <span>Top-up Review</span>
+              </Link>
+            )}
             <Link href="/admin/users" className="dash-nav-item">
               <span className="dash-nav-icon">👥</span>
               <span>Users & Roles</span>
