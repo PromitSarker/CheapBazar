@@ -4,6 +4,7 @@ import { getServerLanguage } from "@/modules/i18n/server";
 import { LanguageProvider } from "@/modules/i18n/LanguageContext";
 import SiteHeader from "@/components/layout/SiteHeader";
 import SiteFooter from "@/components/layout/SiteFooter";
+import { servicesEnabled } from "@/lib/bff/client";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 
@@ -25,7 +26,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={outfit.className}>
         <LanguageProvider initialLang={initialLang}>
           <div className="bg-gradient-mesh"></div>
-          <SiteHeader user={user} />
+          <SiteHeader user={user} marketplace={servicesEnabled()} />
           <main className="site-main">{children}</main>
           <SiteFooter />
         </LanguageProvider>

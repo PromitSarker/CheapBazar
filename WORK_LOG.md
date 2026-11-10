@@ -3,6 +3,19 @@
 Notes on what was done to this project and its servers, newest first. No secrets are recorded here.
 Commits are authored as `Claude <noreply@anthropic.com>` (owner's instruction, 2026-11-10).
 
+## 2026-11-10 (chunk 8): marketplace, Buyer Pro and wholesale ordering (behind USE_SERVICES)
+
+- `src/lib/bff/browse.ts`: marketplace search and store directory (aggregator-service), Buyer Pro plan, status and payment (payment-billing), live ads for marketplace slots (ad-service).
+- **`/browse`** (404 while the flag is off): Retail and Wholesale tabs, search, store filter, sort, paging, `BROWSE_TOP` and `BROWSE_SIDEBAR` ad banners. The wholesale paywall is decided by aggregator-service from the viewer's id; the web tier never hides or reveals prices itself. A locked viewer gets a login or upgrade prompt and no wholesale price, minimum or tier anywhere in the HTML, and price sorting is ignored for them.
+- **`/pro`** (Buyer Pro): plan price and period, current status, and a manual payment form (bKash, Nagad, Rocket or bank + transaction ID, 5 submissions per hour per user, idempotent). Access starts only when an admin approves it.
+- **`/admin/topups` is now "Payment Review"**: it lists wallet top-ups (sellers) and Buyer Pro payments (buyers, with name and email) in one queue.
+- **Wholesale ordering:** members get an "Order wholesale" form on `/browse`, posting to the same `/api/orders/create` with `orderType: WHOLESALE` (Cash on Delivery). Minimum quantity, volume-tier pricing, the Pro check and the COD cap are enforced by order-service.
+- **Seller product form** now has a wholesale section on the services path (sold as retail / both / wholesale, wholesale price, MOQ, one optional volume discount). Before this, nothing in the UI could create a wholesale product. A tier at or below the MOQ, or not cheaper, is refused with a clear message.
+- Header gets **Marketplace** (and **Buyer Pro** for logged-in non-admins) links on the services path. The home page lists stores (with two sample products each) from the aggregator.
+- `scripts/e2e-browse.mjs`: 21 checks, re-runnable: bad wholesale tier refused; retail listing across stores; store filter; anonymous paywall with no leaked prices (also via price sort); home page from the aggregator; buyer without Pro sees the upgrade prompt and cannot order wholesale; /pro price and status; malformed transaction id refused; payment pending; no access before approval; admin sees it labelled Buyer Pro; approval activates Pro; member sees price, MOQ, tier and order button; below-MOQ refused; 20 units at the tier price = 1200, recorded as a wholesale order for the member; a live BROWSE_TOP ad is shown.
+- Regression: checkout 9, portal 18, wallet 22, admin 21, ads 20, web unit 10, services 129.
+- Not done: `HOME_HERO` ad slot has no place on the home page yet (LandingView is large, left alone); Buyer Pro price is still the 499 placeholder (owner sets it with `POST /admin/plans` on payment-billing); Buyer Pro auto-renewal; a buyer order-history page; online (SSLCommerz) wholesale payment.
+
 ## 2026-11-10 (chunk 7): ads on the services (behind USE_SERVICES)
 
 - `src/lib/bff/ads.ts`: slots, a store's bookings, book / cancel, the live banner for a storefront, admin queue and review.

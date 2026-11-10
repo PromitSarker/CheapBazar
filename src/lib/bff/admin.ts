@@ -160,9 +160,22 @@ export async function manualPaymentsViaServices(status?: string) {
   await admin();
   const r = await callService<{ payments: any[] }>("payment", "GET", `/admin/manual-payments${status ? `?status=${q(status)}` : ""}${status ? "&" : "?"}limit=100`);
   const stores = await storesById(r.payments.map((p) => p.storeId).filter(Boolean));
-  return r.payments
-    .filter((p) => p.purpose === "WALLET_TOPUP")
-    .map((p) => ({ ...p, storeName: stores.get(p.storeId)?.name ?? "(unknown store)", storeSlug: stores.get(p.storeId)?.slug ?? "", createdLabel: fmt(p.createdAt) }));
+  const buyerIds = Array.from(new Set(r.payments.filter((p) => p.purpose === "SUBSCRIPTION" && p.userId).map((p) => p.userId as string)));
+  const buyers = new Map<string, { name: string; email: string }>();
+  await Promise.all(buyerIds.map(async (id) => {
+    try { const u = await callService<any>("identity", "GET", `/users/${q(id)}`); buyers.set(id, { name: u.name, email: u.email }); } catch { /* shown as unknown */ }
+  }));
+  return r.payments.map((p) => {
+    const sub = p.purpose === "SUBSCRIPTION";
+    const b = sub ? buyers.get(p.userId) : undefined;
+    return {
+      ...p,
+      kind: sub ? "Buyer Pro" : "Wallet top-up",
+      storeName: sub ? (b ? `${b.name} (${b.email})` : "(unknown buyer)") : stores.get(p.storeId)?.name ?? "(unknown store)",
+      storeSlug: sub ? "" : stores.get(p.storeId)?.slug ?? "",
+      createdLabel: fmt(p.createdAt),
+    };
+  });
 }
 
 export async function reviewManualPaymentViaServices(id: string, decision: "APPROVE" | "REJECT", note?: string) {
