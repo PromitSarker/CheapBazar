@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sslcommerzService } from "@/modules/payments/sslcommerz/service";
+import { RateLimiter, clientIp } from "@/lib/security/ratelimit";
+
+// COD griefing guard. Per-IP is best effort (X-Forwarded-For is spoofable on a direct
+// connection), so per-phone and a per-store ceiling back it up.
+const ordersByIp = new RateLimiter(10, 10 * 60_000);
+const ordersByPhone = new RateLimiter(5, 10 * 60_000);
+const ordersByStore = new RateLimiter(60, 10 * 60_000);
 
 const PLATFORM_FEE_PERCENT = parseFloat(process.env.PLATFORM_FEE_PERCENTAGE || "5.0");
 
@@ -20,6 +27,15 @@ export async function POST(request: Request) {
 
     if (!storeSlug || !buyerName || !buyerPhone || !shippingAddress || !items || !items.length) {
       return NextResponse.json({ error: "Missing required order information" }, { status: 400 });
+    }
+
+    const ip = clientIp(request.headers);
+    if (
+      (ip !== "unknown" && !ordersByIp.allow(ip)) || // no address known: do not lump every buyer into one bucket
+      !ordersByPhone.allow(`${storeSlug}|${String(buyerPhone).replace(/\D/g, "")}`) ||
+      !ordersByStore.allow(String(storeSlug))
+    ) {
+      return NextResponse.json({ error: "Too many orders. Please wait a few minutes and try again." }, { status: 429 });
     }
 
     const store = await prisma.store.findUnique({

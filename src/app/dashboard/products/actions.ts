@@ -8,6 +8,7 @@ import { withTenant } from "@/lib/rls";
 import { promises as fs } from "fs";
 import path from "path";
 import crypto from "crypto";
+import { validateImage, UploadError } from "@/lib/security/uploads";
 
 export async function addProduct(formData: FormData) {
   const store = await requireStore();
@@ -21,7 +22,13 @@ export async function addProduct(formData: FormData) {
 
   if (imageFile && imageFile.size > 0) {
     const buffer = Buffer.from(await imageFile.arrayBuffer());
-    const ext = path.extname(imageFile.name) || ".png";
+    let ext: string;
+    try {
+      ext = validateImage(buffer).ext; // type comes from the file's bytes, never its name
+    } catch (e) {
+      if (e instanceof UploadError) redirect("/dashboard/products?error=image");
+      throw e;
+    }
     const filename = crypto.randomUUID() + ext;
     const uploadDir = path.join(process.cwd(), "public", "uploads");
     await fs.mkdir(uploadDir, { recursive: true });
