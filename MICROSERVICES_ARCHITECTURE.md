@@ -104,7 +104,7 @@ The target architecture decouples the current monolithic Next.js application int
   - Shopping cart orchestration (Retail & Wholesale).
   - Server-side pre-checkout validation:
     - Verify product prices & volume discount tiers against `catalog-service`.
-    - Verify buyer & seller subscription status against `billing-service`.
+    - Verify the buyer's Pro subscription status against `billing-service` (sellers pay nothing for wholesale).
     - **Anti-Fraud (Diagram 3):** Enforce `buyerId !== sellerId` (block self-purchases).
     - Check wholesale COD caps.
   - Order state machine (`PENDING`, `RESERVED`, `PAID`, `SHIPPED`, `DELIVERED`, `CANCELLED`, `REFUSED`).
@@ -126,7 +126,7 @@ The target architecture decouples the current monolithic Next.js application int
   - Idempotency key tracking to guarantee zero duplicate charges.
   - **Split Settlement Engine (Diagram 4):** Splits gross order total into Platform Fee vs. Net Seller Balance.
   - **Subscription & Billing Lifecycle (Diagram 3):**
-    - Buyer Pro Plan & Seller Wholesale Plan management.
+    - Buyer Pro Plan management: the ONLY plan, a monthly fee paid by wholesale buyers; sellers pay nothing. The fee is platform (admin) revenue, booked into the ledger's platform account.
     - Automated renewal cycles, retries, and state transitions:
       $$\text{Active} \xrightarrow{\text{renew fails}} \text{Grace} \xrightarrow{\text{retries fail}} \text{Lapsed}$$
 - **Storage:** Dedicated PostgreSQL (`payment_billing_db`).

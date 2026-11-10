@@ -25,7 +25,6 @@ let L: ReturnType<typeof serviceClient>, C: ReturnType<typeof serviceClient>, O:
 // stubs for the two services not built/under test here
 const stores = new Map<string, { id: string; slug: string; name: string; ownerId: string }>();
 const proBuyers = new Set<string>();
-const sellerPlans = new Set<string>();
 let billingDown = false;
 
 // deliver order events to the real ledger + catalog; drop everything else (notification etc.)
@@ -70,7 +69,7 @@ before(async () => {
   process.env.SERVICE_URL_LEDGER = base(P.ledger);
 
   ledger = await startLedgerService({ secret: SECRET, port: P.ledger, databaseUrl: lUrl, relay: false, daemon: false });
-  catalog = await startCatalogService({ secret: SECRET, port: P.catalog, databaseUrl: cUrl, relay: false, janitor: false, entitlements: { sellerPlanActive: async () => true } });
+  catalog = await startCatalogService({ secret: SECRET, port: P.catalog, databaseUrl: cUrl, relay: false, janitor: false });
 
   const real = httpDeps(SECRET);
   const deps: Deps = {
@@ -80,7 +79,6 @@ before(async () => {
     },
     billing: {
       async buyerProActive(u) { if (billingDown) throw new ServiceError(503, "down", "UNREACHABLE"); return proBuyers.has(u); },
-      async sellerPlanActive(s) { if (billingDown) throw new ServiceError(503, "down", "UNREACHABLE"); return sellerPlans.has(s); },
     },
   };
   orders = await startOrderService({ secret: SECRET, port: P.order, databaseUrl: oUrl, relay: false, janitor: false, deps });
@@ -276,7 +274,7 @@ test("buyers can cancel only their own orders; courier webhook events drive the 
   assert.equal((await O.get(`/stores/${s.id}/orders`)).orders.length, 2);
 });
 
-test("wholesale: login + Buyer Pro + Seller plan + MOQ + tier pricing + COD cap + no self-purchase", async () => {
+test("wholesale: login + Buyer Pro (the only plan; sellers pay nothing) + MOQ + tier pricing + COD cap + no self-purchase", async () => {
   const s = await newStore(50000);
   const p = await product(s.id, { name: "Bulk", price: 400, channel: "BOTH", wholesalePrice: 300, moq: 10, stock: 5000, tiers: [{ minQty: 100, unitPrice: 250 }] });
   const W = (qty: number, buyer: any, extra: any = {}) => O.post("/orders", body(s, [{ productId: p.productId, quantity: qty }], { orderType: "WHOLESALE", buyer: { name: "Trader", phone: "01912345678", ...buyer }, ...extra }));
@@ -284,8 +282,6 @@ test("wholesale: login + Buyer Pro + Seller plan + MOQ + tier pricing + COD cap 
   await expectErr(W(10, {}), "LOGIN_REQUIRED", 401);
   await expectErr(W(10, { id: "trader_1" }), "PRO_REQUIRED", 403);
   proBuyers.add("trader_1");
-  await expectErr(W(10, { id: "trader_1" }), "SELLER_PLAN_REQUIRED", 403);
-  sellerPlans.add(s.id);
   await expectErr(W(9, { id: "trader_1" }), "MOQ_NOT_MET", 400);
   await expectErr(W(10, { id: s.ownerId }), "SELF_PURCHASE", 403);
 

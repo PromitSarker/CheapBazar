@@ -186,6 +186,41 @@ export async function chargeWallet(
   }
 }
 
+/**
+ * Money the PLATFORM (admin) earns directly, not through a seller wallet: today the Buyer Pro
+ * monthly fee. The cash side is where the buyer's money landed (online gateway clearing, or
+ * bank / bKash / Nagad held by the platform); the revenue side is the platform's own account.
+ * Idempotent by `reference` (one posting per real payment, however often the event is replayed).
+ */
+export async function recordPlatformRevenue(
+  db: Runner,
+  p: { source: string; amount: number; reference: string; method: "GATEWAY" | "MANUAL"; description?: string }
+) {
+  if (!(p.amount > 0)) throw new HttpError(400, "amount must be positive", "VALIDATION");
+  return withTx(db, async (tx) =>
+    postTransaction(tx, {
+      kind: `PLATFORM_REVENUE_${p.source}`,
+      reference: p.reference,
+      description: p.description ?? `${p.source} payment ${p.reference} (${p.method === "GATEWAY" ? "online gateway" : "manual payment"})`,
+      idempotencyKey: `platform-revenue:${p.reference}`,
+      postings: [
+        { account: { type: p.method === "GATEWAY" ? "GATEWAY_CLEARING" : "PLATFORM_CASH" }, debit: p.amount },
+        { account: { type: "PLATFORM_SUBSCRIPTION_REVENUE" }, credit: p.amount },
+      ],
+    })
+  );
+}
+
+/** A chargeback took a platform payment back: mirror the revenue posting. Idempotent; a no-op if it was never booked. */
+export async function reversePlatformRevenue(db: Runner, reference: string, reason: string) {
+  return withTx(db, async (tx) => {
+    const original = await tx.ledgerTransaction.findUnique({ where: { idempotencyKey: `platform-revenue:${reference}` } });
+    if (!original) return { reversed: false };
+    const res = await reverseTransaction(tx, original.id, { reason, idempotencyKey: `platform-revenue-reverse:${reference}`, entryType: "REVERSAL" });
+    return { reversed: res.created };
+  });
+}
+
 // -------------------------------------------------------- online (on hold)
 
 /** Split settlement for an online order: net to seller, fee to platform. */

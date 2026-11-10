@@ -23,13 +23,12 @@ const send = (eventType: string, data: any, timestamp = tick()) =>
   A.post("/internal/events", { eventId: `e${++seq}-${Math.random()}`, eventType, timestamp, producer: "test", data });
 
 let sn = 0;
-async function mkStore(opts: { name?: string; status?: string; plan?: boolean } = {}) {
+async function mkStore(opts: { name?: string; status?: string } = {}) {
   const id = `s${++sn}_${Math.random().toString(36).slice(2, 6)}`;
   const name = opts.name ?? `Shop ${id}`;
   const slug = `shop-${id}`;
   await send("StoreCreated", { storeId: id, ownerId: `o_${id}`, name, slug, template: "classic", customDomain: null });
   if (opts.status) await send("StoreStatusChanged", { storeId: id, from: "ACTIVE", to: opts.status });
-  if (opts.plan) await send("SubscriptionActivated", { plan: "SELLER_PRO", storeId: id });
   return { id, name, slug };
 }
 const prod = (storeId: string, o: any = {}, timestamp?: string) => {
@@ -135,31 +134,29 @@ test("search: terms, store-name match, LIKE wildcards are literal, filters, sort
   assert.ok((await retail({ q: "x'; DROP TABLE \"ListingIndex\";--" })).items.length === 0, "SQL is parameterised");
 });
 
-test("wholesale index needs an active Seller plan and the BOTH/WHOLESALE channel", async () => {
-  const planned = await mkStore({ plan: true });
+test("wholesale index lists BOTH/WHOLESALE listings of every visible store: sellers need no plan", async () => {
+  const planned = await mkStore();
   const unplanned = await mkStore();
   const mk = (s: any, name: string, channel: string) => prod(s.id, { name, channel, wholesalePrice: 300, moq: 10, tiers: [{ minQty: 50, unitPrice: 250 }] });
   const a = await mk(planned, "Wsale Flour", "WHOLESALE");
   const b = await mk(planned, "Wsale Both", "BOTH");
   const c = await mk(planned, "Wsale Retailonly", "RETAIL");
   const d = await mk(unplanned, "Wsale NoPlan", "WHOLESALE");
+  const hidden = await mkStore({ status: "DELISTED" });
+  const e = await mk(hidden, "Wsale Delisted", "WHOLESALE");
 
   proUsers.add("pro1");
   const w = ids(await wholesale({ q: "wsale", viewerId: "pro1" }));
   assert.ok(w.includes(a.productId) && w.includes(b.productId));
   assert.ok(!w.includes(c.productId), "retail-only is not in the wholesale index");
-  assert.ok(!w.includes(d.productId), "seller without a plan is not listed");
+  assert.ok(w.includes(d.productId), "a seller needs no plan to be in the wholesale index");
+  assert.ok(!w.includes(e.productId), "but a delisted store still is not listed");
   assert.ok(ids(await retail({ q: "wsale" })).includes(b.productId) && !ids(await retail({ q: "wsale" })).includes(a.productId));
 
-  await send("SubscriptionLapsed", { plan: "SELLER_PRO", storeId: planned.id });
-  assert.ok(!ids(await wholesale({ q: "wsale", viewerId: "pro1" })).includes(a.productId), "lapsed plan hides wholesale listings");
-  await send("SubscriptionActivated", { plan: "SELLER_PRO", storeId: planned.id });
-  assert.ok(ids(await wholesale({ q: "wsale", viewerId: "pro1" })).includes(a.productId));
-  await send("SubscriptionActivated", { plan: "BUYER_PRO", userId: "u" }); // buyer plans are not part of the index
 });
 
 test("Pro paywall: anonymous / non-Pro / billing-down viewers get a preview that leaks no prices", async () => {
-  const s = await mkStore({ plan: true });
+  const s = await mkStore();
   await prod(s.id, { name: "Paywall Item A", channel: "WHOLESALE", wholesalePrice: 7777, moq: 321, tiers: [{ minQty: 999, unitPrice: 4242 }] });
   await prod(s.id, { name: "Paywall Item B", channel: "WHOLESALE", wholesalePrice: 1111, moq: 123, tiers: [] });
   proUsers.add("pro2");

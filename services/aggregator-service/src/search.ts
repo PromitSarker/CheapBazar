@@ -39,7 +39,7 @@ export async function search(db: Runner, ent: Entitlements, tab: Tab, p: SearchP
     `l."deleted" = false`,
     `s."slug" <> ''`,
     `s."status" IN ${VISIBLE_STATUSES}`,
-    wholesale ? `l."channel" IN ('WHOLESALE','BOTH') AND s."sellerPlanActive" = true` : `l."channel" IN ('RETAIL','BOTH')`,
+    wholesale ? `l."channel" IN ('WHOLESALE','BOTH')` : `l."channel" IN ('RETAIL','BOTH')`,
   ];
 
   const terms = (p.q ?? "").toLowerCase().split(/\s+/).filter(Boolean).slice(0, 6);

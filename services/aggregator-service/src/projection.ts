@@ -3,7 +3,7 @@ import type { Runner } from "./db";
 
 /**
  * Event handlers that maintain the read models. Every write is guarded by the
- * producer timestamp (`sourceTs`/`infoTs`/`statusTs`/`planTs`): an older event can
+ * producer timestamp (`sourceTs`/`infoTs`/`statusTs`): an older event can
  * never overwrite a newer one, whatever order the bus delivers them in. Deletes
  * are tombstones so a late "updated" cannot resurrect a product.
  */
@@ -62,17 +62,6 @@ async function setStoreStatus(tx: Runner, env: EventEnvelope) {
   );
 }
 
-async function setSellerPlan(tx: Runner, env: EventEnvelope, active: boolean) {
-  const d = env.data;
-  if (d.plan !== "SELLER_PRO" || !d.storeId) return; // Buyer Pro is checked live at query time
-  await tx.$executeRawUnsafe(
-    `INSERT INTO "StoreProjection" ("storeId","sellerPlanActive","planTs","updatedAt") VALUES ($1,$2,$3,now())
-     ON CONFLICT ("storeId") DO UPDATE SET "sellerPlanActive"=EXCLUDED."sellerPlanActive","planTs"=EXCLUDED."planTs","updatedAt"=now()
-     WHERE "StoreProjection"."planTs" <= EXCLUDED."planTs"`,
-    d.storeId, active, ts(env)
-  );
-}
-
 export const handlers: Record<string, EventHandler> = {
   ProductCreated: (env, tx) => upsertListing(tx, env),
   ProductUpdated: (env, tx) => upsertListing(tx, env),
@@ -81,6 +70,4 @@ export const handlers: Record<string, EventHandler> = {
   StoreUpdated: (env, tx) => upsertStoreInfo(tx, env),
   StoreDomainUpdated: (env, tx) => upsertStoreInfo(tx, env),
   StoreStatusChanged: (env, tx) => setStoreStatus(tx, env),
-  SubscriptionActivated: (env, tx) => setSellerPlan(tx, env, true),
-  SubscriptionLapsed: (env, tx) => setSellerPlan(tx, env, false),
 };

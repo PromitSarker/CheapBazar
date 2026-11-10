@@ -35,7 +35,6 @@ export interface Deps {
   };
   billing: {
     buyerProActive(userId: string): Promise<boolean>;
-    sellerPlanActive(storeId: string): Promise<boolean>;
   };
 }
 
@@ -79,7 +78,6 @@ export function httpDeps(secret: string): Deps {
     },
     billing: {
       async buyerProActive(userId) { return (await c("payment").get<{ active: boolean }>(`/subscriptions/buyer/${encodeURIComponent(userId)}/status`)).active === true; },
-      async sellerPlanActive(storeId) { return (await c("payment").get<{ active: boolean }>(`/subscriptions/seller/${encodeURIComponent(storeId)}/status`)).active === true; },
     },
   };
 }

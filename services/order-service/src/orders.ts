@@ -163,9 +163,6 @@ export async function createOrder(db: Db, deps: Deps, raw: unknown) {
       if (!(await deps.billing.buyerProActive(input.buyer.id))) {
         throw new HttpError(403, "A Buyer Pro plan is required for wholesale orders.", "PRO_REQUIRED");
       }
-      if (!(await deps.billing.sellerPlanActive(store.id))) {
-        throw new HttpError(403, "This seller does not currently offer wholesale.", "SELLER_PLAN_REQUIRED");
-      }
     }
 
     // ---- prices come from the catalog, never from the client

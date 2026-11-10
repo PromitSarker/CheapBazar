@@ -190,16 +190,16 @@ export function plan(env: EventEnvelope): Plan {
     case "SubscriptionActivated":
     case "SubscriptionEnteredGrace":
     case "SubscriptionLapsed": {
-      const planName = d.plan === "SELLER_PRO" ? "Seller Pro" : "Buyer Pro";
+      const planName = "Buyer Pro"; // the only plan: wholesale buyers pay a monthly fee, sellers pay nothing
       const kind = env.eventType === "SubscriptionActivated" ? "ACTIVE" : env.eventType === "SubscriptionLapsed" ? "LAPSED" : "GRACE";
       const copy = {
         ACTIVE: { en: `${planName} is active.`, bn: `${planName} সক্রিয় হয়েছে।` },
-        GRACE: { en: `${planName} could not be renewed. Add funds or pay again within the grace period to keep access.`, bn: `${planName} নবায়ন করা যায়নি। প্রবেশাধিকার রাখতে গ্রেস সময়ের মধ্যে টাকা যোগ করুন বা আবার পেমেন্ট করুন।` },
-        LAPSED: { en: `${planName} has lapsed and its features are now locked.`, bn: `${planName} মেয়াদোত্তীর্ণ হয়েছে এবং এর সুবিধাগুলো বন্ধ হয়েছে।` },
+        GRACE: { en: `${planName} has expired. Pay again within the grace period to keep wholesale access.`, bn: `${planName} এর মেয়াদ শেষ হয়েছে। হোলসেল সুবিধা রাখতে গ্রেস সময়ের মধ্যে আবার পেমেন্ট করুন।` },
+        LAPSED: { en: `${planName} has lapsed and wholesale prices are now locked.`, bn: `${planName} মেয়াদোত্তীর্ণ হয়েছে এবং এর সুবিধাগুলো বন্ধ হয়েছে।` },
       }[kind];
       add({
         to: { userId: d.userId, storeId: d.storeId }, kind: `SUBSCRIPTION_${kind}`, email: kind !== "ACTIVE", dedupe: eid,
-        link: d.plan === "SELLER_PRO" ? "/dashboard/billing" : "/account/pro",
+        link: "/account/pro",
         en: { title: `${planName}: ${kind.toLowerCase()}`, body: copy.en },
         bn: { title: `${planName}: ${kind === "ACTIVE" ? "সক্রিয়" : kind === "GRACE" ? "গ্রেস পিরিয়ড" : "মেয়াদোত্তীর্ণ"}`, body: copy.bn },
       });

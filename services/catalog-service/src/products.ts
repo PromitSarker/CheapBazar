@@ -1,6 +1,5 @@
 import { HttpError } from "../../../packages/service-kit";
 import { publish } from "../../../packages/event-bus";
-import type { Entitlements } from "./entitlements";
 import { num, withTx, type Db, type Runner } from "./db";
 import { parseProduct } from "./pricing";
 
@@ -43,15 +42,8 @@ export async function listProducts(db: Runner, storeId: string, q: { channel?: s
   return rows.map(snapshot);
 }
 
-async function assertWholesaleAllowed(ent: Entitlements, storeId: string, channel: string) {
-  if (channel !== "RETAIL" && !(await ent.sellerPlanActive(storeId))) {
-    throw new HttpError(403, "An active Seller Pro plan is required to publish wholesale listings.", "PLAN_REQUIRED");
-  }
-}
-
-export async function createProduct(db: Db, ent: Entitlements, storeId: string, body: any) {
+export async function createProduct(db: Db, storeId: string, body: any) {
   const input = parseProduct(body);
-  await assertWholesaleAllowed(ent, storeId, input.channel);
   return withTx(db, async (tx) => {
     const p = await tx.product.create({
       data: {
@@ -66,7 +58,7 @@ export async function createProduct(db: Db, ent: Entitlements, storeId: string, 
   });
 }
 
-export async function updateProduct(db: Db, ent: Entitlements, id: string, body: any) {
+export async function updateProduct(db: Db, id: string, body: any) {
   const storeId = String(body.storeId ?? "");
   return withTx(db, async (tx) => {
     const cur = await tx.product.findFirst({ where: { id, storeId }, include });
@@ -76,10 +68,6 @@ export async function updateProduct(db: Db, ent: Entitlements, id: string, body:
       channel: cur.channel, moq: cur.moq, wholesalePrice: cur.wholesalePrice == null ? null : num(cur.wholesalePrice),
       tiers: cur.tiers.map((t) => ({ minQty: t.minQty, unitPrice: num(t.unitPrice) })),
     });
-    // Only (re)check the plan when the product is being made, or is changing as, a wholesale listing.
-    if (input.channel !== "RETAIL" && (cur.channel === "RETAIL" || body.channel !== undefined)) {
-      await assertWholesaleAllowed(ent, storeId, input.channel);
-    }
     await tx.priceTier.deleteMany({ where: { productId: id } });
     const p = await tx.product.update({
       where: { id },

@@ -46,10 +46,8 @@ model StoreProjection {
   template         String   @default("classic")
   customDomain     String?
   status           String   @default("ACTIVE")
-  sellerPlanActive Boolean  @default(false)
   infoTs           DateTime @default(dbgenerated("'1970-01-01 00:00:00'::timestamp"))
   statusTs         DateTime @default(dbgenerated("'1970-01-01 00:00:00'::timestamp"))
-  planTs           DateTime @default(dbgenerated("'1970-01-01 00:00:00'::timestamp"))
   updatedAt        DateTime @updatedAt
 }
 

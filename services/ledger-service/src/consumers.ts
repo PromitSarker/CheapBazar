@@ -1,7 +1,7 @@
 import type { EventHandler } from "../../../packages/event-bus";
 import { ensureWallet } from "./ledger";
 import { enforceWithin } from "./enforcer";
-import { recordOnlineSettlement, releaseCodHold, reverseOnlineSettlement, settleCodHold, topUp } from "./wallets";
+import { recordOnlineSettlement, recordPlatformRevenue, releaseCodHold, reversePlatformRevenue, reverseOnlineSettlement, settleCodHold, topUp } from "./wallets";
 
 /**
  * Events consumed by ledger-service. Handlers run in the same transaction as the
@@ -36,6 +36,14 @@ export const handlers: Record<string, EventHandler> = {
     } else if (d.purpose === "WALLET_TOPUP") {
       await topUp(tx, { storeId: d.storeId, amount: d.total, reference: d.tranId, method: d.method, source: "GATEWAY", idempotencyKey: `topup:${d.tranId}` });
     }
+  },
+  // Buyer Pro fee received (gateway-captured or admin-approved manual payment): the platform's own revenue
+  PlatformRevenueReceived: async (env, tx) => {
+    const d = env.data;
+    await recordPlatformRevenue(tx, { source: String(d.source), amount: Number(d.amount), reference: String(d.reference), method: d.method === "GATEWAY" ? "GATEWAY" : "MANUAL" });
+  },
+  PlatformRevenueReversed: async (env, tx) => {
+    await reversePlatformRevenue(tx, String(env.data.reference), String(env.data.reason ?? "chargeback"));
   },
   TopUpApproved: async (env, tx) => {
     const d = env.data;

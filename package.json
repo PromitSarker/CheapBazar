@@ -39,7 +39,11 @@
     "svc:ad": "tsx services/ad-service/src/index.ts",
     "prisma:ad": "prisma generate --schema services/ad-service/prisma/schema.prisma",
     "db:push:ad": "prisma db push --schema services/ad-service/prisma/schema.prisma",
-    "test:ad": "tsx --test services/ad-service/tests/ad.test.ts"
+    "test:ad": "tsx --test services/ad-service/tests/ad.test.ts",
+    "svc:payment": "tsx services/payment-billing-service/src/index.ts",
+    "prisma:payment": "prisma generate --schema services/payment-billing-service/prisma/schema.prisma",
+    "db:push:payment": "prisma db push --schema services/payment-billing-service/prisma/schema.prisma",
+    "test:payment": "tsx --test services/payment-billing-service/tests/*.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",

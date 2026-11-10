@@ -13,7 +13,6 @@ const ADMIN_URL = process.env.TEST_PG_ADMIN_URL || "postgresql://postgres:postgr
 
 let svc: Awaited<ReturnType<typeof startCatalogService>>;
 let api: ReturnType<typeof serviceClient>;
-let planActive = true; // stub for payment-billing's seller-plan entitlement
 let n = 0;
 const store = () => `store_${++n}_${Math.random().toString(36).slice(2, 6)}`;
 const ref = () => `ORD-${++n}-${Math.random().toString(36).slice(2, 7)}`;
@@ -34,7 +33,6 @@ before(async () => {
   const url = await resetDatabase(ADMIN_URL, "catalog_test", path.join(__dirname, "../prisma/schema.prisma"), createDb);
   svc = await startCatalogService({
     secret: SECRET, port: PORT, databaseUrl: url, relay: false, janitor: false,
-    entitlements: { sellerPlanActive: async () => planActive },
   });
   api = serviceClient({ baseUrl: `http://127.0.0.1:${PORT}`, secret: SECRET, caller: "test" });
 });
@@ -74,11 +72,8 @@ test("product CRUD with validation, store scoping and events", async () => {
   for (const t of ["ProductCreated", "ProductUpdated", "ProductDeleted"]) assert.ok(ev.some((e) => e.eventType === t && e.consumer === "aggregator"), t);
 });
 
-test("wholesale listings: need a plan, a price, sane tiers; channels filter correctly", async () => {
+test("wholesale listings: free for sellers, but need a price and sane tiers; channels filter correctly", async () => {
   const s = store();
-  planActive = false;
-  await expectErr(mk(s, { channel: "WHOLESALE", wholesalePrice: 300, moq: 10 }), "PLAN_REQUIRED", 403);
-  planActive = true;
   await expectErr(mk(s, { channel: "WHOLESALE", moq: 10 }), "VALIDATION", 400); // no wholesalePrice
   await expectErr(mk(s, { channel: "BOTH", wholesalePrice: 300, moq: 10, tiers: [{ minQty: 50, unitPrice: 320 }] }), "VALIDATION", 400); // dearer tier
   await expectErr(mk(s, { channel: "BOTH", wholesalePrice: 300, moq: 10, tiers: [{ minQty: 5, unitPrice: 250 }] }), "VALIDATION", 400); // tier below MOQ
@@ -93,12 +88,10 @@ test("wholesale listings: need a plan, a price, sane tiers; channels filter corr
   assert.deepEqual(await names("RETAIL"), ["Bulk Bread", "Retail Only"]);
   assert.deepEqual(await names("WHOLESALE"), ["Bulk Bread", "Pallet"]);
 
-  // plan lapse blocks turning a retail item wholesale, but not editing an existing wholesale item
+  // sellers pay nothing for wholesale: turning a retail item wholesale, or editing a wholesale one, needs no plan
   const retail = (await api.get(`/stores/${s}/products?q=retail%20only`)).products[0];
-  planActive = false;
-  await expectErr(api.patch(`/products/${retail.productId}`, { storeId: s, channel: "BOTH", wholesalePrice: 100, moq: 2 }), "PLAN_REQUIRED", 403);
+  assert.equal((await api.patch(`/products/${retail.productId}`, { storeId: s, channel: "BOTH", wholesalePrice: 100, moq: 2 })).channel, "BOTH");
   assert.equal((await api.patch(`/products/${wsOnly.productId}`, { storeId: s, stock: 5 })).stock, 5);
-  planActive = true;
 });
 
 test("pricing quote: server-side retail/wholesale prices, MOQ, tiers, channel and stock rules", async () => {

@@ -1,21 +1,20 @@
 import { Router, createServer, HttpError, requireFields, envInt } from "../../../packages/service-kit";
 import { HttpTransport, registerEventRoute, startRelay, outboxStats, type Transport } from "../../../packages/event-bus";
 import { createDb, type Db } from "./db";
-import { httpEntitlements, type Entitlements } from "./entitlements";
 import { adjustStock, createProduct, deleteProduct, getProduct, listProducts, updateProduct } from "./products";
 import { commit, expireReservations, quote, release, reserve, restock } from "./inventory";
 import { handlers } from "./consumers";
 
-export function buildRouter(db: Db, ent: Entitlements): Router {
+export function buildRouter(db: Db): Router {
   const r = new Router();
 
   // ---------------------------------------------------------------- products
   r.get("/products/:id", ({ params }) => getProduct(db, params.id));
   r.get("/stores/:storeId/products", async ({ params, query }) => ({ products: await listProducts(db, params.storeId, query) }));
-  r.post("/stores/:storeId/products", ({ params, body }) => createProduct(db, ent, params.storeId, body));
+  r.post("/stores/:storeId/products", ({ params, body }) => createProduct(db, params.storeId, body));
   r.patch("/products/:id", ({ params, body }) => {
     requireFields(body, ["storeId"]);
-    return updateProduct(db, ent, params.id, body);
+    return updateProduct(db, params.id, body);
   });
   r.delete("/products/:id", ({ params, query }) => {
     if (!query.storeId) throw new HttpError(400, "storeId is required", "VALIDATION");
@@ -73,12 +72,11 @@ export interface CatalogServiceOptions {
   relay?: boolean;
   janitor?: boolean;
   transport?: Transport;
-  entitlements?: Entitlements;
 }
 
 export async function startCatalogService(opts: CatalogServiceOptions) {
   const db = createDb(opts.databaseUrl);
-  const router = buildRouter(db, opts.entitlements ?? httpEntitlements(opts.secret));
+  const router = buildRouter(db);
   registerEventRoute(router, db as any, handlers);
 
   const app = createServer({ name: "catalog-service", router, internalSecret: opts.secret, ready: async () => void (await db.$queryRaw`SELECT 1`) });

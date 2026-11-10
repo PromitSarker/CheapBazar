@@ -35,9 +35,12 @@ export const EVENT_ROUTES: Record<string, ServiceName[]> = {
   PaymentFailed: ["order", "notification"],
   TopUpApproved: ["ledger"],
   ManualPaymentReviewed: ["notification"],
-  SubscriptionActivated: ["aggregator", "notification"],
+  // Buyer Pro is the ONLY plan (sellers pay nothing); the buyer's fee is the platform's (admin's) revenue
+  PlatformRevenueReceived: ["ledger"],
+  PlatformRevenueReversed: ["ledger"], // a chargeback took the money back
+  SubscriptionActivated: ["notification"],
   SubscriptionEnteredGrace: ["notification"],
-  SubscriptionLapsed: ["aggregator", "notification"],
+  SubscriptionLapsed: ["notification"],
 
   // ledger-service
   WalletHoldCreated: [],

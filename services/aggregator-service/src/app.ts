@@ -18,7 +18,7 @@ export function buildRouter(db: Db, ent: Entitlements): Router {
               (SELECT COUNT(*) FROM "ListingIndex" l JOIN "StoreProjection" s ON s."storeId"=l."storeId"
                 WHERE l."deleted"=false AND s."slug"<>'' AND s."status" IN ('ACTIVE','WARNING','COD_BLOCKED') AND l."channel" IN ('RETAIL','BOTH'))::bigint AS retail,
               (SELECT COUNT(*) FROM "ListingIndex" l JOIN "StoreProjection" s ON s."storeId"=l."storeId"
-                WHERE l."deleted"=false AND s."slug"<>'' AND s."status" IN ('ACTIVE','WARNING','COD_BLOCKED') AND l."channel" IN ('WHOLESALE','BOTH') AND s."sellerPlanActive")::bigint AS wholesale,
+                WHERE l."deleted"=false AND s."slug"<>'' AND s."status" IN ('ACTIVE','WARNING','COD_BLOCKED') AND l."channel" IN ('WHOLESALE','BOTH'))::bigint AS wholesale,
               (SELECT COUNT(*) FROM "StoreProjection")::bigint AS stores,
               (SELECT COUNT(*) FROM "StoreProjection" WHERE "slug"<>'' AND "status" IN ('ACTIVE','WARNING','COD_BLOCKED'))::bigint AS "visibleStores"`
     );
