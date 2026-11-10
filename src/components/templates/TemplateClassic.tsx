@@ -5,15 +5,20 @@ import { CartProvider, useCart } from "@/components/cart/CartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { useLanguage } from "@/modules/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import SponsoredBanner from "@/components/sponsored/SponsoredBanner";
 
+type SponsoredVM = { headline: string; imageUrl: string; targetUrl: string };
 type ProductVM = { id: string; name: string; description: string; price: number; stock: number; image?: string | null };
 
 function ClassicContent({
   store,
   products,
+  sponsored,
 }: {
   store: { name: string; slug: string };
   products: ProductVM[];
+  /** undefined = legacy placeholder; null = no ad; object = a real paid banner */
+  sponsored?: SponsoredVM | null;
 }) {
   const { addToCart, openCart, totalCount } = useCart();
   const { t, formatMoney, toNumerals } = useLanguage();
@@ -51,7 +56,8 @@ function ClassicContent({
           </div>
         </div>
 
-        {/* Sponsored ad slot placeholder (Diagram 5) */}
+        {sponsored === undefined ? (
+        <>
         <div className="sponsored-banner" style={{
           marginTop: "1.25rem",
           padding: "0.75rem 1rem",
@@ -66,6 +72,10 @@ function ClassicContent({
           <span>✨ <strong>{t.sponsored}:</strong> {t.featuredNotice}</span>
           <span style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "#f97316", fontWeight: 600 }}>{t.sponsored}</span>
         </div>
+        </>
+        ) : sponsored ? (
+          <SponsoredBanner ad={sponsored} label={t.sponsored} accent="#f97316" />
+        ) : null}
       </header>
 
       <main className="tpl-body">
@@ -110,6 +120,7 @@ function ClassicContent({
 export default function TemplateClassic(props: {
   store: { name: string; slug: string };
   products: ProductVM[];
+  sponsored?: SponsoredVM | null;
 }) {
   return (
     <CartProvider>

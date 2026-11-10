@@ -46,7 +46,7 @@ async function submit(pagePath, match, has, fields) {
 
 const run = Date.now().toString(36);
 async function user(label, role = "SELLER") {
-  const r = await svc("identity", "POST", "/auth/register", { email: `${label}-${run}@example.test`, name: `${label} ${run}`, password: "admin-e2e-pass1", role: "SELLER", ip: "198.51.100.30" });
+  const r = await svc("identity", "POST", "/auth/register", { email: `${label}-${run}@example.test`, name: `${label} ${run}`, password: "admin-e2e-pass1", role: "SELLER", ip: `198.51.100.${Math.floor(Math.random() * 250) + 1}` });
   if (role !== "SELLER") await svc("identity", "PATCH", `/users/${r.user.id}/role`, { role, admin: "e2e" });
   return r;
 }

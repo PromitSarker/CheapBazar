@@ -153,6 +153,11 @@ test("create: locks price, validates input, publishes AdBookingRequested", async
   await expectErr(book(slot, s2, { startDate: "2026-02-30" }), "VALIDATION");
   await expectErr(book(slot, s2, { imageUrl: "http://insecure.example.com/a.jpg" }), "VALIDATION");
   await expectErr(book(slot, s2, { imageUrl: "javascript:alert(1)" }), "VALIDATION");
+  // a file the platform stored itself is fine; any other path or host is not
+  await expectErr(book(slot, s2, { imageUrl: "/etc/passwd" }), "VALIDATION");
+  await expectErr(book(slot, s2, { imageUrl: "//evil.example.com/a.png" }), "VALIDATION");
+  await expectErr(book(slot, s2, { imageUrl: "/uploads/../secret.png" }), "VALIDATION");
+  await expectErr(book(slot, s2, { imageUrl: "/uploads/abcdefgh12.svg" }), "VALIDATION");
   await expectErr(book(slot, s2, { targetUrl: "//evil.example.com" }), "VALIDATION");
   await expectErr(book(slot, s2, { headline: "ab" }), "VALIDATION");
   await expectErr(book(slot, s2, { ownerId: "" }), "VALIDATION");

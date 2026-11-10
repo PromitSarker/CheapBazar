@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { getPublicStoreWithProducts } from "@/modules/catalog/service";
 import TemplateClassic from "@/components/templates/TemplateClassic";
 import TemplateModern from "@/components/templates/TemplateModern";
+import { servicesEnabled } from "@/lib/bff/client";
+import { sponsoredForStorefront } from "@/lib/bff/ads";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +33,8 @@ export default async function StorefrontPage({ params }: { params: { slug: strin
   }
 
   const Template = store.template === "modern" ? TemplateModern : TemplateClassic;
-  return <Template store={store} products={products} />;
+  // Services path: show a real paid banner (or none). Legacy path keeps the old placeholder.
+  const sponsored = servicesEnabled() ? await sponsoredForStorefront(store.id) : undefined;
+  return <Template store={store} products={products} sponsored={sponsored} />;
 }
 

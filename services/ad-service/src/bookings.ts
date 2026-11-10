@@ -36,6 +36,18 @@ function validUrl(v: unknown, name: string, allowPath: boolean): string {
   return s;
 }
 
+/**
+ * Creative image: either an https URL, or a file the platform itself stored under /uploads/
+ * (a generated name + a real image extension). Anything else with a leading slash is refused,
+ * so a path can never point at an arbitrary file or another host.
+ */
+const OWN_UPLOAD = /^\/uploads\/[A-Za-z0-9-]{8,64}\.(png|jpg|gif|webp)$/;
+function validImage(v: unknown): string {
+  const s = String(v ?? "").trim();
+  if (OWN_UPLOAD.test(s)) return s;
+  return validUrl(s, "imageUrl", false);
+}
+
 /** The ledger is a separate service: its being down must stop the action, never silently allow it. */
 async function standing(ledger: LedgerGateway, storeId: string) {
   try {
@@ -53,7 +65,7 @@ export async function createBooking(db: Db, ledger: LedgerGateway, cfg: AdConfig
   const ownerId = String(body.ownerId);
   const headline = String(body.headline).trim();
   if (headline.length < 3 || headline.length > 80) throw new HttpError(400, "headline must be 3-80 characters", "VALIDATION");
-  const imageUrl = validUrl(body.imageUrl, "imageUrl", false);
+  const imageUrl = validImage(body.imageUrl);
   const targetUrl = validUrl(body.targetUrl, "targetUrl", true);
   const startDate = parseDay(body.startDate, "startDate");
   const endDate = parseDay(body.endDate, "endDate");
