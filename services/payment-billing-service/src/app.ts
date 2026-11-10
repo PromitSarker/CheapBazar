@@ -6,7 +6,7 @@ import { SSLCommerzGateway, type Gateway } from "./gateway";
 import { httpLedger, type LedgerGateway } from "./ledger";
 import { httpOrders, type OrderGateway } from "./orders";
 import { chargeback, createCharge, getPayment, handleIpn, listPayments, reconcile, refundPayment, sweep } from "./payments";
-import { createManualPayment, listManual, reviewManualPayment } from "./manual";
+import { createManualPayment, listManual, reviewManualPayment, revokeManualPayment } from "./manual";
 import { entitlement, listInvoices, listSubscriptions, parsePlan, revenueSummary, seedPlans, shapePlan, tick, upsertPlan } from "./subscriptions";
 
 /** Used while ONLINE_PAYMENTS_ENABLED=false: nothing can start a gateway session, and nothing is trusted from one. */
@@ -77,6 +77,10 @@ export function buildRouter({ db, gw, ledger, orders, cfg, clock }: Deps): Route
   r.patch("/admin/manual-payments/:id/review", ({ params, body }) => {
     requireFields(body, ["decision", "admin"]);
     return reviewManualPayment(db, { id: params.id, decision: String(body.decision), admin: String(body.admin), note: body.note }, clock());
+  });
+  r.post("/admin/manual-payments/:id/revoke", ({ params, body }) => {
+    requireFields(body, ["admin", "reason"]);
+    return revokeManualPayment(db, { id: params.id, admin: String(body.admin), reason: String(body.reason) }, clock());
   });
   r.get("/admin/plans", async () => ({ plans: (await db.plan.findMany({ orderBy: { code: "asc" } })).map(shapePlan) }));
   r.post("/admin/plans", ({ body }) => upsertPlan(db, body));

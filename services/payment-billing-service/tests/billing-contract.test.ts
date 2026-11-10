@@ -217,3 +217,55 @@ test("after all of that the real ledger still balances, wallets reconcile, and t
   assert.ok(credit("PLATFORM_FEE_REVENUE") >= 150);                  // 100 + 50 + 50 from the settled orders
   assert.ok(credit("PLATFORM_SUBSCRIPTION_REVENUE") >= 3 * 499);     // two manual/gateway fees + the charged-back one
 });
+
+test("revoking an approved Buyer Pro payment ends access, voids the invoice and takes the revenue back out of the real ledger (once)", async () => {
+  await pump();
+  const before = await platform("PLATFORM_SUBSCRIPTION_REVENUE");
+  const user = `buyer${++n}`;
+  const { payment } = await B.post<any>("/subscriptions/subscribe", { plan: "BUYER_PRO", method: "MANUAL", transferMethod: "BKASH", userId: user, trxId: trx(), idempotencyKey: key() });
+  await assert.rejects(B.post(`/admin/manual-payments/${payment.id}/revoke`, { admin: "a", reason: "x" }), /approved/i); // pending cannot be revoked
+  await B.patch(`/admin/manual-payments/${payment.id}/review`, { decision: "APPROVE", admin: "a1" });
+  await pump();
+  assert.equal((await B.get<any>(`/subscriptions/buyer/${user}/status`)).active, true);
+  assert.equal((await platform("PLATFORM_SUBSCRIPTION_REVENUE")).net - before.net, 499);
+
+  await assert.rejects(B.post(`/admin/manual-payments/${payment.id}/revoke`, { admin: "a", reason: " " }), /reason/i);
+  const r1 = await B.post<any>(`/admin/manual-payments/${payment.id}/revoke`, { admin: "a", reason: "trx id not in the bKash statement" });
+  assert.equal(r1.payment.status, "REVOKED");
+  assert.equal(r1.access, "ended");
+  const r2 = await B.post<any>(`/admin/manual-payments/${payment.id}/revoke`, { admin: "a", reason: "again" });
+  assert.equal(r2.duplicate, true);
+  await pump();
+  assert.equal((await B.get<any>(`/subscriptions/buyer/${user}/status`)).active, false);
+  assert.equal((await platform("PLATFORM_SUBSCRIPTION_REVENUE")).net - before.net, 0);
+  const inv = (await B.get<any>(`/subscriptions/invoices?userId=${user}`)).invoices;
+  assert.equal(inv[0].status, "VOID");
+  // the same transaction id can never be claimed again
+  await assert.rejects(B.post("/subscriptions/subscribe", { plan: "BUYER_PRO", method: "MANUAL", transferMethod: "BKASH", userId: `buyer${++n}`, trxId: payment.trxId, idempotencyKey: key() }));
+  await (billing.db as any).$executeRawUnsafe(`UPDATE "OutboxMessage" SET "deliveredAt" = NULL, "attempts" = 0 WHERE "consumer" = 'ledger'`);
+  await pump();
+  assert.equal((await platform("PLATFORM_SUBSCRIPTION_REVENUE")).net - before.net, 0); // replay does not reverse twice
+});
+
+test("revoking one of two stacked Buyer Pro payments only shortens access; a wallet top-up cannot be revoked", async () => {
+  const user = `buyer${++n}`;
+  const pay = async () => {
+    const { payment } = await B.post<any>("/subscriptions/subscribe", { plan: "BUYER_PRO", method: "MANUAL", transferMethod: "NAGAD", userId: user, trxId: trx(), idempotencyKey: key() });
+    await B.patch(`/admin/manual-payments/${payment.id}/review`, { decision: "APPROVE", admin: "a1" });
+    return payment;
+  };
+  const p1 = await pay(), p2 = await pay();
+  const end2 = (await B.get<any>("/admin/subscriptions")).subscriptions.find((s: any) => s.userId === user).currentPeriodEnd;
+  const r = await B.post<any>(`/admin/manual-payments/${p2.id}/revoke`, { admin: "a", reason: "bad" });
+  assert.equal(r.access, "shortened");
+  const sub = (await B.get<any>("/admin/subscriptions")).subscriptions.find((s: any) => s.userId === user);
+  assert.equal(sub.status, "ACTIVE");
+  assert.ok(new Date(sub.currentPeriodEnd).getTime() < new Date(end2).getTime());
+  assert.equal((await B.get<any>(`/subscriptions/buyer/${user}/status`)).active, true);
+  void p1;
+
+  const store = await mkStore();
+  const { payment: tp } = await B.post<any>("/topups/manual", { storeId: store, amount: 700, method: "BKASH", trxId: trx(), idempotencyKey: key() });
+  await B.patch(`/admin/manual-payments/${tp.id}/review`, { decision: "APPROVE", admin: "a1" });
+  await assert.rejects(B.post(`/admin/manual-payments/${tp.id}/revoke`, { admin: "a", reason: "bad" }), /clawback|revoked/i);
+});

@@ -52,7 +52,7 @@ BLOCKERs the migration will refuse on (fix, then re-run): an online order still 
 5. Set the web tier's environment in `.env` (the web app reads it at start):
    `USE_SERVICES=true`, `INTERNAL_AUTH_SECRET=<same value as deploy/.env>`, `TOPUP_INSTRUCTIONS="bKash 01XXXXXXXXX (personal) ..."`, and `COOKIE_INSECURE=true` while the site is served over plain http (drop it once there is HTTPS).
 6. `pm2 restart cheapbazar --update-env`.
-7. Set real prices (placeholders until then):
+7. Set real prices (placeholders until then). Easiest: log in as the admin and use **/admin/billing** (Pricing & Revenue). The same via curl:
    ```bash
    H="authorization: Bearer $INTERNAL_AUTH_SECRET"
    curl -s -X POST -H "$H" -H 'content-type: application/json' http://127.0.0.1:4004/admin/plans \
