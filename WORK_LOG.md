@@ -3,6 +3,14 @@
 Notes on what was done to this project and its servers, newest first. No secrets are recorded here.
 Commits are authored as `Claude <noreply@anthropic.com>` (owner's instruction, 2026-11-10).
 
+## 2026-11-10 (chunk 13): HOME_HERO ad spot on the home page (behind USE_SERVICES)
+
+- The `HOME_HERO` ad slot (marketplace home, capacity 3, placeholder ৳1500/day) was sellable in the dashboard and moderated in /admin/ads, but nothing displayed it. The home page now shows up to three live HOME_HERO banners, labelled "Sponsored" / "স্পনসরড", in a strip between the hero and the feature section, i.e. above the sample-store cards. They use the same `SponsoredBanner` as the storefront and /browse (`rel="sponsored noopener"`).
+- `src/app/page.tsx` fetches `marketplaceAds("HOME_HERO")` (1.5 s timeout, fails to no ads, so an ad outage never breaks the home page) and passes `heroAds` to `LandingView`. Flag off: the prop is empty and the page is exactly as before. No service changed.
+- `scripts/e2e-browse.mjs` is now 24 checks: a pending HOME_HERO booking is not shown; an approved and started one is shown, labelled Sponsored, with `rel="sponsored"`, above the stores section. (The test tops up the seller's wallet first because the slot costs more than the earlier test balances.)
+- Regression: checkout 9, portal 18, wallet 22, admin 21, ads 20, billing 15, my orders 16, bell 15, web unit 11, typecheck clean. Web rebuilt, `cheapbazar` restarted (flag off, 200, no ads markup).
+- Everything with a user-facing screen now has a services version. Remaining "not built" items are product decisions or need outside accounts: Buyer Pro auto-renewal, online checkout, courier / SMS / email providers, wallet top-up clawback, delivered-order refunds.
+
 ## 2026-11-10 (chunk 12): notification bell and inbox (behind USE_SERVICES)
 
 - **Bell in the header** (logged-in users, services path only): a 🔔 with a red unread-count badge (99+ cap) linking to `/notifications`. The root layout asks notification-service for the count with a 1.2 s timeout and falls back to 0, so a notification outage can never slow down or break a page.
