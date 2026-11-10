@@ -17,7 +17,7 @@ export async function placeOrderViaServices(
   const payload = {
     storeSlug: String(input.storeSlug),
     paymentMethod: String(input.paymentMethod || "COD").toUpperCase(),
-    orderType: "RETAIL",
+    orderType: String(input.orderType || "RETAIL").toUpperCase() === "WHOLESALE" ? "WHOLESALE" : "RETAIL",
     buyer: {
       id: opts.buyerId ?? null,
       name: input.buyerName,

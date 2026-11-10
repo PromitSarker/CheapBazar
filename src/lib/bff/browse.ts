@@ -1,0 +1,95 @@
+/**
+ * Buyer side through the services: marketplace search (aggregator-service), Buyer Pro plan and
+ * status (payment-billing), live ads for the marketplace slots (ad-service).
+ * Used only when USE_SERVICES=true. The wholesale paywall is decided by the aggregator from the
+ * viewer id; the web tier never filters or hides prices itself.
+ */
+import crypto from "crypto";
+import { callService, ServiceCallError } from "./client";
+
+const q = encodeURIComponent;
+
+export type Tab = "retail" | "wholesale";
+export interface BrowseItem {
+  productId: string; name: string; description: string; image: string | null;
+  store: { id: string; slug: string; name: string }; inStock: boolean;
+  price?: number; stock?: number; channel?: string;
+  locked?: boolean; wholesalePrice?: number; moq?: number; tiers?: { minQty: number; unitPrice: number }[];
+}
+export interface BrowseResult {
+  tab: Tab; items: BrowseItem[]; total: number; page: number; pages: number; limit: number;
+  paywall: { locked: boolean; reason: "LOGIN_REQUIRED" | "BUYER_PRO_REQUIRED" | null } | null;
+  facets: { stores: { storeId: string; slug: string; name: string; count: number }[] };
+}
+
+export async function searchViaServices(tab: Tab, params: Record<string, string | undefined>, viewerId?: string): Promise<BrowseResult> {
+  const qs = Object.entries({ ...params, viewerId })
+    .filter(([, v]) => v !== undefined && v !== "")
+    .map(([k, v]) => `${k}=${q(String(v))}`)
+    .join("&");
+  return callService<BrowseResult>("aggregator", "GET", `/aggregator/${tab}/search${qs ? `?${qs}` : ""}`);
+}
+
+export async function storeDirectoryViaServices(limit = 8) {
+  const r = await callService<{ stores: { storeId: string; slug: string; name: string; template: string; customDomain: string | null; productCount: number }[] }>(
+    "aggregator", "GET", `/aggregator/stores?limit=${limit}`
+  );
+  // two sample products per store for the landing cards
+  return Promise.all(
+    r.stores.map(async (s) => {
+      let sample: { name: string; price: number }[] = [];
+      try {
+        const p = await searchViaServices("retail", { storeId: s.storeId, limit: "2" });
+        sample = p.items.map((i) => ({ name: i.name, price: i.price ?? 0 }));
+      } catch { /* cards still render without samples */ }
+      return { id: s.storeId, name: s.name, slug: s.slug, template: s.template, customDomain: s.customDomain, productCount: s.productCount, sampleProducts: sample };
+    })
+  );
+}
+
+/** Live ads for a marketplace slot. An ad outage must never break the page. */
+export async function marketplaceAds(slot: string): Promise<{ headline: string; imageUrl: string; targetUrl: string }[]> {
+  try {
+    const r = await callService<{ ads: { headline: string; imageUrl: string; targetUrl: string }[] }>("ad", "GET", `/ads/active?slot=${q(slot)}`, undefined, { timeoutMs: 1500 });
+    return r.ads;
+  } catch {
+    return [];
+  }
+}
+
+// -------------------------------------------------------------- Buyer Pro
+
+export interface ProPlan { code: string; name: string; price: number; periodDays: number; graceDays: number }
+export interface ProStatus { active: boolean; status: string; currentPeriodEnd: string | null; graceEndsAt: string | null }
+
+export async function buyerProPlan(): Promise<ProPlan | null> {
+  const r = await callService<{ plans: ProPlan[] }>("payment", "GET", "/plans");
+  return r.plans.find((p) => p.code === "BUYER_PRO") ?? null;
+}
+
+export async function buyerProStatus(userId: string): Promise<ProStatus> {
+  try {
+    return await callService<ProStatus>("payment", "GET", `/subscriptions/buyer/${q(userId)}/status`);
+  } catch {
+    return { active: false, status: "UNKNOWN", currentPeriodEnd: null, graceEndsAt: null };
+  }
+}
+
+export async function myProPayments(userId: string) {
+  const r = await callService<{ payments: any[] }>("payment", "GET", `/admin/manual-payments?userId=${q(userId)}&limit=10`);
+  return r.payments.filter((p) => p.purpose === "SUBSCRIPTION");
+}
+
+/** Buyer pays the platform by bKash/Nagad/Rocket/bank and submits the transaction id; an admin approves. */
+export async function submitProPayment(userId: string, method: string, trxId: string): Promise<{ ok: true; duplicate: boolean } | { ok: false; error: string }> {
+  const key = crypto.createHash("sha256").update(`pro|${userId}|${method}|${trxId.trim().toUpperCase()}`).digest("hex").slice(0, 40);
+  try {
+    const r = await callService<any>("payment", "POST", "/subscriptions/subscribe", {
+      plan: "BUYER_PRO", method: "MANUAL", transferMethod: method, trxId, userId, idempotencyKey: key,
+    });
+    return { ok: true, duplicate: !!r.duplicate };
+  } catch (e) {
+    if (e instanceof ServiceCallError) return { ok: false, error: e.status >= 500 ? "Billing is unavailable right now. Please try again shortly." : e.message };
+    throw e;
+  }
+}

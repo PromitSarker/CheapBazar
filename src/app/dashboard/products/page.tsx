@@ -29,6 +29,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: { e
     <ProductsInventoryView
       products={products}
       error={searchParams.error}
+      wholesale={servicesEnabled()}
       addProductAction={addProduct}
       adjustStockAction={adjustStock}
       deleteProductAction={deleteProduct}

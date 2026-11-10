@@ -18,7 +18,9 @@ export default function ProductsInventoryView({
   addProductAction,
   adjustStockAction,
   deleteProductAction,
+  wholesale = false,
 }: {
+  wholesale?: boolean;
   products: ProductItem[];
   error?: string;
   addProductAction: (formData: FormData) => Promise<void>;
@@ -72,7 +74,11 @@ export default function ProductsInventoryView({
 
       {error && (
         <p className="error" style={{ marginBottom: "1rem" }}>
-          {error === "in-use"
+          {error === "wholesale"
+            ? language === "bn"
+              ? "পাইকারি তথ্য ঠিক করুন: দাম, ন্যূনতম পরিমাণ এবং ডিসকাউন্ট সঙ্গতিপূর্ণ হতে হবে।"
+              : "Please check the wholesale details: the discount must be cheaper than the wholesale price and start above the minimum order."
+            : error === "in-use"
             ? language === "bn"
               ? "এই পণ্যটি বিদ্যমান অর্ডারের অংশ, তাই মোছা যাবে না। এর স্টক ০ করে দিন।"
               : "This product is part of existing orders and cannot be deleted. Set its stock to 0 instead."
@@ -269,6 +275,38 @@ export default function ProductsInventoryView({
                 }}
               />
             </label>
+
+            {wholesale && (
+              <fieldset style={{ gridColumn: "1 / -1", border: "1px solid rgba(0,0,0,0.12)", borderRadius: 10, padding: "0.9rem 1rem", display: "grid", gap: "0.75rem", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
+                <legend style={{ fontSize: "0.85rem", fontWeight: 600, color: "#27272a", padding: "0 0.4rem" }}>
+                  {language === "bn" ? "পাইকারি (Buyer Pro ক্রেতাদের জন্য)" : "Wholesale (for Buyer Pro members)"}
+                </legend>
+                <label style={{ display: "flex", flexDirection: "column", gap: "0.3rem", fontSize: "0.85rem", color: "#27272a" }}>
+                  {language === "bn" ? "বিক্রয় চ্যানেল" : "Sold as"}
+                  <select name="channel" defaultValue="RETAIL" style={{ padding: "0.6rem", borderRadius: 8 }}>
+                    <option value="RETAIL">{language === "bn" ? "শুধু খুচরা" : "Retail only"}</option>
+                    <option value="BOTH">{language === "bn" ? "খুচরা ও পাইকারি" : "Retail and wholesale"}</option>
+                    <option value="WHOLESALE">{language === "bn" ? "শুধু পাইকারি" : "Wholesale only"}</option>
+                  </select>
+                </label>
+                <label style={{ display: "flex", flexDirection: "column", gap: "0.3rem", fontSize: "0.85rem", color: "#27272a" }}>
+                  {language === "bn" ? "পাইকারি দাম (প্রতি একক)" : "Wholesale price (each)"}
+                  <input name="wholesalePrice" type="number" min="0" step="0.01" style={{ padding: "0.6rem", borderRadius: 8 }} />
+                </label>
+                <label style={{ display: "flex", flexDirection: "column", gap: "0.3rem", fontSize: "0.85rem", color: "#27272a" }}>
+                  {language === "bn" ? "সর্বনিম্ন অর্ডার (MOQ)" : "Minimum order (MOQ)"}
+                  <input name="moq" type="number" min="1" defaultValue="1" style={{ padding: "0.6rem", borderRadius: 8 }} />
+                </label>
+                <label style={{ display: "flex", flexDirection: "column", gap: "0.3rem", fontSize: "0.85rem", color: "#27272a" }}>
+                  {language === "bn" ? "ডিসকাউন্ট: কমপক্ষে (ঐচ্ছিক)" : "Volume discount from qty (optional)"}
+                  <input name="tierQty" type="number" min="2" style={{ padding: "0.6rem", borderRadius: 8 }} />
+                </label>
+                <label style={{ display: "flex", flexDirection: "column", gap: "0.3rem", fontSize: "0.85rem", color: "#27272a" }}>
+                  {language === "bn" ? "ডিসকাউন্ট দাম (প্রতি একক)" : "Discounted price (each)"}
+                  <input name="tierPrice" type="number" min="0" step="0.01" style={{ padding: "0.6rem", borderRadius: 8 }} />
+                </label>
+              </fieldset>
+            )}
           </div>
 
           <button

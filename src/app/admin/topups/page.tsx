@@ -29,8 +29,8 @@ export default async function AdminTopUpsPage({ searchParams }: { searchParams: 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <div>
           <Link href="/admin" className="muted" style={{ fontSize: "0.85rem", textDecoration: "none" }}>&larr; Admin Overview</Link>
-          <h1>Wallet Top-up Review</h1>
-          <p className="muted">Sellers pay the platform by bKash, Nagad, Rocket, bank or cash and submit the transaction ID. Check it against your account statement before approving: approval credits the seller's wallet.</p>
+          <h1>Payment Review</h1>
+          <p className="muted">Sellers (wallet top-ups) and buyers (Buyer Pro) pay the platform by bKash, Nagad, Rocket, bank or cash and submit the transaction ID. Check it against your account statement before approving: approval credits the seller's wallet or starts the buyer's Buyer Pro plan.</p>
         </div>
         <span className="hero-badge" style={{ margin: 0 }}>{pending.length} awaiting review</span>
       </div>
@@ -42,7 +42,7 @@ export default async function AdminTopUpsPage({ searchParams }: { searchParams: 
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
           <thead>
             <tr style={{ borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
-              <th style={th}>Store</th><th style={th}>Amount</th><th style={th}>Method / TrxID</th><th style={th}>Submitted</th><th style={th}>Decision</th>
+              <th style={th}>Payer</th><th style={th}>Amount</th><th style={th}>Method / TrxID</th><th style={th}>Submitted</th><th style={th}>Decision</th>
             </tr>
           </thead>
           <tbody>
@@ -51,7 +51,7 @@ export default async function AdminTopUpsPage({ searchParams }: { searchParams: 
             )}
             {pending.map((p) => (
               <tr key={p.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                <td style={td}><strong>{p.storeName}</strong><br /><small>/store/{p.storeSlug}</small></td>
+                <td style={td}><strong>{p.storeName}</strong><br /><small>{p.kind}{p.storeSlug ? ` · /store/${p.storeSlug}` : ""}</small></td>
                 <td style={td}><strong>৳{Number(p.amount).toFixed(2)}</strong></td>
                 <td style={td}>{p.method}<br /><code>{p.trxId}</code></td>
                 <td style={td}>{p.createdLabel}</td>
@@ -76,7 +76,7 @@ export default async function AdminTopUpsPage({ searchParams }: { searchParams: 
             {recent.length === 0 && <tr><td style={{ ...td, textAlign: "center" }}>No reviewed top-ups yet.</td></tr>}
             {recent.map((p) => (
               <tr key={p.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                <td style={td}>{p.storeName}</td>
+                <td style={td}>{p.storeName}<br /><small>{p.kind}</small></td>
                 <td style={td}>৳{Number(p.amount).toFixed(2)}</td>
                 <td style={td}>{p.method} <code>{p.trxId}</code></td>
                 <td style={td}><strong>{p.status}</strong>{p.reviewNote ? ` — ${p.reviewNote}` : ""}</td>

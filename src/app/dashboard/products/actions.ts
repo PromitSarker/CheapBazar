@@ -43,8 +43,18 @@ export async function addProduct(formData: FormData) {
   }
 
   if (servicesEnabled()) {
-    const r = await createProductViaServices(store.id, { name, description, price, stock, image: imageUrl });
-    if (!r.ok) redirect("/dashboard/products?error=invalid");
+    const channel = String(formData.get("channel") || "RETAIL").toUpperCase();
+    const wholesaleFields: Record<string, unknown> = {};
+    if (channel === "BOTH" || channel === "WHOLESALE") {
+      const tierQty = Number(formData.get("tierQty"));
+      const tierPrice = Number(formData.get("tierPrice"));
+      wholesaleFields.channel = channel;
+      wholesaleFields.moq = Number(formData.get("moq") || 1);
+      wholesaleFields.wholesalePrice = Number(formData.get("wholesalePrice"));
+      wholesaleFields.tiers = tierQty > 0 && tierPrice > 0 ? [{ minQty: tierQty, unitPrice: tierPrice }] : [];
+    }
+    const r = await createProductViaServices(store.id, { name, description, price, stock, image: imageUrl, ...wholesaleFields });
+    if (!r.ok) redirect(`/dashboard/products?error=${wholesaleFields.channel ? "wholesale" : "invalid"}`);
     revalidatePath("/dashboard/products");
     revalidatePath("/dashboard");
     return;

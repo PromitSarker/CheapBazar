@@ -7,8 +7,8 @@ import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { logout } from "@/app/(auth)/actions";
 import type { UserSession } from "@/modules/identity/types";
 
-export default function SiteHeader({ user }: { user: UserSession | null }) {
-  const { t } = useLanguage();
+export default function SiteHeader({ user, marketplace = false }: { user: UserSession | null; marketplace?: boolean }) {
+  const { t, language } = useLanguage();
 
   return (
     <div className="header-wrapper">
@@ -19,6 +19,12 @@ export default function SiteHeader({ user }: { user: UserSession | null }) {
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <LanguageSwitcher />
           <nav>
+            {marketplace && (
+              <Link href="/browse" className="nav-link">{language === "bn" ? "মার্কেটপ্লেস" : "Marketplace"}</Link>
+            )}
+            {marketplace && user && user.role !== "ADMIN" && (
+              <Link href="/pro" className="nav-link">Buyer Pro</Link>
+            )}
             {user ? (
               <>
                 {user.role === "ADMIN" && (

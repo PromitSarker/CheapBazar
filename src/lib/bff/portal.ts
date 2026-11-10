@@ -70,7 +70,10 @@ export async function listProductsViaServices(storeId: string): Promise<PortalPr
   }));
 }
 
-export async function createProductViaServices(storeId: string, p: { name: string; description: string; price: number; stock: number; image: string | null }): Promise<{ ok: boolean }> {
+export async function createProductViaServices(
+  storeId: string,
+  p: { name: string; description: string; price: number; stock: number; image: string | null; channel?: string; moq?: number; wholesalePrice?: number; tiers?: { minQty: number; unitPrice: number }[] }
+): Promise<{ ok: boolean }> {
   try {
     await callService("catalog", "POST", `/stores/${q(storeId)}/products`, p);
     return { ok: true };
