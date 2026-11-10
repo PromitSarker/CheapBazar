@@ -91,3 +91,44 @@ export async function getOrderViewViaServices(slug: string, orderNumber: string)
     throw e;
   }
 }
+
+// ------------------------------------------------------------ "My orders" (buyer)
+
+export interface MyOrder {
+  id: string;
+  orderNumber: string;
+  storeName: string;
+  storeSlug: string;
+  orderType: string;
+  paymentMethod: string;
+  status: string;
+  totalAmount: number;
+  createdAt: string;
+  trackingNumber: string | null;
+  courierName: string | null;
+  items: { name: string; quantity: number }[];
+  canCancel: boolean;
+}
+
+/** Orders the logged-in user placed while signed in, newest first. The owner id always comes from the session. */
+export async function myOrdersViaServices(userId: string): Promise<MyOrder[]> {
+  const r = await callService<{ orders: any[] }>("order", "GET", `/buyers/${encodeURIComponent(userId)}/orders?limit=100`);
+  return r.orders.map((o) => ({
+    id: o.id, orderNumber: o.orderNumber, storeName: o.storeName, storeSlug: o.storeSlug, orderType: o.orderType,
+    paymentMethod: o.paymentMethod, status: o.status, totalAmount: Number(o.totalAmount), createdAt: o.createdAt,
+    trackingNumber: o.trackingNumber ?? null, courierName: o.courierName ?? null,
+    items: (o.items ?? []).map((i: any) => ({ name: i.productName, quantity: i.quantity })),
+    // before the seller starts preparing it; order-service also lets a buyer cancel while PROCESSING, but we do not offer that
+    canCancel: o.status === "CONFIRMED" || o.status === "PENDING_PAYMENT",
+  }));
+}
+
+export async function cancelMyOrderViaServices(userId: string, orderId: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    await callService("order", "PATCH", `/orders/${encodeURIComponent(orderId)}/status`, { to: "CANCELLED", source: "BUYER", actor: userId, note: "Cancelled by the buyer" });
+    return { ok: true };
+  } catch (e) {
+    if (e instanceof ServiceCallError && e.status < 500) return { ok: false, error: e.status === 404 ? "Order not found." : e.message };
+    throw e;
+  }
+}

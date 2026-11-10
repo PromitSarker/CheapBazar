@@ -3,6 +3,16 @@
 Notes on what was done to this project and its servers, newest first. No secrets are recorded here.
 Commits are authored as `Claude <noreply@anthropic.com>` (owner's instruction, 2026-11-10).
 
+## 2026-11-10 (chunk 11): buyer "My orders" with self-service cancel (behind USE_SERVICES)
+
+- **`/orders`** (404 while the flag is off; login required): every order the signed-in user placed while logged in, newest first: order number (links to the existing confirmation page), store, date, Cash on Delivery label, a Wholesale tag, status, total, items, courier + tracking number once shipped. Orders placed as a guest are not listed (they have no owner); the empty state says so.
+- **Cancel:** a "Cancel this order" button while the order is CONFIRMED (or awaiting payment). The web tier takes the user from the session, never from the form, and order-service enforces that only the buyer who placed the order may cancel it (source BUYER). Cancelling returns the stock to the shop and releases the seller's 5% COD fee hold through the normal events. order-service would also let a buyer cancel while PROCESSING; the UI deliberately does not offer that (the seller may already have packed it).
+- Header: **My orders** link for logged-in non-admins on the services path. `src/lib/bff/orders.ts`: `myOrdersViaServices`, `cancelMyOrderViaServices`.
+- **Bug fixed:** the Buyer Pro notification emails/links pointed at `/account/pro`, a page that does not exist. They now point at `/pro` (notification-service template; `cb-notification` restarted).
+- `scripts/e2e-myorders.mjs`: 16 checks, re-runnable: anonymous sent to log in; empty state; header link; guest order not listed; both buyer orders listed with items, store and payment method, newest first; another buyer sees none of them; another user's forged cancel is refused; the buyer's own cancel works; stock returns 16 -> 18; the fee hold is released; list shows Cancelled; a shipped order shows tracking and no button; a forged cancel of a shipped order is refused.
+- Regression: checkout 9, portal 18, wallet 22, admin 21, ads 20, browse 21, billing 15, web unit 10, services 131, typecheck clean. Web rebuilt, `cheapbazar` restarted (flag off, 200; `/orders` is 404 while off).
+- Not done: refund of a delivered order; buyer-side order status notifications in the page (the notification bell is the next piece); cancelling part of an order.
+
 ## 2026-11-10 (chunk 10): admin "Pricing & Revenue" screen, and revoking a bad Buyer Pro payment
 
 - **Gap found:** an admin who approves a Buyer Pro manual payment whose transaction id turns out to be fake had no way to undo it. `chargeback` only works on gateway payments, and manual approvals have no gateway Payment row. Prices could only be set with curl.
