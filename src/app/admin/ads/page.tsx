@@ -1,6 +1,15 @@
+import { servicesEnabled } from "@/lib/bff/client";
+import { requireRole } from "@/modules/identity/service";
+import ServicesAds from "./ServicesAds";
+
 export const dynamic = "force-dynamic";
 
-export default function AdminAdsPage() {
+export default async function AdminAdsPage({ searchParams }: { searchParams?: { error?: string; done?: string } }) {
+  if (servicesEnabled()) {
+    await requireRole("ADMIN");
+    return <ServicesAds error={searchParams?.error} done={searchParams?.done} />;
+  }
+
   const pendingAds = [
     {
       id: "AD-502",

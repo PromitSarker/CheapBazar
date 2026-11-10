@@ -3,6 +3,19 @@
 Notes on what was done to this project and its servers, newest first. No secrets are recorded here.
 Commits are authored as `Claude <noreply@anthropic.com>` (owner's instruction, 2026-11-10).
 
+## 2026-11-10 (chunk 7): ads on the services (behind USE_SERVICES)
+
+- `src/lib/bff/ads.ts`: slots, a store's bookings, book / cancel, the live banner for a storefront, admin queue and review.
+- **Seller `/dashboard/ads`** (services path): real slots and prices from ad-service, a booking form with a required banner image (validated by its bytes, stored under `/uploads/`), the store's own campaigns with status and a Cancel button for pending ones. Replaces the hard-coded mock campaigns. Pricing, date-collision checks, the pending cap and the wallet charge are all enforced by ad-service; the charge happens when an admin approves.
+- **Admin `/admin/ads`** (services path): pending queue with store, creative thumbnail, dates and fee; Approve / Reject (reason required); list of reviewed and live ads. Replaces the mock tables.
+- **Storefront banner:** the two templates take a `sponsored` prop. Services path: a real paid banner from another store, or no banner at all (an advertiser's own page shows none; an ad-service outage never breaks a storefront). Flag off: the old placeholder text, unchanged.
+- **ad-service change:** `imageUrl` may now also be a platform-stored `/uploads/<generated-name>.(png|jpg|gif|webp)` path, because the site has no HTTPS domain yet and the service demanded an https URL. Any other path (`/etc/passwd`, `//host/x.png`, `/uploads/../x`, `.svg`) is still refused; 4 new assertions in `ad.test.ts` (ad tests: 21 pass).
+- **Live bug found and fixed (also affects the monolith):** `next start` only serves files that were in `public/` when it started, so a product or ad image uploaded at runtime returned 404 until the next restart. Added `src/app/uploads/[name]/route.ts`, a strict fallback that serves `png/jpg/jpeg/gif/webp` from `public/uploads` with `nosniff` and a locked-down CSP. File-name checks reject traversal and SVG. Files already present at startup are still served statically.
+- `scripts/e2e-ads.mjs`: 20 checks, re-runnable (it clears its own leftover ads first): real slots shown; missing image, SVG-as-PNG and bad dates refused; booking priced by the service (3 days x 400 = 1200); pending list; same-store overlap refused; upload served immediately; cancel; insufficient wallet refused; seller blocked from moderation; admin queue; reject needs a reason; approve charges 1200; no banner before start; scheduler starts the ad; another store's page shows the banner; own page does not; admin sees ACTIVE.
+- The e2e scripts now use a random sign-up address per run so the identity rate limit does not trip when they are re-run.
+- Not done: the aggregator ad slots (`HOME_HERO`, `BROWSE_*`) have nowhere to render until the `/browse` page exists; no impression or click counts; no refunds or takedowns (needs a refund policy decision).
+- **Old uploads:** `public/uploads` in the repo contains two committed PNGs; anything an older build stored with another extension (for example `.svg`) would still be served statically. Worth a one-time look at the live uploads folder at cutover.
+
 ## 2026-11-10 (chunk 6): admin back-office on the services (behind USE_SERVICES)
 
 - `src/lib/bff/admin.ts`: platform stats (identity + ledger + catalog), stores with owner/status/KYC/product counts, store status and KYC changes, users and role changes, payout queue and review, bulk CSV exports, manual top-up review. Every function re-checks `ADMIN` and records the acting admin's email as the audit actor.
