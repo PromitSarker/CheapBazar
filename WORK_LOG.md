@@ -3,6 +3,17 @@
 Notes on what was done to this project and its servers, newest first. No secrets are recorded here.
 Commits are authored as `Claude <noreply@anthropic.com>` (owner's instruction, 2026-11-10).
 
+## 2026-11-10 (chunk 5): wallet, payouts, overview, settings on the services (behind USE_SERVICES)
+
+- `src/lib/bff/wallet.ts`: wallet snapshot and statement, payout methods, withdrawals (ledger-service), manual top-ups (payment-billing), store settings (identity).
+- Wallet page, `/api/wallet/withdraw`, `/api/wallet/payout-methods`, dashboard overview and the settings action each have a services branch. Rules (minimum withdrawal 500, 500 reserve, one active request, 24 h payout cooling-off, scoped to the seller's store) are enforced by ledger-service, not the web tier.
+- **Top-ups are manual on the services path** because online payment is off: the seller pays the platform (bKash/Nagad/Rocket/bank/cash), submits the amount, method and transaction id (`POST /api/wallet/topup`, 10 per store per hour), an admin approves it in payment-billing, and the ledger credits the wallet. One idempotency key per (store, method, trxId), so a double click never makes two payments. `WalletView` shows these fields when `manualTopUp` is set. Set `TOPUP_INSTRUCTIONS` in `.env` to the platform's payment account text shown to sellers; it is empty today.
+- `/api/payments/sslcommerz/init` returns 400 when `USE_SERVICES=true`.
+- Settings (name, URL, template, custom domain) go to identity-service; a taken URL or domain shows the existing error messages.
+- `scripts/e2e-wallet.mjs`: 22 checks pass (minimum top-up, manual top-up, no double payment, no credit before approval, credit after approval, bad phone, payout account added, cooling-off lock, minimum withdrawal, reserve, withdrawal, second request refused, summary, listing, payout in use, rename, URL taken, custom domain, online off, no session). The test back-dates the cooling-off with one SQL update in the throwaway ledger database through `docker exec`.
+- Regression: `e2e-checkout.mjs` (9) and `e2e-portal.mjs` (18) still pass.
+- **Still on Neon even with the flag on, so keep the flag OFF in production:** `/admin/*` (stores, users, payouts, ads), `/dashboard/ads`, and the admin screens that approve manual top-ups (today an admin must call `PATCH /admin/manual-payments/:id/review` on payment-billing directly).
+
 ## 2026-11-10 (chunk 4): seller side on the services (behind USE_SERVICES)
 
 Login, signup, onboarding, the dashboard shell, products and orders now have a services path. Flag off (the live setting) = monolith, unchanged.

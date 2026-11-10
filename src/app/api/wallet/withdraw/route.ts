@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireStore } from "@/lib/tenant";
+import { servicesEnabled } from "@/lib/bff/client";
+import { withdrawViaServices, withdrawalSummaryViaServices } from "@/lib/bff/wallet";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +12,11 @@ const MIN_WITHDRAWAL_AMOUNT = 500.00;
 export async function GET() {
   try {
     const store = await requireStore();
+
+    if (servicesEnabled()) {
+      const r = await withdrawalSummaryViaServices(store.id);
+      return NextResponse.json(r.body, { status: r.status });
+    }
 
     const fullStore = await prisma.store.findUnique({
       where: { id: store.id },
@@ -60,6 +67,11 @@ export async function POST(request: Request) {
         { error: "Payout method and amount are required" },
         { status: 400 }
       );
+    }
+
+    if (servicesEnabled()) {
+      const r = await withdrawViaServices(store.id, String(payoutMethodId), Number(amount));
+      return NextResponse.json(r.body, { status: r.status });
     }
 
     const requestedAmount = Number(amount);

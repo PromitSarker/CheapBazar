@@ -4,6 +4,10 @@ import { getCurrentUser } from "@/modules/identity/service";
 import { prisma } from "@/lib/db";
 
 export async function POST(request: Request) {
+  // Online payments are switched off on the services path (COD-first); wallets are topped up manually.
+  if (process.env.USE_SERVICES === "true") {
+    return NextResponse.json({ error: "Online payment is temporarily unavailable." }, { status: 400 });
+  }
   try {
     const body = await request.json();
     const { purpose } = body;
