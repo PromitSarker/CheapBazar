@@ -182,3 +182,57 @@ export async function reviewManualPaymentViaServices(id: string, decision: "APPR
   const a = await admin();
   return callService<any>("payment", "PATCH", `/admin/manual-payments/${q(id)}/review`, { decision, admin: a.email, note });
 }
+
+// ------------------------------------------------------------ pricing & revenue
+
+export interface BillingOverview {
+  revenue: { invoices: number; gross: number; chargedBack: number; net: number; last30Days: number };
+  accounts: { code: string; net: number }[];
+  plan: { code: string; name: string; price: number; periodDays: number; graceDays: number } | null;
+  slots: { code: string; name: string; placement: string; capacity: number; pricePerDay: number; active: boolean }[];
+  subscriptions: { id: string; buyer: string; status: string; endsLabel: string }[];
+  approved: { id: string; buyer: string; amount: number; method: string; trxId: string; reference: string; reviewedBy: string | null }[];
+}
+
+export async function billingOverviewViaServices(): Promise<BillingOverview> {
+  await admin();
+  const [revenue, platform, plans, slots, subs, approved] = await Promise.all([
+    callService<any>("payment", "GET", "/admin/revenue"),
+    callService<{ accounts: any[] }>("ledger", "GET", "/admin/platform-accounts"),
+    callService<{ plans: any[] }>("payment", "GET", "/admin/plans"),
+    callService<{ slots: any[] }>("ad", "GET", "/admin/ads/slots"),
+    callService<{ subscriptions: any[] }>("payment", "GET", "/admin/subscriptions?limit=100"),
+    callService<{ payments: any[] }>("payment", "GET", "/admin/manual-payments?status=APPROVED&limit=100"),
+  ]);
+  const proApproved = approved.payments.filter((p) => p.purpose === "SUBSCRIPTION");
+  const ids = Array.from(new Set([...subs.subscriptions.map((s) => s.userId), ...proApproved.map((p) => p.userId)].filter(Boolean)));
+  const names = new Map<string, string>();
+  await Promise.all(ids.map(async (id) => {
+    try { const u = await callService<any>("identity", "GET", `/users/${q(id)}`); names.set(id, `${u.name} (${u.email})`); } catch { /* unknown */ }
+  }));
+  const who = (id: string) => names.get(id) ?? "(unknown buyer)";
+  const plan = plans.plans.find((p) => p.code === "BUYER_PRO");
+  return {
+    revenue,
+    accounts: platform.accounts.map((a) => ({ code: a.code, net: a.net })),
+    plan: plan ? { code: plan.code, name: plan.name, price: Number(plan.price), periodDays: plan.periodDays, graceDays: plan.graceDays } : null,
+    slots: slots.slots.map((s) => ({ ...s, pricePerDay: Number(s.pricePerDay) })),
+    subscriptions: subs.subscriptions.map((s) => ({ id: s.id, buyer: who(s.userId), status: s.status, endsLabel: fmt(s.currentPeriodEnd) })),
+    approved: proApproved.map((p) => ({ id: p.id, buyer: who(p.userId), amount: Number(p.amount), method: p.method, trxId: p.trxId, reference: p.reference, reviewedBy: p.reviewedBy })),
+  };
+}
+
+export async function setBuyerProPlanViaServices(input: { price: number; periodDays: number; graceDays: number }) {
+  await admin();
+  return callService<any>("payment", "POST", "/admin/plans", { code: "BUYER_PRO", ...input });
+}
+
+export async function setAdSlotViaServices(input: { code: string; name: string; placement: string; capacity: number; pricePerDay: number; active: boolean }) {
+  await admin();
+  return callService<any>("ad", "POST", "/admin/ads/slots", input);
+}
+
+export async function revokeProPaymentViaServices(id: string, reason: string) {
+  const a = await admin();
+  return callService<any>("payment", "POST", `/admin/manual-payments/${q(id)}/revoke`, { admin: a.email, reason });
+}

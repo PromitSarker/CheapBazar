@@ -136,3 +136,52 @@ export async function reviewManualPayment(db: Db, p: { id: string; decision: str
     return { success: true, payment: shapeManual(m) };
   });
 }
+
+/**
+ * Admin undoes an APPROVED Buyer Pro payment (the transaction id turned out to be fake or the
+ * money never arrived). In one transaction: the payment becomes REVOKED, its invoice is VOID, the
+ * time it bought comes off the subscription (access ends if none is left) and the platform's revenue
+ * posting is reversed in the ledger. The trxId stays claimed, so the same id can never be reused.
+ * Wallet top-ups cannot be revoked yet: ledger-service has no wallet clawback.
+ */
+export async function revokeManualPayment(db: Db, p: { id: string; admin: string; reason: string }, now = new Date()) {
+  const reason = String(p.reason ?? "").trim().slice(0, 300);
+  if (!reason) throw new HttpError(400, "A written reason is required to revoke a payment.", "VALIDATION");
+  return withTx(db, async (tx) => {
+    const cur = await tx.manualPayment.findUnique({ where: { id: p.id } });
+    if (!cur) throw new HttpError(404, "Payment not found.", "NOT_FOUND");
+    if (cur.purpose !== "SUBSCRIPTION" || !cur.plan) {
+      throw new HttpError(409, "Wallet top-ups cannot be revoked yet: the ledger has no wallet clawback.", "UNSUPPORTED");
+    }
+    if (cur.status === "REVOKED") return { success: true, duplicate: true, payment: shapeManual(cur) };
+    const r = await tx.manualPayment.updateMany({
+      where: { id: p.id, status: "APPROVED" },
+      data: { status: "REVOKED", reviewNote: `${cur.reviewNote ? cur.reviewNote + " | " : ""}Revoked by ${p.admin}: ${reason}`.slice(0, 600) },
+    });
+    if (r.count === 0) throw new HttpError(409, "Only an approved payment can be revoked.", "NOT_APPROVED");
+
+    const inv = await tx.invoice.findFirst({ where: { paymentRef: cur.reference, plan: cur.plan } });
+    let access = "none";
+    if (inv && inv.status === "PAID") {
+      const sub = await tx.subscription.findUniqueOrThrow({ where: { id: inv.subscriptionId } });
+      await lockKey(tx, `sub:${sub.subjectKey}`);
+      await tx.invoice.update({ where: { id: inv.id }, data: { status: "VOID" } });
+      const bought = inv.periodEnd.getTime() - inv.periodStart.getTime();
+      const end = new Date(sub.currentPeriodEnd.getTime() - bought);
+      if (end.getTime() <= now.getTime()) {
+        if (sub.status !== "LAPSED") {
+          await tx.subscription.update({ where: { id: sub.id }, data: { status: "LAPSED", graceEndsAt: null, currentPeriodEnd: now } });
+          await publish(tx as any, "payment", "SubscriptionLapsed", { plan: sub.plan, userId: sub.userId, subscriptionId: sub.id, reason: "payment revoked" });
+        }
+        access = "ended";
+      } else {
+        await tx.subscription.update({ where: { id: sub.id }, data: { currentPeriodEnd: end } });
+        access = "shortened";
+      }
+    }
+    await publish(tx as any, "payment", "PlatformRevenueReversed", {
+      source: cur.plan, reference: cur.reference, amount: num(cur.amount), reason: `payment revoked: ${reason}`.slice(0, 200),
+    });
+    return { success: true, duplicate: false, access, payment: shapeManual({ ...cur, status: "REVOKED" }) };
+  });
+}

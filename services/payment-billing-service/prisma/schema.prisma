@@ -52,6 +52,7 @@ enum ManualStatus {
   PENDING
   APPROVED
   REJECTED
+  REVOKED // an approved Buyer Pro payment the admin later found to be bad
 }
 
 // One gateway charge attempt. `amount` is always decided server-side (from the order,

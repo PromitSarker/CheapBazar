@@ -44,7 +44,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             {servicesEnabled() && (
               <Link href="/admin/topups" className="dash-nav-item">
                 <span className="dash-nav-icon">💳</span>
-                <span>Top-up Review</span>
+                <span>Payment Review</span>
+              </Link>
+            )}
+            {servicesEnabled() && (
+              <Link href="/admin/billing" className="dash-nav-item">
+                <span className="dash-nav-icon">💰</span>
+                <span>Pricing & Revenue</span>
               </Link>
             )}
             <Link href="/admin/users" className="dash-nav-item">
