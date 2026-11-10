@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireStore } from "@/lib/tenant";
+import { getCurrentUser } from "@/lib/auth";
+import { servicesEnabled } from "@/lib/bff/client";
+import { updateOrderStatusViaServices } from "@/lib/bff/portal";
 import type { OrderStatus } from "@prisma/client";
 
 export async function POST(request: Request) {
@@ -11,6 +14,13 @@ export async function POST(request: Request) {
 
     if (!orderId || !newStatus) {
       return NextResponse.json({ error: "Missing orderId or newStatus" }, { status: 400 });
+    }
+
+    if (servicesEnabled()) {
+      const user = await getCurrentUser();
+      if (!user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+      const r = await updateOrderStatusViaServices(store.id, user.id, String(orderId), String(newStatus));
+      return NextResponse.json(r.body, { status: r.status });
     }
 
     const order = await prisma.order.findFirst({

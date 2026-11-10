@@ -72,7 +72,11 @@ export default function ProductsInventoryView({
 
       {error && (
         <p className="error" style={{ marginBottom: "1rem" }}>
-          {error === "image"
+          {error === "in-use"
+            ? language === "bn"
+              ? "এই পণ্যটি বিদ্যমান অর্ডারের অংশ, তাই মোছা যাবে না। এর স্টক ০ করে দিন।"
+              : "This product is part of existing orders and cannot be deleted. Set its stock to 0 instead."
+            : error === "image"
             ? language === "bn"
               ? "ছবিটি গ্রহণযোগ্য নয়। ৫ MB এর কম PNG, JPEG, GIF বা WebP ছবি দিন।"
               : "That image was not accepted. Use a PNG, JPEG, GIF or WebP file under 5 MB."

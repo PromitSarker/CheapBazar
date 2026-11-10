@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import type { UserRole, UserSession } from "./types";
+import { servicesEnabled } from "@/lib/bff/client";
+import { currentUserViaService, logoutViaService } from "@/lib/bff/session";
 
 const COOKIE = "sf_session";
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -36,6 +38,10 @@ export async function createSession(userId: string): Promise<string> {
 }
 
 export async function getCurrentUser(): Promise<UserSession | null> {
+  if (servicesEnabled()) {
+    const u = await currentUserViaService();
+    return u ? { id: u.id, email: u.email, name: u.name, role: u.role as UserRole } : null;
+  }
   const token = cookies().get(COOKIE)?.value;
   if (!token) return null;
   try {
@@ -88,6 +94,7 @@ export async function requireRole(allowedRoles: UserRole | UserRole[]): Promise<
 }
 
 export async function destroySession(): Promise<void> {
+  if (servicesEnabled()) return logoutViaService();
   const token = cookies().get(COOKIE)?.value;
   if (token) {
     try {

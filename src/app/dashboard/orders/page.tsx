@@ -1,11 +1,17 @@
 import { requireStore } from "@/lib/tenant";
 import { prisma } from "@/lib/db";
+import { servicesEnabled } from "@/lib/bff/client";
+import { listOrdersViaServices } from "@/lib/bff/portal";
 import OrdersView from "@/components/dashboard/OrdersView";
 
 export const dynamic = "force-dynamic";
 
 export default async function OrdersPage() {
   const store = await requireStore();
+
+  if (servicesEnabled()) {
+    return <OrdersView initialOrders={await listOrdersViaServices(store.id)} />;
+  }
 
   const dbOrders = await prisma.order.findMany({
     where: { storeId: store.id },
