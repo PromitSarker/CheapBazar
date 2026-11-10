@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { updateStoreStatusByAdmin } from "@/modules/admin/service";
+import { redirect } from "next/navigation";
+import { updateStoreStatusByAdmin, setStoreKycByAdmin } from "@/modules/admin/service";
+import { ServiceCallError } from "@/lib/bff/client";
 import type { StoreStatus } from "@/modules/identity/types";
 
 export async function changeStoreStatus(formData: FormData) {
@@ -11,9 +13,16 @@ export async function changeStoreStatus(formData: FormData) {
 
   if (!storeId || !status) return;
 
-  await updateStoreStatusByAdmin(storeId, status, kyc);
+  let err = "";
+  try {
+    await updateStoreStatusByAdmin(storeId, status, kyc);
+  } catch (e) {
+    if (!(e instanceof ServiceCallError)) throw e;
+    err = e.status >= 500 ? "A platform service is unavailable. Try again shortly." : e.message;
+  }
   revalidatePath("/admin/stores");
   revalidatePath("/admin");
+  if (err) redirect(`/admin/stores?error=${encodeURIComponent(err)}`);
 }
 
 export async function toggleStoreKYC(formData: FormData) {
@@ -22,6 +31,6 @@ export async function toggleStoreKYC(formData: FormData) {
 
   if (!storeId) return;
 
-  await updateStoreStatusByAdmin(storeId, "ACTIVE", kycVerified);
+  await setStoreKycByAdmin(storeId, kycVerified);
   revalidatePath("/admin/stores");
 }

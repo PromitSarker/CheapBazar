@@ -3,7 +3,7 @@ import { changeStoreStatus, toggleStoreKYC } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminStoresPage() {
+export default async function AdminStoresPage({ searchParams }: { searchParams?: { error?: string } }) {
   const stores = await getAllStoresForAdmin();
 
   return (
@@ -17,6 +17,8 @@ export default async function AdminStoresPage() {
           {stores.length} Registered Stores
         </span>
       </div>
+
+      {searchParams?.error && <p className="error">{searchParams.error}</p>}
 
       <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid #e2e8f0", backgroundColor: "#ffffff" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>

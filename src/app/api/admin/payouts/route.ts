@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/modules/identity/service";
 import type { WithdrawalStatus } from "@prisma/client";
+import { servicesEnabled, ServiceCallError } from "@/lib/bff/client";
+import { payoutQueueViaServices, reviewWithdrawalViaServices } from "@/lib/bff/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +16,11 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") as WithdrawalStatus | null;
+
+    if (servicesEnabled()) {
+      const { rows, stats } = await payoutQueueViaServices(status ?? undefined);
+      return NextResponse.json({ withdrawals: rows, stats });
+    }
 
     const where: any = {};
     if (status) {
@@ -80,6 +87,19 @@ export async function POST(request: Request) {
         { error: "Withdrawal ID and action (APPROVE or REJECT) are required" },
         { status: 400 }
       );
+    }
+
+    if (servicesEnabled()) {
+      if (action !== "APPROVE" && action !== "REJECT") return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+      try {
+        const r = await reviewWithdrawalViaServices(withdrawalId, action, disbursementTxId, rejectionReason);
+        return NextResponse.json({ success: true, withdrawal: r.withdrawal });
+      } catch (e) {
+        if (e instanceof ServiceCallError) {
+          return NextResponse.json({ error: e.status >= 500 ? "The ledger service is unavailable. Try again shortly." : e.message }, { status: e.status >= 500 ? 503 : e.status });
+        }
+        throw e;
+      }
     }
 
     const withdrawal = await prisma.withdrawalRequest.findUnique({

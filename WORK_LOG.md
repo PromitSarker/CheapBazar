@@ -3,6 +3,18 @@
 Notes on what was done to this project and its servers, newest first. No secrets are recorded here.
 Commits are authored as `Claude <noreply@anthropic.com>` (owner's instruction, 2026-11-10).
 
+## 2026-11-10 (chunk 6): admin back-office on the services (behind USE_SERVICES)
+
+- `src/lib/bff/admin.ts`: platform stats (identity + ledger + catalog), stores with owner/status/KYC/product counts, store status and KYC changes, users and role changes, payout queue and review, bulk CSV exports, manual top-up review. Every function re-checks `ADMIN` and records the acting admin's email as the audit actor.
+- `modules/admin/service.ts`, the payouts page, `/api/admin/payouts` and its CSV export delegate to it when the flag is on. Store status lives in the ledger wallet; KYC lives in identity.
+- **New page `/admin/topups`** (nav link shown only on the services path): pending manual top-ups with store, amount, method and transaction ID, Approve / Reject (a reason is required to reject), and a recent-decisions list. Approval credits the seller's wallet through the ledger.
+- **Behaviour fix on the services path:** the monolith's KYC toggle also forced the store back to ACTIVE (it would un-suspend a suspended store). The services path changes KYC only.
+- Admin actions now show the service's error text instead of failing silently (for example "a permanent ban cannot be lifted", "cannot demote the last remaining admin", "a rejection needs a written reason").
+- Fixed the manual top-up response mapping in `bff/wallet.ts` (the service returns `{ payment }`, so the seller API now reports the real status and reference).
+- `scripts/e2e-admin.mjs`: 21 checks pass: seller blocked from /admin and from the payout API and export; overview; stores list; suspend takes the storefront down; KYC toggle keeps it suspended; reinstate; ban cannot be lifted; users list; role change; last admin protected; payout queue; bKash CSV; approve needs a reference; approve; no double processing; reject refunds the wallet; top-up queue; approve credits ৳300; reject needs a reason; rejected credits nothing.
+- Regression: `e2e-wallet.mjs` (22), `e2e-portal.mjs` (18), `e2e-checkout.mjs` (9) pass.
+- **Still on Neon even with the flag on:** `/admin/ads` and `/dashboard/ads` (ad-service is not wired yet). Keep the flag OFF in production until ads, and the cutover migration (which must carry the real admin account), are done.
+
 ## 2026-11-10 (chunk 5): wallet, payouts, overview, settings on the services (behind USE_SERVICES)
 
 - `src/lib/bff/wallet.ts`: wallet snapshot and statement, payout methods, withdrawals (ledger-service), manual top-ups (payment-billing), store settings (identity).

@@ -4,6 +4,8 @@ import { getCurrentUser } from "@/modules/identity/service";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import AdminPayoutClient from "./AdminPayoutClient";
+import { servicesEnabled } from "@/lib/bff/client";
+import { payoutQueueViaServices } from "@/lib/bff/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +13,32 @@ export default async function AdminPayoutsPage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMIN") {
     redirect("/admin");
+  }
+
+  if (servicesEnabled()) {
+    const { rows } = await payoutQueueViaServices();
+    const pending = rows.filter((w) => w.status === "PENDING");
+    const completed = rows.filter((w) => w.status === "COMPLETED");
+    const sum = (xs: { amount: number }[]) => xs.reduce((s, w) => s + w.amount, 0);
+    return (
+      <div>
+        <div style={{ marginBottom: "1.5rem" }}>
+          <Link href="/admin" className="muted" style={{ fontSize: "0.85rem", textDecoration: "none" }}>&larr; Admin Overview</Link>
+          <h1>Seller Disbursements & Payout Queue</h1>
+          <p className="muted">Approve seller withdrawals, export batch banking files, and verify MFS transactions.</p>
+          <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.75rem" }}>
+            <a href="/api/admin/payouts/export?format=beftn" className="button button-small" download>📥 Export Bank BEFTN CSV</a>
+            <a href="/api/admin/payouts/export?format=bkash" className="button button-small" download>📥 Export bKash Bulk CSV</a>
+          </div>
+        </div>
+        <div className="stat-grid" style={{ marginBottom: "2rem" }}>
+          <div className="stat-card"><span className="stat-value" style={{ color: "#facc15" }}>৳{sum(pending).toFixed(2)}</span><span className="muted">Pending Payouts ({pending.length} requests)</span></div>
+          <div className="stat-card"><span className="stat-value" style={{ color: "#4ade80" }}>৳{sum(completed).toFixed(2)}</span><span className="muted">Settled to Date ({completed.length} disbursements)</span></div>
+          <div className="stat-card"><span className="stat-value" style={{ color: "#38bdf8" }}>{rows.length}</span><span className="muted">Total Lifetime Claims</span></div>
+        </div>
+        <AdminPayoutClient initialWithdrawals={rows as any} />
+      </div>
+    );
   }
 
   const rawWithdrawals = await prisma.withdrawalRequest.findMany({
