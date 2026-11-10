@@ -9,6 +9,8 @@ import { promises as fs } from "fs";
 import path from "path";
 import crypto from "crypto";
 import { validateImage, UploadError } from "@/lib/security/uploads";
+import { servicesEnabled } from "@/lib/bff/client";
+import { createProductViaServices, adjustStockViaServices, deleteProductViaServices } from "@/lib/bff/portal";
 
 export async function addProduct(formData: FormData) {
   const store = await requireStore();
@@ -40,6 +42,14 @@ export async function addProduct(formData: FormData) {
     redirect("/dashboard/products?error=invalid");
   }
 
+  if (servicesEnabled()) {
+    const r = await createProductViaServices(store.id, { name, description, price, stock, image: imageUrl });
+    if (!r.ok) redirect("/dashboard/products?error=invalid");
+    revalidatePath("/dashboard/products");
+    revalidatePath("/dashboard");
+    return;
+  }
+
   await withTenant(store.id, (tx) =>
     tx.product.create({
       data: { storeId: store.id, name, description, price, stock, image: imageUrl },
@@ -53,6 +63,13 @@ export async function adjustStock(formData: FormData) {
   const store = await requireStore();
   const id = String(formData.get("id"));
   const delta = Number(formData.get("delta"));
+
+  if (servicesEnabled()) {
+    await adjustStockViaServices(store.id, id, Number.isFinite(delta) ? Math.trunc(delta) : 0);
+    revalidatePath("/dashboard/products");
+    revalidatePath("/dashboard");
+    return;
+  }
 
   await withTenant(store.id, async (tx) => {
     const product = await tx.product.findFirst({ where: { id, storeId: store.id } });
@@ -69,6 +86,13 @@ export async function adjustStock(formData: FormData) {
 export async function deleteProduct(formData: FormData) {
   const store = await requireStore();
   const id = String(formData.get("id"));
+  if (servicesEnabled()) {
+    const r = await deleteProductViaServices(store.id, id);
+    revalidatePath("/dashboard/products");
+    revalidatePath("/dashboard");
+    if (r === "in-use") redirect("/dashboard/products?error=in-use");
+    return;
+  }
   await withTenant(store.id, (tx) => tx.product.deleteMany({ where: { id, storeId: store.id } }));
   revalidatePath("/dashboard/products");
   revalidatePath("/dashboard");

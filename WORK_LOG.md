@@ -3,6 +3,20 @@
 Notes on what was done to this project and its servers, newest first. No secrets are recorded here.
 Commits are authored as `Claude <noreply@anthropic.com>` (owner's instruction, 2026-11-10).
 
+## 2026-11-10 (chunk 4): seller side on the services (behind USE_SERVICES)
+
+Login, signup, onboarding, the dashboard shell, products and orders now have a services path. Flag off (the live setting) = monolith, unchanged.
+
+- `src/lib/bff/portal.ts`: store for owner / by slug or domain (identity + ledger status), products (catalog), orders and status changes (order-service, `source: SELLER`).
+- Auth: `getCurrentUser` and `destroySession` switch to identity-service sessions; signup and login actions call identity (rate limits and bcrypt live in the service; the address is passed through). New messages for rate-limited / unavailable. Password minimum is 8 on the services path (the form hint follows the flag).
+- Onboarding creates the store in identity-service (slug-taken handled).
+- Products page and actions use catalog-service. Image validation still runs first. Deleting a product that has orders is refused (`error=in-use`, bilingual message); set stock to 0 instead.
+- Orders page lists from order-service. `POST /api/orders/status` calls the order state machine; the ledger settles or releases the COD hold and the catalog restocks through events, so the UI text "ledger & stock adjusted" is now eventually true, not instant.
+- `scripts/e2e-portal.mjs`: drives the real forms over HTTP (server actions, cookie jar). 18 checks pass: signup, duplicate email, onboarding, dashboard, add product with a real PNG, SVG-as-PNG rejected, byte-derived extension, seller sees the order, illegal jump refused, SHIPPED, DELIVERED, hold settled (fee 30 on 600), no-session refused, stock +5, in-use delete refused, redirect to login, wrong password, right password.
+- `scripts/e2e-checkout.mjs` (chunk 3) still passes.
+- **Not on the services yet** (these pages still read Neon even with the flag on, so do NOT turn the flag on in production until they are done): dashboard overview, wallet and payouts (`/api/wallet/*`), ads, settings, all of `/admin`.
+- The test left a few 12-byte PNG files in `public/uploads/`; they were removed.
+
 ## 2026-11-10 (chunk 3): storefront and checkout on the services (behind USE_SERVICES)
 
 Rewired the public storefront, checkout and order confirmation page to the services. All of it is behind `USE_SERVICES=true`; with the flag off (the live setting) the pages use the monolith exactly as before.

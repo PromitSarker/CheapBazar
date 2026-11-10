@@ -1,8 +1,11 @@
 import { signup } from "../actions";
+import { servicesEnabled } from "@/lib/bff/client";
 
 const ERRORS: Record<string, string> = {
-  invalid: "Please fill in every field. Password must be at least 6 characters.",
+  invalid: "Please fill in every field with valid details. The password needs at least 6 characters (8 on the new platform).",
   taken: "That email is already registered. Try logging in instead.",
+  "rate-limited": "Too many sign-ups from this address. Please try again later.",
+  unavailable: "Sign-up is temporarily unavailable. Please try again shortly.",
 };
 
 export default function SignupPage({ searchParams }: { searchParams: { error?: string } }) {
@@ -23,7 +26,7 @@ export default function SignupPage({ searchParams }: { searchParams: { error?: s
         </label>
         <label>
           Password
-          <input name="password" type="password" required minLength={6} placeholder="6+ characters" />
+          <input name="password" type="password" required minLength={servicesEnabled() ? 8 : 6} placeholder={servicesEnabled() ? "8+ characters" : "6+ characters"} />
         </label>
         
         <label>

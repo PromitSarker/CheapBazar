@@ -4,7 +4,15 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
   return (
     <div className="auth-box">
       <h1>Welcome back</h1>
-      {searchParams.error && <p className="error">Invalid email or password.</p>}
+      {searchParams.error && (
+        <p className="error">
+          {searchParams.error === "rate-limited"
+            ? "Too many attempts. Please wait a few minutes and try again."
+            : searchParams.error === "unavailable"
+            ? "Sign-in is temporarily unavailable. Please try again shortly."
+            : "Invalid email or password."}
+        </p>
+      )}
       <form action={login} className="stack">
         <label>
           Email

@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { servicesEnabled } from "@/lib/bff/client";
+import { createStoreViaServices } from "@/lib/bff/portal";
 
 import { TEMPLATES, TemplateId } from "@/lib/constants";
 
@@ -21,6 +23,11 @@ export async function createStore(formData: FormData) {
 
   if (!name || slug.length < 2 || !TEMPLATES.includes(template as TemplateId)) {
     redirect("/onboarding?error=invalid");
+  }
+  if (servicesEnabled()) {
+    const r = await createStoreViaServices(user.id, name, slug, template);
+    if (r === "ok" || r === "exists") redirect("/dashboard");
+    redirect(`/onboarding?error=${r}`);
   }
   if (await prisma.store.findUnique({ where: { slug } })) {
     redirect("/onboarding?error=slug-taken");
