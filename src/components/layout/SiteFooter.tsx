@@ -39,6 +39,9 @@ export default function SiteFooter() {
             <li>
               <Link href="/signup">{language === "bn" ? "১ মিনিটে শুরু করুন" : "Start in 1 Minute"}</Link>
             </li>
+            <li>
+              <Link href="/app">{language === "bn" ? "অ্যাপ ইনস্টল করুন" : "Get the app"}</Link>
+            </li>
           </ul>
         </div>
 

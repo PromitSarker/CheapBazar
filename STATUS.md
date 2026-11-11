@@ -10,12 +10,9 @@ server (103.228.38.69) and have 131 passing tests. Every screen (buyers, sellers
 switched by `USE_SERVICES`.** The flag is **OFF**, so the **live site is still the old app on Neon, unchanged for users**.
 The data migration is written and rehearsed on copies of the live data. **What is left is the cutover itself, which needs you.**
 
-## Changed 2026-11-11: no COD fee, no wallet thresholds
+## Changed 2026-11-11: no COD fee, no wallet thresholds, installable web app
 
-The 5% COD platform fee, the wallet soft/hard thresholds, the pause/delist timers and the ৳500 reserve bond are **removed** (services and legacy site). A store's status is now admin-only (ACTIVE / SUSPENDED / BANNED). Two small steps are still pending and need you (details in `WORK_LOG.md`, 2026-11-11):
-1. Apply the ledger schema cleanup: `DATABASE_URL=<ledger_db url> npx prisma db push --schema services/ledger-service/prisma/schema.prisma --accept-data-loss` (test data only; backups are in `~/db-backups-2026-11-11-fee-removal/`). Works fine without it for now.
-2. `pm2 restart cheapbazar` so the LIVE site stops charging the fee (the new build is already on disk).
-Also re-run `npm run migrate:rehearse` before the cutover: it has not been run since this change.
+The 5% COD platform fee, the wallet soft/hard thresholds, the pause/delist timers and the ৳500 reserve bond are **removed** (services and the live site; deployed, ledger schema cleaned, migration rehearsal re-run OK). A store's status is admin-only (ACTIVE / SUSPENDED / BANNED). The site is now also an **installable web app (PWA)**: open `/app` on the site for the steps. One-tap install needs HTTPS (a domain); until then "Add to Home screen" works from the browser menu. Details in `WORK_LOG.md`.
 
 ## What you need to do (nothing else blocks go-live)
 

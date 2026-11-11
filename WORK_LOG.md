@@ -3,6 +3,13 @@
 Notes on what was done to this project and its servers, newest first. No secrets are recorded here.
 Commits are authored as `Claude <noreply@anthropic.com>` (owner's instruction, 2026-11-10).
 
+## 2026-11-11 (later): pending steps done, rehearsal re-run, installable web app (PWA)
+
+- Owner gave permission rules, so: `ledger_db` schema pushed (dropped `Wallet.holds`, `lastAlertAt`, table `Hold`, trimmed `StoreStatus`); `pm2 restart cheapbazar` done, so the LIVE site now runs the no-COD-fee code (still the monolith on Neon, `USE_SERVICES` off). `migrate:rehearse -- --wallets=carry --seed-accounts=lock` re-run on a fresh copy of Neon: **REHEARSAL OK** (all checks + smoke).
+- Owner asked for "the app": chose an **installable web app (PWA)**; no domain yet. Added `public/manifest.webmanifest`, icons (`public/icons/`, rendered from `icon.svg` with ImageMagick on the server), `public/sw.js` (conservative: never caches pages, `/api` or `/uploads`; only build assets and icons; shows `/offline.html` when offline), `src/components/pwa/RegisterSW.tsx`, `/app` page with install steps + an Install button, footer link "Get the app", theme colour and apple-touch icon in the layout.
+- Limits: browsers only register the service worker and offer one-tap **Install** on HTTPS (or localhost). On plain `http://103.228.38.69:3000` the manifest still lets Android Chrome use "Add to Home screen" (a shortcut) and iPhone Safari "Add to Home Screen". For full install: get a domain, point an A record at 103.228.38.69, put HTTPS in front (nginx + certbot; needs sudo), then remove `COOKIE_INSECURE=true`.
+- Not built: a native Android/iOS app (owner chose PWA).
+
 ## 2026-11-11: COD fee, wallet thresholds and reserve bond removed
 
 Owner: "remove the cod fee and threshold thing. I dont need that."
