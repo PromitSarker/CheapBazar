@@ -29,7 +29,7 @@ async function expectErr(p: Promise<any>, code: string, httpStatus?: number) {
 
 before(async () => {
   const url = await resetDatabase(ADMIN_URL, "ledger_test", path.join(__dirname, "../prisma/schema.prisma"), createDb);
-  svc = await startLedgerService({ secret: SECRET, port: PORT, databaseUrl: url, relay: false, daemon: false });
+  svc = await startLedgerService({ secret: SECRET, port: PORT, databaseUrl: url, relay: false });
   api = serviceClient({ baseUrl: `http://127.0.0.1:${PORT}`, secret: SECRET, caller: "test" });
 });
 after(async () => { await svc.stop(); });
@@ -49,49 +49,6 @@ test("top-up credits the wallet once (idempotent) and the ledger balances", asyn
   assert.equal(st.status, "ACTIVE");
   assert.equal((await api.get("/admin/trial-balance")).balanced, true);
   assert.deepEqual((await api.get("/admin/reconcile")).mismatches, []);
-});
-
-test("COD hold -> settle moves fee to platform revenue and frees the hold", async () => {
-  const s = newStore();
-  await fund(s, 5000);
-  await api.post(`/wallets/${s}/holds`, { reference: "ORD-A", amount: 250 });
-  assert.deepEqual(await api.post(`/wallets/${s}/holds`, { reference: "ORD-A", amount: 250 }).then((r) => r.duplicate), true);
-  let st = await status(s);
-  assert.equal(st.holds, 250);
-  assert.equal(st.available, 4750);
-
-  assert.equal((await api.post(`/wallets/${s}/settle-hold`, { reference: "ORD-A" })).settled, true);
-  assert.equal((await api.post(`/wallets/${s}/settle-hold`, { reference: "ORD-A" })).settled, false); // replay
-  st = await status(s);
-  assert.equal(st.holds, 0);
-  assert.equal(st.balance, 4750);
-  const fee = (await api.get("/admin/platform-accounts")).accounts.find((a: any) => a.code === "PLATFORM_FEE_REVENUE");
-  assert.ok(fee.net >= 250);
-  assert.deepEqual((await api.get("/admin/reconcile")).mismatches, []);
-});
-
-test("COD hold -> release leaves the seller uncharged", async () => {
-  const s = newStore();
-  await fund(s, 2000);
-  await api.post(`/wallets/${s}/holds`, { reference: "ORD-B", amount: 100 });
-  assert.equal((await api.post(`/wallets/${s}/release-hold`, { reference: "ORD-B", reason: "REFUSED" })).released, true);
-  const st = await status(s);
-  assert.equal(st.holds, 0);
-  assert.equal(st.balance, 2000);
-});
-
-test("COD is refused when funds cannot cover the fee; concurrent holds never over-commit", async () => {
-  const poor = newStore();
-  await fund(poor, 100);
-  await expectErr(api.post(`/wallets/${poor}/holds`, { reference: "ORD-C", amount: 200 }), "COD_UNAVAILABLE", 409);
-
-  const s = newStore();
-  await fund(s, 300);
-  const results = await Promise.allSettled(
-    [1, 2, 3, 4, 5].map((i) => api.post(`/wallets/${s}/holds`, { reference: `ORD-RACE-${s}-${i}`, amount: 100 }))
-  );
-  assert.equal(results.filter((r) => r.status === "fulfilled").length, 3, "exactly 3 x 100 fit in 300");
-  assert.equal((await status(s)).holds, 300);
 });
 
 test("ledger rows are immutable and unbalanced transactions cannot commit", async () => {
@@ -125,7 +82,7 @@ test("ledger rows are immutable and unbalanced transactions cannot commit", asyn
   );
 });
 
-test("withdrawals: reserve bond, single active request, concurrency, approve and reject", async () => {
+test("withdrawals: no reserve bond, single active request, concurrency, approve and reject", async () => {
   const s = newStore();
   await fund(s, 5000);
   const m = await api.post(`/wallets/${s}/payout-methods`, { type: "BKASH", phoneNumber: "01712345678" });
@@ -135,7 +92,7 @@ test("withdrawals: reserve bond, single active request, concurrency, approve and
   await svc.db.payoutMethod.update({ where: { id: m.method.id }, data: { coolingUntil: new Date(Date.now() - 1000) } });
 
   await expectErr(api.post(`/wallets/${s}/withdrawals`, { payoutMethodId: m.method.id, amount: 100 }), "VALIDATION", 400);
-  await expectErr(api.post(`/wallets/${s}/withdrawals`, { payoutMethodId: m.method.id, amount: 4600 }), "INSUFFICIENT_FUNDS", 409); // 5000-500 reserve = 4500
+  await expectErr(api.post(`/wallets/${s}/withdrawals`, { payoutMethodId: m.method.id, amount: 5100 }), "INSUFFICIENT_FUNDS", 409); // only 5000 in the wallet
 
   const race = await Promise.allSettled([1, 2, 3].map(() => api.post(`/wallets/${s}/withdrawals`, { payoutMethodId: m.method.id, amount: 1000 })));
   assert.equal(race.filter((r) => r.status === "fulfilled").length, 1, "only one active withdrawal may exist");
@@ -166,85 +123,70 @@ test("charging for ads/subscriptions needs available funds and is idempotent", a
   assert.equal((await status(s)).balance, 600);
 });
 
-test("Store Status Enforcer walks ACTIVE > WARNING > COD_BLOCKED > PAUSED > DELISTED and recovers", async () => {
+test("store status is admin-only: a low or empty balance never changes it, and there are no COD holds or thresholds", async () => {
   const s = newStore();
   await fund(s, 1000);
-  assert.equal((await status(s)).status, "ACTIVE");
-
-  await api.post(`/wallets/${s}/charge`, { amount: 600, kind: "AD_FEE", reference: "x1", idempotencyKey: `x1-${s}` });
-  assert.equal((await status(s)).status, "WARNING"); // available 400 < soft 500
-  await api.post(`/wallets/${s}/charge`, { amount: 350, kind: "AD_FEE", reference: "x2", idempotencyKey: `x2-${s}` });
+  await api.post(`/wallets/${s}/charge`, { amount: 990, kind: "AD_FEE", reference: "x1", idempotencyKey: `x1-${s}` });
   let st = await status(s);
-  assert.equal(st.status, "COD_BLOCKED"); // available 50 < hard 100
-  assert.equal(st.codAllowed, false);
-  await expectErr(api.post(`/wallets/${s}/holds`, { reference: `H-${s}`, amount: 10 }), "COD_UNAVAILABLE", 409);
-  assert.equal(st.acceptsOrders, true, "online still works while COD is blocked");
+  assert.equal(st.balance, 10);
+  assert.equal(st.status, "ACTIVE", "a nearly empty wallet does not warn, block, pause or delist the store");
+  assert.equal(st.acceptsOrders, true);
+  assert.equal(st.withdrawable, 10, "no reserve bond: the whole balance is spendable");
+  assert.equal("holds" in st, false);
+  assert.equal("thresholds" in st, false);
+  assert.equal("codAllowed" in st, false);
 
-  await api.post("/admin/enforcer/run", { storeId: s, now: iso(10) });
-  assert.equal((await status(s)).status, "COD_BLOCKED", "still inside grace period 1");
-  await api.post("/admin/enforcer/run", { storeId: s, now: iso(75) });
+  // the old COD-fee and enforcer endpoints are gone
+  await expectErr(api.post(`/wallets/${s}/holds`, { reference: `H-${s}`, amount: 10 }), "NOT_FOUND", 404);
+  await expectErr(api.post("/admin/enforcer/run", {}), "NOT_FOUND", 404);
+
+  // an empty wallet still cannot be overdrawn
+  await expectErr(api.post(`/wallets/${s}/charge`, { amount: 50, kind: "AD_FEE", reference: "x2", idempotencyKey: `x2-${s}` }), "INSUFFICIENT_FUNDS", 402);
+
+  // suspend / ban / reinstate are the only ways a status changes
+  await expectErr(api.post(`/wallets/${s}/status`, { status: "PAUSED", admin: "root@x" }), "VALIDATION", 400);
+  await api.post(`/wallets/${s}/status`, { status: "SUSPENDED", admin: "root@x", reason: "KYC" });
   st = await status(s);
-  assert.equal(st.status, "PAUSED");
+  assert.equal(st.status, "SUSPENDED");
   assert.equal(st.acceptsOrders, false);
-  await api.post("/admin/enforcer/run", { storeId: s, now: iso(75 + 170) });
-  assert.equal((await status(s)).status, "DELISTED");
-
-  // a top-up alone never re-lists a delisted store; an admin must approve
-  await fund(s, 100);
-  await api.post("/admin/enforcer/run", { storeId: s });
-  assert.equal((await status(s)).status, "DELISTED");
-  await expectErr(api.post(`/wallets/${s}/status`, { status: "ACTIVE", admin: "root@x", reason: "ok" }), "TOPUP_REQUIRED", 409);
-  await fund(s, 1000);
-  await api.post(`/wallets/${s}/status`, { status: "ACTIVE", admin: "root@x", reason: "re-verified" });
-  assert.equal((await status(s)).status, "ACTIVE");
-
-  // PAUSED recovers automatically on a top-up
-  const p = newStore();
-  await fund(p, 50);
-  await api.post("/admin/enforcer/run", { storeId: p, now: iso(80) });
-  assert.equal((await status(p)).status, "PAUSED");
-  await fund(p, 2000);
-  assert.equal((await status(p)).status, "ACTIVE");
-
-  // suspend / permanent ban are admin-only and the daemon never touches them
-  await api.post(`/wallets/${p}/status`, { status: "SUSPENDED", admin: "root@x", reason: "KYC" });
-  await api.post("/admin/enforcer/run", { now: iso(500) });
-  assert.equal((await status(p)).status, "SUSPENDED");
-  await api.post(`/wallets/${p}/status`, { status: "BANNED", admin: "root@x", reason: "fraud" });
-  await expectErr(api.post(`/wallets/${p}/status`, { status: "ACTIVE", admin: "root@x" }), "BANNED", 409);
+  await api.post(`/wallets/${s}/status`, { status: "ACTIVE", admin: "root@x", reason: "KYC passed" });
+  assert.equal((await status(s)).status, "ACTIVE", "reinstating needs no minimum balance");
+  await api.post(`/wallets/${s}/status`, { status: "BANNED", admin: "root@x", reason: "fraud" });
+  await expectErr(api.post(`/wallets/${s}/status`, { status: "ACTIVE", admin: "root@x" }), "BANNED", 409);
 });
 
-test("event consumers: dedupe, COD settle/release, online split settlement and refund", async () => {
+test("event consumers: dedupe, COD moves no money, online split settlement and refund", async () => {
   const s = newStore();
   const ev = (eventType: string, data: any, eventId = `e-${Math.random()}`) => ({ eventId, eventType, timestamp: new Date().toISOString(), producer: "t", data });
 
   await api.post("/internal/events", ev("StoreCreated", { storeId: s, ownerId: "user_1" }));
   assert.equal((await db().wallet.findUnique({ where: { storeId: s } }))?.ownerId, "user_1");
 
-  await api.post("/internal/events", ev("TopUpApproved", { storeId: s, amount: 3000, paymentRef: `MP-${s}`, method: "BKASH" }));
-  await api.post(`/wallets/${s}/holds`, { reference: `ORD-${s}`, amount: 100 });
-  const delivered = ev("OrderDelivered", { orderNumber: `ORD-${s}`, storeId: s, paymentMethod: "COD" }, `deliv-${s}`);
-  await api.post("/internal/events", delivered);
-  const dup = await api.post("/internal/events", delivered);
-  assert.equal(dup.duplicate, true);
-  assert.equal((await status(s)).balance, 2900);
+  const topped = ev("TopUpApproved", { storeId: s, amount: 3000, paymentRef: `MP-${s}`, method: "BKASH" }, `topup-${s}`);
+  await api.post("/internal/events", topped);
+  assert.equal((await api.post("/internal/events", topped)).duplicate, true);
+  // a cancelled / refused COD order moves no money (and there is no fee to release)
+  await api.post("/internal/events", ev("OrderCancelled", { orderNumber: `ORD-${s}`, storeId: s, paymentMethod: "COD" }));
+  await api.post("/internal/events", ev("OrderRefused", { orderNumber: `ORD-${s}`, storeId: s, paymentMethod: "COD" }));
+  assert.equal((await status(s)).balance, 3000);
 
   await api.post("/internal/events", ev("PaymentCaptured", { purpose: "STORE_ORDER", storeId: s, orderNumber: "ORD-ON", tranId: `TR-${s}`, total: 1000, fee: 50, net: 950, method: "bKash" }));
-  assert.equal((await status(s)).balance, 3850);
+  assert.equal((await status(s)).balance, 3950);
   await api.post("/internal/events", ev("OrderRefused", { orderNumber: "ORD-ON", storeId: s, paymentMethod: "SSLCOMMERZ", paymentRef: `TR-${s}` }));
-  assert.equal((await status(s)).balance, 2900, "refund reverses the settlement");
+  assert.equal((await status(s)).balance, 3000, "refund reverses the settlement");
   assert.deepEqual((await api.get("/admin/reconcile")).mismatches, []);
   assert.equal((await api.get("/admin/trial-balance")).balanced, true);
 });
 
 test("outbox: events are fanned out per consumer, delivered, and retried on failure", async () => {
   const s = newStore();
-  await fund(s, 50); // creates StoreStatusChanged + BalanceLow rows (below thresholds)
+  await fund(s, 50); // creates a WalletToppedUp row
+  await api.post(`/wallets/${s}/status`, { status: "SUSPENDED", admin: "root@x", reason: "outbox test" }); // and a StoreStatusChanged row
   const delivered: Array<{ consumer: string; env: EventEnvelope }> = [];
   let failNext = true;
   const transport: Transport = {
     async deliver(consumer, env) {
-      if (failNext && env.eventType === "BalanceLow") { failNext = false; throw new Error("consumer down"); }
+      if (failNext && env.eventType === "StoreStatusChanged" && consumer === "notification") { failNext = false; throw new Error("consumer down"); }
       delivered.push({ consumer, env });
     },
   };
@@ -258,7 +200,7 @@ test("outbox: events are fanned out per consumer, delivered, and retried on fail
   await svc.db.$executeRawUnsafe(`UPDATE "OutboxMessage" SET "availableAt" = now() - interval '1 second' WHERE "deliveredAt" IS NULL`);
   const r2 = await relayOnce(svc.db as any, transport, 500);
   assert.equal(r2.failed, 0);
-  assert.ok(delivered.some((d) => d.env.eventType === "BalanceLow"), "failed delivery is retried");
+  assert.ok(delivered.some((d) => d.env.eventType === "StoreStatusChanged" && d.consumer === "notification"), "failed delivery is retried");
 });
 
 function db() { return svc.db; }

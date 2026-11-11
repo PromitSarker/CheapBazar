@@ -42,7 +42,6 @@ interface WalletViewProps {
   storeId?: string;
   storeStatus: string;
   totalBalance?: number;
-  walletHolds?: number;
   initialLedgerEntries?: LedgerItem[];
   initialPayoutMethods?: PayoutMethodItem[];
   initialWithdrawals?: WithdrawalItem[];
@@ -56,7 +55,6 @@ export default function WalletView({
   storeId,
   storeStatus,
   totalBalance = 4850.00,
-  walletHolds = 450.00,
   initialLedgerEntries = [],
   initialPayoutMethods = [],
   initialWithdrawals = [],
@@ -105,9 +103,9 @@ export default function WalletView({
   // Active Tab
   const [activeTab, setActiveTab] = useState<"ledger" | "payouts" | "withdrawals">("ledger");
 
-  const minReserve = 500.00;
-  const availableBalance = totalBalance - walletHolds;
-  const withdrawableBalance = Math.max(0, availableBalance - minReserve);
+  // No COD fee, no holds, no reserve bond: the whole balance is yours to spend or withdraw.
+  const availableBalance = totalBalance;
+  const withdrawableBalance = Math.max(0, availableBalance);
 
   const defaultHistory: LedgerItem[] = [
     {
@@ -117,22 +115,6 @@ export default function WalletView({
       debit: null,
       credit: 1620.00,
       timestamp: "Oct 11, 2026, 04:30 PM",
-    },
-    {
-      id: "TXN-8811",
-      type: "PLATFORM_FEE",
-      desc: "5% Platform Commission on ORD-9390",
-      debit: 180.00,
-      credit: null,
-      timestamp: "Oct 11, 2026, 04:30 PM",
-    },
-    {
-      id: "TXN-8790",
-      type: "COD_FEE_HOLD",
-      desc: "Platform fee hold for active COD Order ORD-9418",
-      debit: 150.00,
-      credit: null,
-      timestamp: "Oct 11, 2026, 09:45 AM",
     },
     {
       id: "TXN-8500",
@@ -367,7 +349,7 @@ export default function WalletView({
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
           <h1>{t.walletLedger} & Payouts</h1>
-          <p className="muted">Double-entry bookkeeping, multi-rail Bank/MFS withdrawals, and platform reserves.</p>
+          <p className="muted">Double-entry bookkeeping, and multi-rail Bank/MFS withdrawals.</p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem" }}>
           <button
@@ -399,19 +381,11 @@ export default function WalletView({
         </div>
       </div>
 
-      {/* Stat Grid with 4 Key Pillars */}
+      {/* Stat Grid */}
       <div className="stat-grid" style={{ marginBottom: "2rem" }}>
         <div className="stat-card">
           <span className="stat-value" style={{ color: "#38bdf8" }}>{formatMoney(totalBalance)}</span>
           <span className="muted">{t.totalLedgerBalance}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-value" style={{ color: "#facc15" }}>{formatMoney(walletHolds)}</span>
-          <span className="muted">{t.activeCodHolds}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-value" style={{ color: "#a1a1aa" }}>{formatMoney(minReserve)}</span>
-          <span className="muted">Platform Reserve Bond</span>
         </div>
         <div className="stat-card">
           <span className="stat-value" style={{ color: withdrawableBalance > 0 ? "#4ade80" : "#f87171" }}>
@@ -473,27 +447,6 @@ export default function WalletView({
       {/* TAB 1: LEDGER */}
       {activeTab === "ledger" && (
         <>
-          <div className="card" style={{ marginBottom: "2rem", padding: "1.25rem" }}>
-            <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1rem" }}>Store Status & Safety Float Policy</h3>
-            <p className="muted" style={{ fontSize: "0.85rem", margin: "0 0 1rem 0" }}>
-              Available Balance ({formatMoney(availableBalance)}) must exceed ৳500 to keep your storefront and Cash On Delivery (COD) active.
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", fontSize: "0.85rem" }}>
-              <div style={{ padding: "0.75rem", backgroundColor: "rgba(255,255,255,0.02)", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <strong>Soft Threshold (৳500):</strong>
-                <span style={{ color: availableBalance >= 500 ? "#4ade80" : "#facc15", marginLeft: "0.5rem" }}>
-                  {availableBalance >= 500 ? "Active & Healthy" : "Low Balance Warning"}
-                </span>
-              </div>
-              <div style={{ padding: "0.75rem", backgroundColor: "rgba(255,255,255,0.02)", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <strong>Hard Threshold (৳200):</strong>
-                <span style={{ color: availableBalance >= 200 ? "#4ade80" : "#ef4444", marginLeft: "0.5rem" }}>
-                  {availableBalance >= 200 ? "Normal" : "COD Blocked"}
-                </span>
-              </div>
-            </div>
-          </div>
-
           <h2>{t.doubleEntryTransactions}</h2>
           <div className="card" style={{ padding: 0, overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
@@ -754,14 +707,6 @@ export default function WalletView({
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.3rem" }}>
                 <span className="muted">Total Ledger Balance:</span>
                 <span>{formatMoney(totalBalance)}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.3rem" }}>
-                <span className="muted">Active COD Holds:</span>
-                <span style={{ color: "#facc15" }}>-{formatMoney(walletHolds)}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.3rem" }}>
-                <span className="muted">Required Platform Reserve:</span>
-                <span style={{ color: "#a1a1aa" }}>-{formatMoney(minReserve)}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.95rem", fontWeight: 600, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
                 <span>Eligible to Withdraw:</span>
@@ -1237,7 +1182,7 @@ export default function WalletView({
             </div>
 
             <p className="muted" style={{ fontSize: "0.85rem", marginBottom: "1.25rem" }}>
-              Add funds in Bangladeshi Taka (৳ BDT) to keep your available balance above COD thresholds and maintain an Active storefront.
+              Add funds in Bangladeshi Taka (৳ BDT) to pay for ads and other platform services.
             </p>
 
             {topUpDone && (

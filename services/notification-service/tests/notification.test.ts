@@ -90,17 +90,10 @@ test("planner (pure): who is told what, in both languages, with throttled keys",
   assert.match(confirmed.sms[0].text, /^Cheap-Bazar: Your order ORD-AB12CD34 is confirmed/);
   assert.equal(plan(env("OrderCreated", order({ buyerPhone: undefined }))).sms.length, 0);
 
-  // low-balance alerts are bucketed per store+level+6h
-  const t = Date.parse("2026-11-01T00:30:00Z");
-  const k = (ts: number, status = "WARNING") => plan(env("BalanceLow", { storeId: "s", ownerId: "o", available: 300, status }, "x", new Date(ts).toISOString())).notifications[0].dedupe;
-  assert.equal(k(t), k(t + 60_000));
-  assert.notEqual(k(t), k(t + 7 * 3_600_000));
-  assert.notEqual(k(t), k(t, "COD_BLOCKED"));
-
-  assert.equal(plan(env("StoreStatusChanged", { storeId: "s", ownerId: "o", to: "WARNING" })).notifications.length, 0, "covered by BalanceLow");
-  assert.equal(plan(env("StoreStatusChanged", { storeId: "s", ownerId: "o", to: "PAUSED", reason: "no top-up" })).notifications.length, 1);
-  assert.equal(plan(env("SomethingElse", {})).notifications.length, 0);
-  assert.equal(toBn("৳12.50"), "৳১২.৫০");
+  // there is no balance-driven store status any more: only admin actions notify the seller
+  assert.equal(plan(env("BalanceLow", { storeId: "s", ownerId: "o", available: 300, status: "WARNING" })).notifications.length, 0, "BalanceLow is gone");
+  assert.equal(plan(env("StoreStatusChanged", { storeId: "s", ownerId: "o", to: "SUSPENDED" })).notifications.length, 1);
+  assert.equal(plan(env("StoreStatusChanged", { storeId: "s", ownerId: "o", to: "WARNING" })).notifications.length, 0);
 });
 
 test("phone normalisation and courier status mapping", () => {
@@ -151,13 +144,7 @@ test("replays and repeated alerts collapse; unknown events are ignored", async (
   assert.equal((await send(e)).duplicate, true);
   assert.equal((await inbox(seller)).notifications.length, 1);
 
-  // same low-balance condition reported repeatedly within 6h -> one notification
   const ts = new Date().toISOString();
-  for (let i = 0; i < 4; i++) await send(env("BalanceLow", { storeId: "s_low", ownerId: seller, available: 90, status: "COD_BLOCKED" }, `low-${seller}-${i}`, ts));
-  assert.equal((await inbox(seller)).notifications.filter((n: any) => n.kind === "BALANCE_LOW").length, 1);
-  // ...but a different level is a different alert
-  await send(env("BalanceLow", { storeId: "s_low", ownerId: seller, available: 400, status: "WARNING" }, `low2-${seller}`, ts));
-  assert.equal((await inbox(seller)).notifications.filter((n: any) => n.kind === "BALANCE_LOW").length, 2);
 
   // out-of-stock: once per product per day
   for (let i = 0; i < 3; i++) await send(env("StockDepleted", { productId: "p1", storeId: "s_low", ownerId: seller, name: "Cake" }, `stk-${seller}-${i}`, ts));
@@ -199,7 +186,7 @@ test("email/SMS deliveries: sent via providers, retried with backoff, skipped wh
   await send(env("OrderCreated", order({ ownerId: seller, orderNumber: "ORD-MAIL0001" })));
   await send(env("OrderConfirmed", order({ ownerId: seller, orderNumber: "ORD-MAIL0001", buyerPhone: "01912345678" })));
   await send(env("WalletToppedUp", { storeId: "g", ownerId: guest, amount: 5, reference: "r" })); // email never created (no email flag)
-  await send(env("StoreStatusChanged", { storeId: "g", ownerId: guest, to: "PAUSED" }));         // email flagged but guest address
+  await send(env("StoreStatusChanged", { storeId: "g", ownerId: guest, to: "SUSPENDED" }));         // email flagged but guest address
 
   const r1 = await runWorker();
   assert.ok(r1.sent >= 2 && r1.skipped >= 1);

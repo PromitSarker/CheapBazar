@@ -45,7 +45,7 @@ before(async () => {
   process.env.SERVICE_URL_LEDGER = `http://127.0.0.1:${LEDGER_PORT}`;
   process.env.SERVICE_URL_PAYMENT = `http://127.0.0.1:${BILLING_PORT}`;
   const ledgerUrl = await resetDatabase(ADMIN_URL, "ledger_for_billing_test", path.join(__dirname, "../../ledger-service/prisma/schema.prisma"), createLedgerDb);
-  ledgerSvc = await startLedgerService({ secret: SECRET, port: LEDGER_PORT, databaseUrl: ledgerUrl, relay: false, daemon: false });
+  ledgerSvc = await startLedgerService({ secret: SECRET, port: LEDGER_PORT, databaseUrl: ledgerUrl, relay: false });
   const billUrl = await resetDatabase(ADMIN_URL, "billing_contract_test", path.join(__dirname, "../prisma/schema.prisma"), createDb);
   // default HTTP ledger gateway: the real thing
   billing = await startBillingService({ secret: SECRET, port: BILLING_PORT, databaseUrl: billUrl, relay: false, worker: false, gateway: gw, orders, clock, config: { onlinePaymentsEnabled: true } });

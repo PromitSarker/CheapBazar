@@ -72,8 +72,7 @@ async function main() {
   check(n(tb[0].d) === n(tb[0].c), "trial balance: total debits == total credits", `${n(tb[0].d)}`);
   const expect = (s: any) => (WALLETS === "carry" ? n(s.walletBalance) : 0);
   check(keepStores.every((s) => Math.abs(n(wallets.find((w) => w.storeId === s.id)?.balance) - expect(s)) < 0.005), `wallet balances are per --wallets=${WALLETS}`);
-  const heldOrders = keepOrders.filter((o) => o.paymentMethod === "COD" && ["CONFIRMED", "PROCESSING", "SHIPPED"].includes(o.status));
-  check((await led.hold.count({ where: { status: "HELD" } })) === heldOrders.length, "COD fee hold per in-flight COD order", `${heldOrders.length}`);
+  check(keepOrders.filter((o) => o.paymentMethod === "COD").every((o) => n(tOrd.get(o.orderNumber)?.platformFee) === 0 && n(tOrd.get(o.orderNumber)?.sellerNet) === n(o.totalAmount)), "COD orders carry no platform fee (seller keeps the total)");
   check(await led.payoutMethod.count() === methods.filter((m) => keepIds.has(m.storeId)).length, "payout methods");
   check(await led.withdrawal.count() === wds.filter((w) => keepIds.has(w.storeId)).length, "withdrawals");
   check(await led.statementEntry.count({ where: { entryType: { not: "OPENING_BALANCE" } } }) === ledgerRows.filter((l) => keepIds.has(l.storeId)).length, "statement history copied");
@@ -85,9 +84,10 @@ async function main() {
   check(undelivered === 0, "all migration events delivered", `undelivered=${undelivered}`);
   check((await agg.storeProjection.count()) === keepStores.length, "aggregator has every store", `${await agg.storeProjection.count()}/${keepStores.length}`);
   check((await agg.listingIndex.count({ where: { deleted: false } })) === keepProducts.length, "aggregator has every product", `${await agg.listingIndex.count({ where: { deleted: false } })}/${keepProducts.length}`);
-  const nonActive = keepStores.filter((s) => s.status !== "ACTIVE");
+  // only admin suspensions / bans are carried; the old balance-driven statuses become ACTIVE
+  const nonActive = keepStores.filter((s) => s.status === "SUSPENDED" || s.status === "BANNED");
   const proj = new Map((await agg.storeProjection.findMany()).map((p) => [p.storeId, p.status]));
-  check(nonActive.every((s) => proj.get(s.id) === s.status), "non-ACTIVE store statuses reached the aggregator");
+  check(nonActive.every((s) => proj.get(s.id) === s.status), "SUSPENDED / BANNED store statuses reached the aggregator");
 
   console.log(fails ? `\n${fails} CHECK(S) FAILED` : "\nALL CHECKS PASSED");
   if (fails) process.exitCode = 1;

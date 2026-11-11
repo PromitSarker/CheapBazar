@@ -192,12 +192,9 @@ export const translations: Record<Language, Translations> = {
 
     // Wallet
     totalLedgerBalance: "Total Ledger Balance",
-    activeCodHolds: "Active COD Holds",
     availableBalance: "Available Balance (Total - Holds)",
     storeStatusEnforcer: "Store Status Enforcer",
     topUpBalance: "+ Top Up Balance",
-    softThresholdLabel: "Soft Threshold (৳ 500.00)",
-    hardThresholdLabel: "Hard Threshold (৳ 200.00)",
     doubleEntryTransactions: "Double-Entry Ledger Transactions",
 
     // Orders
@@ -236,10 +233,6 @@ export const translations: Record<Language, Translations> = {
 
     // Store Statuses
     statusActive: "ACTIVE",
-    statusWarning: "WARNING",
-    statusCodBlocked: "COD_BLOCKED",
-    statusPaused: "PAUSED",
-    statusDelisted: "DELISTED",
     statusSuspended: "SUSPENDED",
     statusBanned: "BANNED",
   },
@@ -405,12 +398,9 @@ export const translations: Record<Language, Translations> = {
 
     // Wallet
     totalLedgerBalance: "মোট লেজার ব্যালেন্স",
-    activeCodHolds: "সক্রিয় সিওডি হোল্ড",
     availableBalance: "ব্যবহারযোগ্য ব্যালেন্স (মোট - হোল্ড)",
     storeStatusEnforcer: "স্টোর স্ট্যাটাস এনফোর্সার",
     topUpBalance: "+ ব্যালেন্স টপ-আপ",
-    softThresholdLabel: "সফট থ্রেশহোল্ড (৳ ৫০০.০০)",
-    hardThresholdLabel: "হার্ড থ্রেশহোল্ড (৳ ২০০.০০)",
     doubleEntryTransactions: "ডাবল-এন্ট্রি লেজার লেনদেন",
 
     // Orders
@@ -449,10 +439,6 @@ export const translations: Record<Language, Translations> = {
 
     // Store Statuses
     statusActive: "সক্রিয়",
-    statusWarning: "সতর্কতা",
-    statusCodBlocked: "সিওডি বন্ধ",
-    statusPaused: "বিরতিপ্রাপ্ত",
-    statusDelisted: "তালিকাচ্যুত",
     statusSuspended: "স্থগিত",
     statusBanned: "নিষিদ্ধ",
   },

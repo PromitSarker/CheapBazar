@@ -88,17 +88,16 @@ test("out-of-order and duplicate events: product before store, stale updates, to
   assert.equal((await A.post("/internal/events", ev)).duplicate, true);
 });
 
-test("store lifecycle controls visibility: only ACTIVE/WARNING/COD_BLOCKED are listed", async () => {
+test("store lifecycle controls visibility: only an admin suspension or ban hides a store", async () => {
   const s = await mkStore();
   const p = await prod(s.id, { name: "Lifecycle Item" });
   const visible = async () => ids(await retail({ q: "lifecycle item" })).includes(p.productId);
   assert.equal(await visible(), true);
-  for (const st of ["WARNING", "COD_BLOCKED"]) { await send("StoreStatusChanged", { storeId: s.id, to: st }); assert.equal(await visible(), true, st); }
-  for (const st of ["PAUSED", "DELISTED", "SUSPENDED", "BANNED"]) { await send("StoreStatusChanged", { storeId: s.id, to: st }); assert.equal(await visible(), false, st); }
+  for (const st of ["SUSPENDED", "BANNED"]) { await send("StoreStatusChanged", { storeId: s.id, to: st }); assert.equal(await visible(), false, st); }
   await send("StoreStatusChanged", { storeId: s.id, to: "ACTIVE" });
   assert.equal(await visible(), true);
   // a stale status event cannot undo a newer one
-  await send("StoreStatusChanged", { storeId: s.id, to: "DELISTED" }, new Date(T0 - 100000).toISOString());
+  await send("StoreStatusChanged", { storeId: s.id, to: "BANNED" }, new Date(T0 - 100000).toISOString());
   assert.equal(await visible(), true);
 });
 
@@ -142,7 +141,7 @@ test("wholesale index lists BOTH/WHOLESALE listings of every visible store: sell
   const b = await mk(planned, "Wsale Both", "BOTH");
   const c = await mk(planned, "Wsale Retailonly", "RETAIL");
   const d = await mk(unplanned, "Wsale NoPlan", "WHOLESALE");
-  const hidden = await mkStore({ status: "DELISTED" });
+  const hidden = await mkStore({ status: "SUSPENDED" });
   const e = await mk(hidden, "Wsale Delisted", "WHOLESALE");
 
   proUsers.add("pro1");
@@ -197,7 +196,7 @@ test("Pro paywall: anonymous / non-Pro / billing-down viewers get a preview that
 
 test("store directory lists visible stores with product counts; admin stats", async () => {
   const s = await mkStore({ name: "Directory Dhaka" });
-  const hidden = await mkStore({ name: "Directory Hidden", status: "DELISTED" });
+  const hidden = await mkStore({ name: "Directory Hidden", status: "SUSPENDED" });
   await prod(s.id, { name: "d1" });
   await prod(s.id, { name: "d2" });
   await prod(hidden.id, { name: "d3" });

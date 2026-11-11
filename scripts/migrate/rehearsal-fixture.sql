@@ -2,7 +2,7 @@
 -- order / hold / withdrawal / non-ACTIVE-status migration paths get exercised.
 -- Stores used: unified-cloud (orders), sd (withdrawal), hghjg (suspended).
 UPDATE "Store" SET status = 'SUSPENDED' WHERE slug = 'hghjg';
-UPDATE "Store" SET "walletBalance" = 4850.00, "walletHolds" = 22.50 WHERE slug = 'unified-cloud';
+UPDATE "Store" SET "walletBalance" = 4850.00 WHERE slug = 'unified-cloud';
 INSERT INTO "Product"(id,"storeId",name,description,price,stock) SELECT 'fx-prod-1', id, 'Fixture Widget', '', 450.00, 7 FROM "Store" WHERE slug='unified-cloud';
 INSERT INTO "Order"(id,"orderNumber","storeId","buyerName","buyerEmail","buyerPhone","shippingAddress","shippingCity","totalAmount","platformFee","sellerNet","paymentMethod",status,"updatedAt")
   SELECT 'fx-ord-1','ORD-FX1',id,'Fixture Buyer','fx@example.com','01700000001','1 Test Rd','Dhaka',450.00,22.50,427.50,'COD','SHIPPED',now() FROM "Store" WHERE slug='unified-cloud';

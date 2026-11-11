@@ -1,6 +1,6 @@
 # CheapBazar: where things stand
 
-Last updated 2026-11-10. This is the page to read when you come back. The detailed, dated diary is `WORK_LOG.md`;
+Last updated 2026-11-11. This is the page to read when you come back. The detailed, dated diary is `WORK_LOG.md`;
 the step-by-step cutover is `deploy/CUTOVER.md`. Nothing here contains secrets.
 
 ## In one paragraph
@@ -9,6 +9,13 @@ CheapBazar is being moved from one Next.js app on the Neon database to 8 small s
 server (103.228.38.69) and have 131 passing tests. Every screen (buyers, sellers, admin) has a version that talks to the services,
 switched by `USE_SERVICES`.** The flag is **OFF**, so the **live site is still the old app on Neon, unchanged for users**.
 The data migration is written and rehearsed on copies of the live data. **What is left is the cutover itself, which needs you.**
+
+## Changed 2026-11-11: no COD fee, no wallet thresholds
+
+The 5% COD platform fee, the wallet soft/hard thresholds, the pause/delist timers and the ৳500 reserve bond are **removed** (services and legacy site). A store's status is now admin-only (ACTIVE / SUSPENDED / BANNED). Two small steps are still pending and need you (details in `WORK_LOG.md`, 2026-11-11):
+1. Apply the ledger schema cleanup: `DATABASE_URL=<ledger_db url> npx prisma db push --schema services/ledger-service/prisma/schema.prisma --accept-data-loss` (test data only; backups are in `~/db-backups-2026-11-11-fee-removal/`). Works fine without it for now.
+2. `pm2 restart cheapbazar` so the LIVE site stops charging the fee (the new build is already on disk).
+Also re-run `npm run migrate:rehearse` before the cutover: it has not been run since this change.
 
 ## What you need to do (nothing else blocks go-live)
 
@@ -25,9 +32,9 @@ The data migration is written and rehearsed on copies of the live data. **What i
 | # | Question | Default |
 |---|----------|---------|
 | 1 | Real platform admin email + password. **The only admin in the live database is the seed `admin@storeforge.dev` with a known weak password**, so without this nobody could administer the new system. | none: you type it into the script |
-| 2 | Seller wallets: keep each store's current ৳4,850 (`carry`) or open at 0 (`zero`). With `zero`, every store loses COD at once and is paused after 3 days and delisted a week later unless the seller tops up. The ৳4,850 is the old app's default starting credit, not money anyone paid in. | **carry** |
+| 2 | Seller wallets: keep each store's current ৳4,850 (`carry`) or open at 0 (`zero`). Low stakes now (the COD fee and thresholds are gone): the balance only pays for ads and can be withdrawn. The ৳4,850 is the old app's default starting credit, not money anyone paid in. | **carry** |
 | 3 | The 3 seed accounts (admin@, demo@, buyer@storeforge.dev): `lock` (keep rows, nobody can log in; admin loses admin rights) or `drop` (delete them and the Demo Bakery store). | **lock** |
-| 4 | Do the retail money flows stay: 5% COD fee held per order, seller wallet top-ups, paid ads? Built on the assumption they do. | **stay** |
+| 4 | **Answered 2026-11-11: the 5% COD fee and the wallet thresholds are removed.** Seller wallet top-ups and paid ads still exist (the wallet pays for ads). Still open: whether online orders carry a commission (`ONLINE_FEE_PERCENTAGE`, default 0). | wallet top-ups + ads stay |
 | 5 | Text telling people where to send manual payments (bKash/Nagad/bank number): `TOPUP_INSTRUCTIONS`. Shown on the seller wallet and on /pro. | asked by the script (can be empty, but then the page says "ask support") |
 | 6 | Real prices: Buyer Pro (placeholder ৳499 / 30 days / 3 days grace) and the 4 ad slots (placeholders ৳300 to ৳1500 per day). | set in /admin/billing after cutover |
 | 7 | Refund / takedown policy for ads and refunds for delivered orders (not built, needs your rules). | none |

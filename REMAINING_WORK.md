@@ -68,13 +68,13 @@ The backend is done and the web app does not use it yet. All 8 microservices are
   - orders to order
 - **Aggregator backfill:** a "re-publish all products" admin action.
 - **Cutover and retirement** of the monolith's data layer.
-- **Behavior change:** the old free ৳4,850 starting wallet is gone. New sellers start at ৳0 and need a top-up before taking COD orders.
+- **Behavior change:** the old free ৳4,850 starting wallet is gone. New sellers start at ৳0. Since 2026-11-11 there is no COD fee and no balance threshold, so a ৳0 wallet still takes orders; it is only needed for ads.
 
 ### 4. Decisions only the owner can make
 
 - **Real Buyer Pro price:** currently a placeholder of ৳499. Set it with `POST /admin/plans`.
 - **Ad slot prices:** the four default slots (`HOME_HERO`, `BROWSE_TOP`, `BROWSE_SIDEBAR`, `STOREFRONT_BANNER`) use placeholder prices. Set them with `POST /admin/ads/slots`.
-- **Retail-side money flows (unanswered):** whether the 5% COD platform-fee holds, wallet top-ups and ad fees stay, and whether online payments should be wholesale-only. All of it is untouched.
+- **Retail-side money flows:** the 5% COD fee and the wallet thresholds were removed on 2026-11-11. Still open: whether online payments should be wholesale-only.
 - **Ad refunds and takedowns:** not built, and this needs a refund policy decision first.
 
 ### 5. External integrations that need credentials

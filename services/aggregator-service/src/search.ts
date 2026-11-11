@@ -2,7 +2,8 @@ import type { Entitlements } from "./entitlements";
 import type { Runner } from "./db";
 
 /** Stores whose products appear in the aggregator ("Delisted: removed from aggregator"). */
-const VISIBLE_STATUSES = `('ACTIVE','WARNING','COD_BLOCKED')`;
+// A store is visible unless an admin suspended or banned it (nothing else hides a store).
+const HIDDEN_STATUSES = `('SUSPENDED','BANNED')`;
 
 export type Tab = "retail" | "wholesale";
 
@@ -38,7 +39,7 @@ export async function search(db: Runner, ent: Entitlements, tab: Tab, p: SearchP
   const where: string[] = [
     `l."deleted" = false`,
     `s."slug" <> ''`,
-    `s."status" IN ${VISIBLE_STATUSES}`,
+    `s."status" NOT IN ${HIDDEN_STATUSES}`,
     wholesale ? `l."channel" IN ('WHOLESALE','BOTH')` : `l."channel" IN ('RETAIL','BOTH')`,
   ];
 
@@ -126,7 +127,7 @@ export async function storeDirectory(db: Runner, q: { q?: string; limit?: string
     `SELECT s."storeId", s."slug", s."name", s."template", s."customDomain",
             COUNT(l."productId") FILTER (WHERE l."deleted" = false AND l."channel" IN ('RETAIL','BOTH'))::bigint AS n
        FROM "StoreProjection" s LEFT JOIN "ListingIndex" l ON l."storeId" = s."storeId"
-      WHERE s."slug" <> '' AND s."status" IN ${VISIBLE_STATUSES}${like}
+      WHERE s."slug" <> '' AND s."status" NOT IN ${HIDDEN_STATUSES}${like}
       GROUP BY s."storeId", s."slug", s."name", s."template", s."customDomain"
       ORDER BY n DESC, s."name" LIMIT ${limit}`,
     ...args

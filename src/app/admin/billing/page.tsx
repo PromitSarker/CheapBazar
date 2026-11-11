@@ -12,7 +12,7 @@ const box = { padding: 0, overflow: "hidden", border: "1px solid #e2e8f0", backg
 const input = { padding: "0.35rem 0.5rem", border: "1px solid #cbd5e1", borderRadius: 6 } as const;
 const taka = (n: number) => `৳${Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const LABEL: Record<string, string> = {
-  PLATFORM_CASH: "Cash held (bank / MFS)", PLATFORM_FEE_REVENUE: "COD & order fees earned", PLATFORM_AD_REVENUE: "Ad revenue",
+  PLATFORM_CASH: "Cash held (bank / MFS)", PLATFORM_FEE_REVENUE: "Online order fees earned", PLATFORM_AD_REVENUE: "Ad revenue",
   PLATFORM_SUBSCRIPTION_REVENUE: "Buyer Pro revenue", GATEWAY_CLEARING: "Online payments in transit", PAYOUT_CLEARING: "Seller payouts in flight", PLATFORM_EQUITY: "Opening balances / adjustments",
 };
 

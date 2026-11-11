@@ -31,7 +31,7 @@ export async function adminStatsViaServices() {
   return {
     totalStores: idn.stores as number,
     activeStores: Math.max(0, idn.stores - notActive), // a store with no wallet row yet counts as active
-    suspendedStores: statuses.filter((s) => ["SUSPENDED", "BANNED", "PAUSED"].includes(s)).length,
+    suspendedStores: statuses.filter((s) => ["SUSPENDED", "BANNED"].includes(s)).length,
     totalProducts: cat.products as number,
     totalUsers: idn.users as number,
     sellersCount: (idn.roles?.SELLER ?? 0) as number,

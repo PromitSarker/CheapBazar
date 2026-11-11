@@ -6,8 +6,8 @@ import { eventData, shapeOrder } from "./orders";
 
 /**
  * Order state machine. Money and stock effects are NOT done here: each transition
- * publishes an event and the owning service reacts (ledger settles/releases the
- * COD hold, catalog restocks). That keeps order-service the single writer of order
+ * publishes an event and the owning service reacts (ledger refunds an online
+ * payment, catalog restocks). That keeps order-service the single writer of order
  * state while staying eventually consistent with the rest.
  */
 export type Status = "PLACING" | "PENDING_PAYMENT" | "CONFIRMED" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUSED";

@@ -9,7 +9,7 @@ Plan for roughly 15 minutes of downtime. Everything below runs on 103.228.38.69 
 
 | Decision | Flag / env | Default | Consequence |
 |---|---|---|---|
-| Seller wallets | `--wallets=carry\|zero` | `carry` | `carry` opens every wallet at its legacy balance (today every store holds the Prisma default of 4850 - a promo credit, not money anyone paid in). `zero` opens at 0: the Store Status Enforcer then moves every store to COD_BLOCKED, then PAUSED after 72 h and DELISTED after a further 168 h unless the seller tops up. |
+| Seller wallets | `--wallets=carry\|zero` | `carry` | `carry` opens every wallet at its legacy balance (today every store holds the Prisma default of 4850 - a promo credit, not money anyone paid in). `zero` opens at 0. Since 2026-11-11 there is no COD fee and no balance threshold, so a wallet at 0 changes nothing about taking orders: the balance only matters for ads and withdrawals. |
 | Seed accounts `admin@`/`demo@`/`buyer@storeforge.dev` (known weak passwords) | `--seed-accounts=lock\|drop` | `lock` | `lock` keeps the rows with an unguessable password (the admin loses ADMIN). `drop` deletes them and, for `demo@`, the Demo Bakery store and its products. |
 | The real platform admin | `ADMIN_EMAIL`, `ADMIN_PASSWORD` (min 8), `ADMIN_NAME` | none | The ONLY legacy admin is the seed account, so without these there is no admin after cutover. |
 | Platform payment account text | `TOPUP_INSTRUCTIONS` | empty | Shown on the seller top-up box and on /pro. |

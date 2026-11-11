@@ -357,14 +357,12 @@ Tests start the real service in-process, create a fresh database (`<name>_test`)
 | `MIN_TOPUP` / `MAX_TOPUP` / `MAX_PENDING_MANUAL` | `10` / `500000` / `5` | payment |
 | `RENEWAL_RETRY_MINUTES` / `BILLING_TICK_INTERVAL_MS` | `360` / `60000` | payment |
 | `PAYMENT_DATABASE_URL` | – | payment |
-| `PLATFORM_FEE_PERCENTAGE` | `5` | order |
+| `ONLINE_FEE_PERCENTAGE` | `0` | order (commission on ONLINE-paid orders only; Cash on Delivery never carries a fee) |
 | `STOCK_RESERVATION_MINUTES` | `15` | order |
 | `WHOLESALE_COD_CAP` | `50000` | order |
 | `ALLOW_SELLER_FINALIZE` | `true` | order (set `false` once couriers report outcomes) |
 | `PLACING_TIMEOUT_SECONDS` | `120` | order |
-| `WALLET_SOFT_THRESHOLD` / `WALLET_HARD_THRESHOLD` | `500` / `100` | ledger |
-| `GRACE_PERIOD_1_HOURS` / `GRACE_PERIOD_2_HOURS` | `72` / `168` | ledger |
-| `MIN_OPERATING_RESERVE` / `MIN_WITHDRAWAL` / `WITHDRAWAL_FEE` | `500` / `500` / `0` | ledger |
+| `MIN_WITHDRAWAL` / `WITHDRAWAL_FEE` | `500` / `0` | ledger (the soft/hard thresholds, grace periods and reserve bond were removed 2026-11-11) |
 | `PLATFORM_DOMAINS` | – | identity (extra reserved domains) |
 | `COURIER_WEBHOOK_SECRET` (or `_<COURIER>`) | – (webhook off) | notification |
 | `RESEND_API_KEY` + `MAIL_FROM` | – (email skipped) | notification |

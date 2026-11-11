@@ -20,7 +20,6 @@ export default async function WalletPage({
         storeId={store.id}
         storeStatus={d.wallet.status}
         totalBalance={d.wallet.balance}
-        walletHolds={d.wallet.holds}
         initialLedgerEntries={d.ledgerEntries}
         initialPayoutMethods={d.payoutMethods as any}
         initialWithdrawals={d.withdrawals}
@@ -114,7 +113,6 @@ export default async function WalletPage({
       storeId={store.id}
       storeStatus={fullStore?.status || store.status}
       totalBalance={Number(fullStore?.walletBalance ?? 4850.00)}
-      walletHolds={Number(fullStore?.walletHolds ?? 0.00)}
       initialLedgerEntries={ledgerEntries}
       initialPayoutMethods={payoutMethods}
       initialWithdrawals={withdrawals}

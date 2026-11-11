@@ -70,9 +70,11 @@ assert.equal(res.status, 404); ok("order does not show under another store's URL
 
 const p2 = await call("catalog", "GET", `/products/${pid}`);
 assert.equal(p2.stock, 3); ok("stock went 5 -> 3");
-let w2;
-for (let i = 0; i < 20; i++) { w2 = await call("ledger", "GET", `/wallets/${store.id}/status`); if (w2.holds > 0) break; await sleep(500); }
-assert.equal(w2.holds, 25); ok("5% platform fee hold (৳25 on ৳500) placed on the seller wallet");
+const created = await call("order", "GET", `/orders/by-number/${j.orderNumber}`);
+assert.equal(created.platformFee, 0); assert.equal(created.sellerNet, created.totalAmount); ok("no platform fee on a Cash on Delivery order (seller keeps the whole total)");
+await sleep(1500);
+const w2 = await call("ledger", "GET", `/wallets/${store.id}/status`);
+assert.equal("holds" in w2, false); ok("nothing is held on the seller wallet");
 
 res = await order(50);
 j = await res.json();

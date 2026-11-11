@@ -6,7 +6,8 @@ import { addDays, dayStr, daysInclusive, dhakaToday, parseDay, toDate } from "./
 import { isInsufficient, type LedgerGateway } from "./ledger";
 import { BLOCKING, occupancy, overlapping } from "./slots";
 
-export const OK_TO_ADVERTISE = new Set(["ACTIVE", "WARNING", "COD_BLOCKED"]);
+/** Only an admin suspension or ban stops a store advertising. */
+const CANNOT_ADVERTISE = new Set(["SUSPENDED", "BANNED"]);
 
 export interface AdConfig {
   minLeadDays: number;   // earliest start = today + this (gives admins time to review)
@@ -90,7 +91,7 @@ export async function createBooking(db: Db, ledger: LedgerGateway, cfg: AdConfig
 
   const w = await standing(ledger, storeId);
   if (!w.exists) throw new HttpError(404, "Store not found", "STORE_NOT_FOUND");
-  if (!OK_TO_ADVERTISE.has(w.status)) {
+  if (CANNOT_ADVERTISE.has(w.status)) {
     throw new HttpError(403, `A store in status ${w.status} cannot book ads`, "STORE_NOT_ELIGIBLE");
   }
   // Early, friendly check. The authoritative charge happens atomically at approval.
@@ -241,7 +242,7 @@ export async function settleCharge(db: Db, ledger: LedgerGateway, id: string, no
   } catch (e: any) {
     throw new HttpError(503, "Approved, but billing is unavailable; the charge will be retried automatically.", "CHARGE_PENDING", { cause: e?.message });
   }
-  if (!OK_TO_ADVERTISE.has(w.status)) return reject(`Store is ${w.status}; ads cannot run.`);
+  if (CANNOT_ADVERTISE.has(w.status)) return reject(`Store is ${w.status}; ads cannot run.`);
 
   let res: { ledgerTxId: string; duplicate: boolean };
   try {

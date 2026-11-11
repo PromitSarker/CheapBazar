@@ -1,11 +1,8 @@
 export type UserRole = "SELLER" | "BUYER" | "ADMIN" | "PRO_BUYER";
 
+// Admin-only: nothing changes a store's status automatically (no balance thresholds).
 export type StoreStatus = 
   | "ACTIVE" 
-  | "WARNING" 
-  | "COD_BLOCKED" 
-  | "PAUSED" 
-  | "DELISTED" 
   | "SUSPENDED" 
   | "BANNED";
 

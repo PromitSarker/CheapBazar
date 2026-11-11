@@ -66,7 +66,6 @@ const problems: string[] = [];
 const warn: string[] = [];
 const num = (v: any) => Number(v ?? 0);
 const UNUSABLE = () => bcrypt.hashSync(crypto.randomBytes(32).toString("hex"), 10); // a real hash of a random secret nobody knows
-const IN_FLIGHT = new Set(["CONFIRMED", "PROCESSING", "SHIPPED"]);
 
 async function emit(tx: any, producer: string, type: string, data: any, tenantId: string, to: string[], ts: Date) {
   const eventId = crypto.randomUUID();
@@ -151,12 +150,6 @@ async function main() {
   const keepMethods = methods.filter((m) => keepStoreIds.has(m.storeId));
   const keepWithdrawals = withdrawals.filter((w) => keepStoreIds.has(w.storeId));
   const keepLedger = ledger.filter((l) => keepStoreIds.has(l.storeId));
-  for (const s of keepStores) {
-    const holdSum = keepOrders.filter((o) => o.storeId === s.id && o.paymentMethod === "COD" && IN_FLIGHT.has(o.status)).reduce((a, o) => a + num(o.platformFee), 0);
-    if (Math.abs(holdSum - num(s.walletHolds)) > 0.005) {
-      warn.push(`store ${s.slug}: legacy walletHolds ${num(s.walletHolds)} != COD fee of in-flight orders ${holdSum}; migrating the order-derived figure`);
-    }
-  }
 
   const lockedCount = seedUsers.length;
   console.log(`plan: users ${keepUsers.length} (${SEEDS === "lock" ? lockedCount + " seed accounts locked" : seedUsers.length + " seed accounts dropped"}), stores ${keepStores.length}, products ${keepProducts.length}, orders ${keepOrders.length}, payout methods ${keepMethods.length}, withdrawals ${keepWithdrawals.length}, statement rows ${keepLedger.length}`);
@@ -171,7 +164,8 @@ async function main() {
   if (existing) throw new Error("REFUSING: the target service databases are not empty. Recreate them (deploy/setup.sh on fresh DBs) first.");
 
   const now = new Date();
-  const statusOf = (s: { status: string }) => s.status;
+  // Only admin actions survive: WARNING / COD_BLOCKED / PAUSED / DELISTED were balance-driven and no longer exist.
+  const statusOf = (s: { status: string }) => (s.status === "SUSPENDED" || s.status === "BANNED" ? s.status : "ACTIVE");
 
   // ------------------------------------------------------------------ identity
   await idDb.$transaction(async (tx) => {
@@ -217,8 +211,11 @@ async function main() {
   await ordDb.$transaction(async (tx) => {
     for (const o of keepOrders) {
       const st = storeById.get(o.storeId)!;
-      const total = num(o.totalAmount), fee = num(o.platformFee);
+      const total = num(o.totalAmount);
       const cod = o.paymentMethod === "COD";
+      // Cash on Delivery no longer carries a platform fee: the seller keeps the whole total.
+      const fee = cod ? 0 : num(o.platformFee);
+      const sellerNet = cod ? o.totalAmount : o.sellerNet;
       const ref = payments.find((p) => p.orderId === o.id)?.tranId ?? null;
       await tx.order.create({
         data: {
@@ -226,10 +223,10 @@ async function main() {
           buyerId: null, buyerName: o.buyerName, buyerEmail: o.buyerEmail, buyerPhone: o.buyerPhone,
           shippingAddress: o.shippingAddress, shippingCity: o.shippingCity, orderType: "RETAIL",
           paymentMethod: o.paymentMethod, paymentRef: ref, status: o.status as any,
-          totalAmount: o.totalAmount, platformFee: o.platformFee, sellerNet: o.sellerNet,
+          totalAmount: o.totalAmount, platformFee: fee, sellerNet,
           createdAt: o.createdAt, updatedAt: o.updatedAt,
           items: { create: (itemsByOrder.get(o.id) ?? []).map((i) => ({ id: i.id, productId: i.productId, productName: productName.get(i.productId) ?? "Product", quantity: i.quantity, unitPrice: i.price })) },
-          feeSnapshot: { create: { orderType: "RETAIL", feePercent: total > 0 ? Math.round((fee / total) * 10000) / 100 : 0, totalAmount: o.totalAmount, platformFee: o.platformFee, sellerNet: o.sellerNet, codFeeHold: cod ? o.platformFee : 0, createdAt: o.createdAt } },
+          feeSnapshot: { create: { orderType: "RETAIL", feePercent: total > 0 ? Math.round((fee / total) * 10000) / 100 : 0, totalAmount: o.totalAmount, platformFee: fee, sellerNet, createdAt: o.createdAt } },
           events: { create: [{ fromStatus: null, toStatus: o.status as any, source: "SYSTEM", note: "Migrated from the previous platform", createdAt: o.updatedAt }] },
         },
       });
@@ -245,11 +242,8 @@ async function main() {
     };
     const equity = await acct("PLATFORM_EQUITY", "PLATFORM_EQUITY", null, "platform equity");
     for (const s of keepStores) {
-      const holds = keepOrders.filter((o) => o.storeId === s.id && o.paymentMethod === "COD" && IN_FLIGHT.has(o.status));
-      const holdSum = holds.reduce((a, o) => a + num(o.platformFee), 0);
       const balance = WALLETS === "carry" ? num(s.walletBalance) : 0;
-      await tx.wallet.create({ data: { storeId: s.id, ownerId: s.ownerId, balance, holds: holdSum, status: statusOf(s) as any, statusReason: statusOf(s) === "ACTIVE" ? null : "Carried over from the previous platform", createdAt: s.createdAt } });
-      for (const o of holds) await tx.hold.create({ data: { storeId: s.id, reference: o.orderNumber, amount: o.platformFee, status: "HELD", createdAt: o.createdAt } });
+      await tx.wallet.create({ data: { storeId: s.id, ownerId: s.ownerId, balance, status: statusOf(s) as any, statusReason: statusOf(s) === "ACTIVE" ? null : "Carried over from the previous platform", createdAt: s.createdAt } });
       if (balance > 0) {
         const wid = await acct(`STORE_WALLET:${s.id}`, "STORE_WALLET", s.id, `Store wallet ${s.id}`);
         const t = await tx.ledgerTransaction.create({

@@ -39,9 +39,11 @@ check(store?.slug === "unified-cloud", "owner -> store lookup", `slug=${store?.s
 r = await call(4101, "GET", "/stores/" + store.id);
 check(r.status === 200, "store by id");
 r = await call(4105, "GET", `/wallets/${store.id}/status`);
-check(r.status === 200 && r.body.exists, "wallet exists in ledger-service", `balance=${r.body.balance} holds=${r.body.holds} status=${r.body.status}`);
+const r_balanceBefore = r.body.balance;
+check(r.status === 200 && r.body.exists, "wallet exists in ledger-service", `balance=${r.body.balance} status=${r.body.status}`);
 const wallets = (await call(4105, "GET", "/wallets")).body.wallets;
-check(wallets.find((w) => w.storeId === store.id)?.holds === 22.5, "in-flight COD fee hold carried (৳22.50 for the SHIPPED order)");
+check(wallets.find((w) => w.storeId === store.id)?.status === "ACTIVE", "wallet listed, ACTIVE, with no holds field");
+check(!("holds" in r.body), "wallet status has no holds / thresholds any more");
 r = await call(4105, "GET", `/wallets/${store.id}/statement`);
 check(r.status === 200, "wallet statement readable");
 r = await call(4107, "GET", "/aggregator/retail/search?q=Logo");
@@ -54,16 +56,16 @@ r = await call(4107, "GET", "/aggregator/retail/search?q=mango");
 check((r.body.items ?? r.body.results ?? r.body.listings ?? []).length === 0, "a SUSPENDED store's product is hidden from search (fixture: hghjg/mango)");
 console.log("info  search for a SUSPENDED store's product returns", (r.body.items ?? r.body.results ?? []).length, "item(s)");
 
-// 5. orders readable + advance through the state machine (delivery settles the hold)
+// 5. orders readable + advance through the state machine (delivery moves no money)
 r = await call(4103, "GET", "/orders/by-number/ORD-FX1");
 check(r.status === 200 && r.body.status === "SHIPPED" && r.body.items?.length === 1, "migrated order readable with its items", `status=${r.body.status}`);
 r = await call(4103, "GET", `/stores/${store.id}/orders`);
 check((r.body.orders ?? []).length === 2, "store order list", `orders=${(r.body.orders ?? []).length}`);
 r = await call(4103, "PATCH", `/orders/${(await call(4103, "GET", "/orders/by-number/ORD-FX1")).body.id}/status`, { to: "DELIVERED", source: "SELLER", actor: owner.id, storeId: store.id });
 check(r.status === 200, "migrated order can be marked DELIVERED", `status=${r.status} ${r.status !== 200 ? JSON.stringify(r.body) : ""}`);
-let hold = null;
-for (let i = 0; i < 30 && !(hold === 0); i++) { await new Promise((x) => setTimeout(x, 1000)); hold = (await call(4105, "GET", `/wallets/${store.id}/status`)).body.holds; }
-check(hold === 0, "delivery settled the carried hold in the ledger (holds -> 0)", `holds=${hold}`);
+await new Promise((x) => setTimeout(x, 1500));
+const after = (await call(4105, "GET", `/wallets/${store.id}/status`)).body;
+check(after.balance === r_balanceBefore, "delivering a COD order does not touch the seller wallet", `balance=${after.balance}`);
 
 console.log(fails ? `\n${fails} SMOKE CHECK(S) FAILED` : "\nSMOKE OK");
 process.exit(fails ? 1 : 0);

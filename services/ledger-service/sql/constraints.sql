@@ -5,7 +5,6 @@
 -- 2. Every LedgerTransaction balances (sum debit = sum credit) at COMMIT.
 -- 3. A posting is a debit XOR a credit, never negative.
 -- 4. At most one in-flight withdrawal per store.
--- 5. Holds can never be negative.
 
 create or replace function ledger_block_mutation() returns trigger as $$
 begin
@@ -51,5 +50,3 @@ create constraint trigger ledger_posting_balanced after insert on "LedgerPosting
 create unique index if not exists withdrawal_one_active_per_store
   on "Withdrawal" ("storeId") where "status" in ('PENDING', 'PROCESSING');
 
-alter table "Wallet" drop constraint if exists wallet_holds_nonnegative;
-alter table "Wallet" add constraint wallet_holds_nonnegative check ("holds" >= 0);

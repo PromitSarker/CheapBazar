@@ -6,7 +6,7 @@ import { settleCharge } from "./bookings";
 import type { ActiveAds } from "./cache";
 
 /** Store statuses in which the platform must not show the store's ads. */
-export const BLOCKED_STORE = new Set(["PAUSED", "DELISTED", "SUSPENDED", "BANNED"]);
+export const BLOCKED_STORE = new Set(["SUSPENDED", "BANNED"]);
 
 const ev = (b: any) => ({
   bookingId: b.id, bookingNumber: b.bookingNumber, storeId: b.storeId, ownerId: b.ownerId, headline: b.headline,
@@ -86,9 +86,9 @@ export async function tick(db: Db, ledger: LedgerGateway, ads: ActiveAds, now = 
 }
 
 /**
- * StoreStatusChanged from ledger-service. A store that is PAUSED/DELISTED/SUSPENDED/BANNED stops
+ * StoreStatusChanged from ledger-service. A store that is SUSPENDED/BANNED (admin actions) stops
  * showing ads immediately; they come back (if their dates still cover today) when it recovers.
- * No refund and no extension: that is the price of letting the wallet run dry or violating policy.
+ * No refund and no extension while the store is blocked.
  * Older-than-recorded events are ignored, so out-of-order delivery cannot flip the state backwards.
  */
 export const storeStatusHandler = (clock: () => Date): EventHandler => async (env, tx) => {

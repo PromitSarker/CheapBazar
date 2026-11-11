@@ -17,7 +17,6 @@ export interface Quote {
 export interface WalletStatus {
   status: string;
   acceptsOrders: boolean;
-  codAllowed: boolean;
 }
 
 export interface Deps {
@@ -30,8 +29,6 @@ export interface Deps {
   };
   ledger: {
     walletStatus(storeId: string): Promise<WalletStatus>;
-    placeHold(storeId: string, reference: string, amount: number): Promise<void>;
-    releaseHold(storeId: string, reference: string, reason: string): Promise<void>;
   };
   billing: {
     buyerProActive(userId: string): Promise<boolean>;
@@ -73,8 +70,6 @@ export function httpDeps(secret: string): Deps {
     },
     ledger: {
       walletStatus: (storeId) => c("ledger").get(`/wallets/${encodeURIComponent(storeId)}/status`),
-      async placeHold(storeId, reference, amount) { await c("ledger").post(`/wallets/${encodeURIComponent(storeId)}/holds`, { reference, amount }); },
-      async releaseHold(storeId, reference, reason) { await c("ledger").post(`/wallets/${encodeURIComponent(storeId)}/release-hold`, { reference, reason }); },
     },
     billing: {
       async buyerProActive(userId) { return (await c("payment").get<{ active: boolean }>(`/subscriptions/buyer/${encodeURIComponent(userId)}/status`)).active === true; },

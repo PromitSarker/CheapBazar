@@ -26,7 +26,7 @@ export const EVENT_ROUTES: Record<string, ServiceName[]> = {
   OrderPaymentPending: [],
   OrderConfirmed: ["notification"],
   OrderShipped: ["notification"],
-  OrderDelivered: ["ledger", "notification"],
+  OrderDelivered: ["notification"],
   OrderCancelled: ["ledger", "catalog", "notification"],
   OrderRefused: ["ledger", "catalog", "notification"],
 
@@ -43,12 +43,8 @@ export const EVENT_ROUTES: Record<string, ServiceName[]> = {
   SubscriptionLapsed: ["notification"],
 
   // ledger-service
-  WalletHoldCreated: [],
-  WalletHoldSettled: [],
-  WalletHoldReleased: [],
   WalletToppedUp: ["notification"],
   StoreStatusChanged: ["ad", "aggregator", "notification"],
-  BalanceLow: ["notification"],
   PayoutGenerated: ["notification"],
 
   // ad-service

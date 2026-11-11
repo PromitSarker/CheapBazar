@@ -32,7 +32,7 @@ export async function getAdminStats(): Promise<AdminStats> {
   ] = await Promise.all([
     prisma.store.count(),
     prisma.store.count({ where: { status: "ACTIVE" } }),
-    prisma.store.count({ where: { status: { in: ["SUSPENDED", "BANNED", "PAUSED"] } } }),
+    prisma.store.count({ where: { status: { in: ["SUSPENDED", "BANNED"] } } }),
     prisma.product.count(),
     prisma.user.count(),
     prisma.user.count({ where: { role: "SELLER" } }),

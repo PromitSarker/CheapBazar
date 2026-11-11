@@ -201,7 +201,7 @@ model LedgerEntry {
   storeId       String
   store         Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   transactionId String?  // Reference to tranId or orderNumber
-  entryType     String   // "ORDER_SPLIT_SETTLEMENT" | "PLATFORM_FEE" | "WALLET_TOP_UP" | "COD_FEE_HOLD"
+  entryType     String   // "ORDER_SPLIT_SETTLEMENT" | "PLATFORM_FEE" | "WALLET_TOP_UP" (COD_FEE_HOLD was retired 2026-11-11)
   description   String
   debit         Decimal? @db.Decimal(10, 2)
   credit        Decimal? @db.Decimal(10, 2)

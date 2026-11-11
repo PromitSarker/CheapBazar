@@ -6,7 +6,8 @@ import { withdrawViaServices, withdrawalSummaryViaServices } from "@/lib/bff/wal
 
 export const dynamic = "force-dynamic";
 
-const MIN_OPERATING_RESERVE = 500.00;
+// No reserve bond any more (it only existed to cover COD fee holds).
+const MIN_OPERATING_RESERVE = 0;
 const MIN_WITHDRAWAL_AMOUNT = 500.00;
 
 export async function GET() {
@@ -140,11 +141,7 @@ export async function POST(request: Request) {
 
       if (requestedAmount > maxWithdrawable) {
         throw new Error(
-          `Insufficient withdrawable funds. Eligible: ৳${maxWithdrawable.toFixed(
-            2
-          )} (after deducting active COD holds and ৳${MIN_OPERATING_RESERVE.toFixed(
-            2
-          )} platform reserve bond).`
+          `Insufficient withdrawable funds. Eligible: ৳${maxWithdrawable.toFixed(2)}.`
         );
       }
 
