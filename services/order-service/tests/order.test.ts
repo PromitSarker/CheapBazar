@@ -68,7 +68,7 @@ before(async () => {
   process.env.SERVICE_URL_CATALOG = base(P.catalog);
   process.env.SERVICE_URL_LEDGER = base(P.ledger);
 
-  ledger = await startLedgerService({ secret: SECRET, port: P.ledger, databaseUrl: lUrl, relay: false, daemon: false });
+  ledger = await startLedgerService({ secret: SECRET, port: P.ledger, databaseUrl: lUrl, relay: false });
   catalog = await startCatalogService({ secret: SECRET, port: P.catalog, databaseUrl: cUrl, relay: false, janitor: false });
 
   const real = httpDeps(SECRET);
@@ -88,25 +88,25 @@ before(async () => {
 });
 after(async () => { await orders.stop(); await catalog.stop(); await ledger.stop(); });
 
-test("COD checkout: server-side pricing, stock committed, fee hold placed, fee snapshot locked", async () => {
+test("COD checkout: server-side pricing, stock committed, no platform fee, snapshot locked", async () => {
   const s = await newStore();
   const p = await product(s.id);
   const o = await O.post("/orders", body(s, [{ productId: p.productId, quantity: 2, price: 1, unitPrice: 1 }])); // client price must be ignored
   assert.equal(o.status, "CONFIRMED");
   assert.equal(o.totalAmount, 900);
-  assert.equal(o.platformFee, 45);
-  assert.equal(o.sellerNet, 855);
+  assert.equal(o.platformFee, 0, "no fee on Cash on Delivery");
+  assert.equal(o.sellerNet, 900);
   assert.equal(o.items[0].unitPrice, 450);
   assert.match(o.orderNumber, /^ORD-[0-9A-F]{8}$/);
 
   assert.equal(await stock(p.productId), 8);
   const w = await wallet(s.id);
-  assert.equal(w.holds, 45);
-  assert.equal(w.balance, 5000);
+  assert.equal(w.balance, 5000, "the seller wallet is untouched by a COD order");
+  assert.equal("holds" in w, false);
 
   const snap = await orders.db.orderFeeSnapshot.findFirstOrThrow({ where: { orderId: o.id } });
-  assert.equal(Number(snap.codFeeHold), 45);
-  assert.equal(Number(snap.feePercent), 5);
+  assert.equal(Number(snap.feePercent), 0);
+  assert.equal(Number(snap.platformFee), 0);
   const ev = await orders.db.$queryRawUnsafe<{ eventType: string; consumer: string }[]>(`SELECT "eventType","consumer" FROM "OutboxMessage" WHERE "envelope"->'data'->>'orderNumber' = $1`, o.orderNumber);
   assert.ok(ev.some((e) => e.eventType === "OrderCreated" && e.consumer === "notification"));
   assert.ok(ev.some((e) => e.eventType === "OrderConfirmed"));
@@ -119,7 +119,6 @@ test("idempotency key: a retried checkout returns the same order and reserves on
   const results = await Promise.all([O.post("/orders", req), O.post("/orders", req), O.post("/orders", req)]);
   assert.equal(new Set(results.map((r) => r.orderNumber)).size, 1);
   assert.equal(await stock(p.productId), 9, "stock taken exactly once");
-  assert.equal((await wallet(s.id)).holds, 22.5);
 });
 
 test("validation and policy gates", async () => {
@@ -141,85 +140,72 @@ test("validation and policy gates", async () => {
   await expectErr(O.post("/orders", body(other, [{ productId: p.productId, quantity: 1 }])), "INVALID_PRODUCT", 400); // another tenant's product
 });
 
-test("store status gates: paused stores refuse orders, COD-blocked stores refuse COD", async () => {
-  const paused = await newStore();
-  const p1 = await product(paused.id);
-  await L.post(`/wallets/${paused.id}/status`, { status: "PAUSED", admin: "root", reason: "test" });
-  await expectErr(O.post("/orders", body(paused, [{ productId: p1.productId, quantity: 1 }])), "STORE_NOT_ACCEPTING", 403);
+test("store status gates: only an admin suspension stops orders; an empty wallet never does", async () => {
+  const suspended = await newStore();
+  const p1 = await product(suspended.id);
+  await L.post(`/wallets/${suspended.id}/status`, { status: "SUSPENDED", admin: "root", reason: "test" });
+  await expectErr(O.post("/orders", body(suspended, [{ productId: p1.productId, quantity: 1 }])), "STORE_NOT_ACCEPTING", 403);
 
-  const blocked = await newStore(50); // available 50 < hard 100 -> COD_BLOCKED
-  const p2 = await product(blocked.id);
-  assert.equal((await wallet(blocked.id)).status, "COD_BLOCKED");
-  await expectErr(O.post("/orders", body(blocked, [{ productId: p2.productId, quantity: 1 }])), "COD_UNAVAILABLE", 409);
-  assert.equal(await stock(p2.productId), 10, "nothing was reserved");
+  // no balance thresholds: a store with ZERO wallet balance still takes Cash on Delivery orders
+  const broke = await newStore(0);
+  const p2 = await product(broke.id);
+  const o = await O.post("/orders", body(broke, [{ productId: p2.productId, quantity: 1 }]));
+  assert.equal(o.status, "CONFIRMED");
+  assert.equal(await stock(p2.productId), 9);
+  const w = await wallet(broke.id);
+  assert.equal(w.balance, 0);
+  assert.equal(w.status, "ACTIVE");
 });
 
-test("saga compensation: a fee hold the wallet cannot cover releases the reserved stock", async () => {
-  const s = await newStore(120); // WARNING, COD still allowed, but a 300 fee will not fit
-  const p = await product(s.id, { price: 3000, stock: 5 });
-  await expectErr(O.post("/orders", body(s, [{ productId: p.productId, quantity: 2 }])), "COD_UNAVAILABLE", 409);
-  assert.equal(await stock(p.productId), 5, "stock reservation compensated");
-  assert.equal((await wallet(s.id)).holds, 0);
-  const failed = await orders.db.order.findFirstOrThrow({ where: { storeId: s.id } });
-  assert.equal(failed.status, "CANCELLED");
-  const note = await orders.db.orderEvent.findFirstOrThrow({ where: { orderId: failed.id, toStatus: "CANCELLED" } });
-  assert.match(note.note ?? "", /Checkout failed/);
-});
-
-test("two buyers racing for the last unit: exactly one order, no oversell, one hold", async () => {
+test("two buyers racing for the last unit: exactly one order, no oversell", async () => {
   const s = await newStore();
   const p = await product(s.id, { stock: 1 });
   const res = await Promise.allSettled([1, 2, 3].map(() => O.post("/orders", body(s, [{ productId: p.productId, quantity: 1 }]))));
   assert.equal(res.filter((r) => r.status === "fulfilled").length, 1);
   assert.equal(await stock(p.productId), 0);
-  assert.equal((await wallet(s.id)).holds, 22.5);
   const losers = res.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
   assert.ok(losers.every((l) => ["OUT_OF_STOCK"].includes(l.reason.code)));
 });
 
-test("COD lifecycle across services: ship -> deliver settles the fee; refuse/cancel release it and restock", async () => {
+test("COD lifecycle across services: ship -> deliver moves no money; refuse/cancel restock", async () => {
   const s = await newStore();
   const p = await product(s.id, { stock: 10 });
   const place = (q: number) => O.post("/orders", body(s, [{ productId: p.productId, quantity: q }]));
   const move = (id: string, to: string, extra: any = {}) => O.patch(`/orders/${id}/status`, { to, source: "SELLER", storeId: s.id, ...extra });
 
-  // delivered: fee hold (45) becomes a confirmed debit
+  // delivered: nothing is charged to the seller
   const a = await place(2);
   await move(a.id, "SHIPPED", { courier: "Pathao", trackingNumber: "TRK1" });
   const delivered = await move(a.id, "DELIVERED");
   assert.equal(delivered.previousStatus, "SHIPPED");
   await pump();
   let w = await wallet(s.id);
-  assert.equal(w.balance, 4955);
-  assert.equal(w.holds, 0);
+  assert.equal(w.balance, 5000);
   const fee = (await L.get("/admin/platform-accounts")).accounts.find((x: any) => x.code === "PLATFORM_FEE_REVENUE");
-  assert.ok(fee.net >= 45);
+  assert.ok(!fee || fee.net === 0, "no COD fee revenue is ever booked");
 
-  // refused after shipping: hold released, seller not charged, stock back
+  // refused after shipping: seller not charged, stock back
   const before = await stock(p.productId);
   const b = await place(3);
   await move(b.id, "SHIPPED");
   await move(b.id, "REFUSED");
   await pump();
   w = await wallet(s.id);
-  assert.equal(w.balance, 4955);
-  assert.equal(w.holds, 0);
+  assert.equal(w.balance, 5000);
   assert.equal(await stock(p.productId), before);
 
   // cancelled before shipping: same
   const c = await place(1);
-  assert.equal((await wallet(s.id)).holds, 22.5);
   await move(c.id, "CANCELLED");
   await pump();
-  assert.equal((await wallet(s.id)).holds, 0);
+  assert.equal((await wallet(s.id)).balance, 5000);
   assert.equal(await stock(p.productId), before);
 
   // replaying the whole outbox changes nothing (consumers are idempotent)
   await orders.db.$executeRawUnsafe(`UPDATE "OutboxMessage" SET "deliveredAt" = NULL, "attempts" = 0, "availableAt" = now()`);
   await pump();
   w = await wallet(s.id);
-  assert.equal(w.balance, 4955);
-  assert.equal(w.holds, 0);
+  assert.equal(w.balance, 5000);
   assert.equal(await stock(p.productId), before);
   assert.deepEqual((await L.get("/admin/reconcile")).mismatches, []);
 });
@@ -288,7 +274,7 @@ test("wholesale: login + Buyer Pro (the only plan; sellers pay nothing) + MOQ + 
   const ok = await W(100, { id: "trader_1" }); // tier price 250 x 100 = 25,000
   assert.equal(ok.orderType, "WHOLESALE");
   assert.equal(ok.totalAmount, 25000);
-  assert.equal(ok.platformFee, 1250);
+  assert.equal(ok.platformFee, 0);
   assert.equal(ok.status, "CONFIRMED");
 
   await expectErr(W(300, { id: "trader_1" }), "PREPAID_REQUIRED", 409); // 75,000 > 50,000 COD cap
@@ -300,7 +286,7 @@ test("wholesale: login + Buyer Pro (the only plan; sellers pay nothing) + MOQ + 
   assert.equal(retail.totalAmount, 800);
 });
 
-test("online orders (SSLCommerz on hold, flag on): stock held 15 min, no fee hold, paid -> confirmed, unpaid -> cancelled + restocked", async () => {
+test("online orders (SSLCommerz on hold, flag on): stock held 15 min, paid -> confirmed, unpaid -> cancelled + restocked", async () => {
   process.env.ONLINE_PAYMENTS_ENABLED = "true";
   try {
     const s = await newStore();
@@ -311,7 +297,16 @@ test("online orders (SSLCommerz on hold, flag on): stock held 15 min, no fee hol
     assert.equal(a.status, "PENDING_PAYMENT");
     assert.ok(a.reservationExpiresAt);
     assert.equal(await stock(p.productId), 8);
-    assert.equal((await wallet(s.id)).holds, 0, "no COD fee hold for prepaid orders");
+    assert.equal(a.platformFee, 0, "online fee defaults to 0%");
+    process.env.ONLINE_FEE_PERCENTAGE = "2";
+    try {
+      const f = await place(1); // 450 at 2% -> 9 (the retained online-only commission path)
+      assert.equal(f.platformFee, 9);
+      assert.equal(f.sellerNet, 441);
+      await O.patch(`/orders/${f.id}/status`, { to: "CANCELLED", source: "ADMIN", actor: "t" });
+    } finally { delete process.env.ONLINE_FEE_PERCENTAGE; }
+    await pump();
+    assert.equal(await stock(p.productId), 8);
 
     const paid = { eventId: `pay-${a.orderNumber}`, eventType: "PaymentCaptured", timestamp: new Date().toISOString(), producer: "payment", data: { purpose: "STORE_ORDER", orderNumber: a.orderNumber, tranId: "TR-1", storeId: s.id } };
     await O.post("/internal/events", paid);
@@ -343,24 +338,21 @@ test("saga recovery: an order stuck in PLACING (crash mid-checkout) is rolled ba
   const s = await newStore();
   const p = await product(s.id, { stock: 10 });
   const orderNumber = "ORD-STUCK001";
-  // simulate a crash after reserve + hold but before finalisation
+  // simulate a crash after the stock reservation but before finalisation
   await C.post("/inventory/reserve", { orderRef: orderNumber, storeId: s.id, items: [{ productId: p.productId, quantity: 4 }], ttlMinutes: 15 });
-  await L.post(`/wallets/${s.id}/holds`, { reference: orderNumber, amount: 90 });
   const stuck = await orders.db.order.create({
     data: {
       orderNumber, storeId: s.id, storeSlug: s.slug, storeName: s.name, ownerId: s.ownerId, buyerName: "X", buyerEmail: "x@y.z", buyerPhone: "01712345678",
-      shippingAddress: "addr", paymentMethod: "COD", status: "PLACING", totalAmount: 1800, platformFee: 90, sellerNet: 1710,
+      shippingAddress: "addr", paymentMethod: "COD", status: "PLACING", totalAmount: 1800, platformFee: 0, sellerNet: 1800,
       createdAt: new Date(Date.now() - 10 * 60_000),
     },
   });
   assert.equal(await stock(p.productId), 6);
-  assert.equal((await wallet(s.id)).holds, 90);
 
   const sweep = await O.post("/admin/sweep");
   assert.ok(sweep.recovery.recovered >= 1);
   assert.equal((await orders.db.order.findUniqueOrThrow({ where: { id: stuck.id } })).status, "CANCELLED");
   assert.equal(await stock(p.productId), 10);
-  assert.equal((await wallet(s.id)).holds, 0);
   assert.equal((await O.get("/admin/stats")).byStatus.PLACING ?? 0, 0);
 });
 
@@ -369,7 +361,7 @@ test("checkout/validate previews prices and what the buyer may choose", async ()
   const p = await product(s.id, { price: 1000 });
   const v = await O.post("/checkout/validate", { storeId: s.id, items: [{ id: p.productId, quantity: 3 }] });
   assert.equal(v.subtotal, 3000);
-  assert.equal(v.fee, 150);
+  assert.equal(v.fee, undefined, "no fee is quoted");
   assert.equal(v.codAllowed, true);
   assert.equal(v.onlinePaymentsEnabled, false);
   assert.equal(await stock(p.productId), 10, "validation reserves nothing");

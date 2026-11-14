@@ -82,23 +82,11 @@ export default async function AdminStoresPage({ searchParams }: { searchParams?:
                       padding: "0.25rem 0.55rem",
                       borderRadius: "6px",
                       backgroundColor:
-                        s.status === "ACTIVE"
-                          ? "#f0fdf4"
-                          : s.status === "WARNING"
-                          ? "#fefce8"
-                          : "#fef2f2",
+                        s.status === "ACTIVE" ? "#f0fdf4" : "#fef2f2",
                       color:
-                        s.status === "ACTIVE"
-                          ? "#15803d"
-                          : s.status === "WARNING"
-                          ? "#a16207"
-                          : "#b91c1c",
+                        s.status === "ACTIVE" ? "#15803d" : "#b91c1c",
                       border:
-                        s.status === "ACTIVE"
-                          ? "1px solid #bbf7d0"
-                          : s.status === "WARNING"
-                          ? "1px solid #fef08a"
-                          : "1px solid #fecaca",
+                        s.status === "ACTIVE" ? "1px solid #bbf7d0" : "1px solid #fecaca",
                     }}
                   >
                     ● {s.status}
@@ -124,10 +112,6 @@ export default async function AdminStoresPage({ searchParams }: { searchParams?:
                       }}
                     >
                       <option value="ACTIVE" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>ACTIVE</option>
-                      <option value="WARNING" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>WARNING</option>
-                      <option value="COD_BLOCKED" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>COD_BLOCKED</option>
-                      <option value="PAUSED" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>PAUSED</option>
-                      <option value="DELISTED" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>DELISTED</option>
                       <option value="SUSPENDED" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>SUSPENDED</option>
                       <option value="BANNED" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>BANNED</option>
                     </select>

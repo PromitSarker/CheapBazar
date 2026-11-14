@@ -85,7 +85,6 @@ model OrderFeeSnapshot {
   totalAmount Decimal   @db.Decimal(12, 2)
   platformFee Decimal   @db.Decimal(12, 2)
   sellerNet   Decimal   @db.Decimal(12, 2)
-  codFeeHold  Decimal   @default(0) @db.Decimal(12, 2)
   createdAt   DateTime  @default(now())
 }
 

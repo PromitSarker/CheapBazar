@@ -1,0 +1,301 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const Map<String, Map<String, String>> _strings = {
+  'en': {
+    'app_name': 'Cheap-Bazar',
+    'home': 'Home',
+    'browse': 'Shop',
+    'bag': 'Bag',
+    'orders': 'Orders',
+    'account': 'Account',
+    'search_hint': 'Search products or stores',
+    'fresh_picks': 'Fresh picks',
+    'stores': 'Stores',
+    'see_all': 'See all',
+    'retail': 'Retail',
+    'wholesale': 'Wholesale',
+    'sort': 'Sort',
+    'sort_relevance': 'Best match',
+    'sort_price_asc': 'Price: low to high',
+    'sort_price_desc': 'Price: high to low',
+    'sort_name': 'Name A-Z',
+    'in_stock': 'In stock',
+    'out_of_stock': 'Out of stock',
+    'only_left': 'Only {n} left',
+    'add_to_bag': 'Add to bag',
+    'added_to_bag': 'Added to your bag',
+    'bag_empty': 'Your bag is empty',
+    'bag_empty_hint': 'Find something you like in the shop.',
+    'start_shopping': 'Start shopping',
+    'checkout': 'Checkout',
+    'place_order': 'Place order',
+    'cod_note': 'Pay with cash when your order arrives (Cash on Delivery). No online payment needed.',
+    'your_details': 'Your details',
+    'full_name': 'Full name',
+    'phone': 'Mobile number',
+    'address': 'Delivery address',
+    'city': 'City',
+    'email_optional': 'Email (optional)',
+    'subtotal': 'Subtotal',
+    'total': 'Total',
+    'qty': 'Qty',
+    'remove': 'Remove',
+    'order_placed': 'Order placed!',
+    'order_placed_hint': 'The shop will confirm and ship it soon. You pay cash on delivery.',
+    'order_number': 'Order number',
+    'view_order': 'View order',
+    'continue_shopping': 'Continue shopping',
+    'my_orders': 'My orders',
+    'track_order': 'Track an order',
+    'track_hint': 'Enter the order number and the phone number used for the order.',
+    'track': 'Track',
+    'login_to_see_orders': 'Log in to see all your orders',
+    'cancel_order': 'Cancel order',
+    'cancel_confirm': 'Cancel this order? This cannot be undone.',
+    'keep_order': 'Keep order',
+    'order_cancelled': 'Order cancelled',
+    'no_orders': 'No orders yet',
+    'status_PLACING': 'Placing',
+    'status_PENDING_PAYMENT': 'Awaiting payment',
+    'status_CONFIRMED': 'Confirmed',
+    'status_PROCESSING': 'Preparing',
+    'status_SHIPPED': 'On the way',
+    'status_DELIVERED': 'Delivered',
+    'status_CANCELLED': 'Cancelled',
+    'status_REFUSED': 'Refused',
+    'courier': 'Courier',
+    'tracking': 'Tracking number',
+    'items': 'Items',
+    'delivery_to': 'Delivering to',
+    'login': 'Log in',
+    'register': 'Create account',
+    'logout': 'Log out',
+    'email': 'Email',
+    'password': 'Password',
+    'password_hint': 'At least 8 characters',
+    'no_account': "Don't have an account? Sign up",
+    'have_account': 'Already have an account? Log in',
+    'welcome_back': 'Welcome back',
+    'join': 'Join Cheap-Bazar',
+    'guest_hint': 'Log in to track orders, get notifications and unlock wholesale with Buyer Pro.',
+    'language': 'Language',
+    'english': 'English',
+    'bangla': 'বাংলা',
+    'notifications': 'Notifications',
+    'mark_all_read': 'Mark all as read',
+    'no_notifications': 'No notifications yet',
+    'buyer_pro': 'Buyer Pro',
+    'buyer_pro_blurb': 'Unlock wholesale prices and bulk ordering.',
+    'pro_active': 'Active until {d}',
+    'pro_inactive': 'Not active',
+    'pro_how': 'How to subscribe',
+    'pro_price': '{p} for {n} days',
+    'pro_instructions': 'Send the amount to the platform account below, then enter the method and transaction ID. We activate Buyer Pro after we verify the payment.',
+    'pay_method': 'Payment method',
+    'trx_id': 'Transaction ID',
+    'submit_payment': 'Submit payment',
+    'payment_submitted': 'Payment submitted. We will activate Buyer Pro once it is verified.',
+    'recent_payments': 'Your payments',
+    'wholesale_locked_login': 'Log in to see wholesale prices.',
+    'wholesale_locked_pro': 'Buyer Pro is required to see wholesale prices and order in bulk.',
+    'get_buyer_pro': 'Get Buyer Pro',
+    'min_order_qty': 'Minimum order: {n}',
+    'volume_prices': 'Volume prices',
+    'from_qty': 'from {n}',
+    'wholesale_price': 'Wholesale price',
+    'shop_owner_notice': 'This is a shop-owner account. Manage your shop on the website.',
+    'delete_account': 'Delete my account',
+    'delete_account_hint': 'This permanently removes your profile and ends all sessions. Past orders stay with the shops for their records.',
+    'enter_password_confirm': 'Enter your password to confirm',
+    'delete': 'Delete',
+    'cancel': 'Cancel',
+    'retry': 'Try again',
+    'loading_failed': 'Could not load. Pull down to retry.',
+    'store_not_accepting': 'This shop is not accepting orders right now.',
+    'visit_store': 'Visit shop',
+    'products_count': '{n} products',
+    'update_required': 'Please update the app to continue.',
+    'cancelled_ok': 'Done',
+    'about': 'About',
+    'version': 'Version',
+    'required_field': 'Required',
+    'invalid_phone': 'Enter a valid mobile number',
+    'sponsored': 'Sponsored',
+    'close': 'Close',
+  },
+  'bn': {
+    'app_name': 'চিপ-বাজার',
+    'home': 'হোম',
+    'browse': 'শপ',
+    'bag': 'ব্যাগ',
+    'orders': 'অর্ডার',
+    'account': 'অ্যাকাউন্ট',
+    'search_hint': 'পণ্য বা দোকান খুঁজুন',
+    'fresh_picks': 'নতুন পণ্য',
+    'stores': 'দোকান',
+    'see_all': 'সব দেখুন',
+    'retail': 'খুচরা',
+    'wholesale': 'পাইকারি',
+    'sort': 'সাজান',
+    'sort_relevance': 'সবচেয়ে মানানসই',
+    'sort_price_asc': 'দাম: কম থেকে বেশি',
+    'sort_price_desc': 'দাম: বেশি থেকে কম',
+    'sort_name': 'নাম (ক-হ)',
+    'in_stock': 'স্টকে আছে',
+    'out_of_stock': 'স্টক শেষ',
+    'only_left': 'মাত্র {n}টি বাকি',
+    'add_to_bag': 'ব্যাগে যোগ করুন',
+    'added_to_bag': 'ব্যাগে যোগ হয়েছে',
+    'bag_empty': 'আপনার ব্যাগ খালি',
+    'bag_empty_hint': 'শপ থেকে পছন্দের পণ্য বেছে নিন।',
+    'start_shopping': 'কেনাকাটা শুরু করুন',
+    'checkout': 'চেকআউট',
+    'place_order': 'অর্ডার করুন',
+    'cod_note': 'পণ্য হাতে পেয়ে নগদ টাকায় পরিশোধ করুন (ক্যাশ অন ডেলিভারি)। অনলাইন পেমেন্ট লাগবে না।',
+    'your_details': 'আপনার তথ্য',
+    'full_name': 'পূর্ণ নাম',
+    'phone': 'মোবাইল নম্বর',
+    'address': 'ডেলিভারির ঠিকানা',
+    'city': 'শহর',
+    'email_optional': 'ইমেইল (ঐচ্ছিক)',
+    'subtotal': 'সাবটোটাল',
+    'total': 'মোট',
+    'qty': 'পরিমাণ',
+    'remove': 'সরান',
+    'order_placed': 'অর্ডার সম্পন্ন!',
+    'order_placed_hint': 'দোকান শীঘ্রই কনফার্ম করে পাঠাবে। ডেলিভারির সময় নগদ টাকা দিন।',
+    'order_number': 'অর্ডার নম্বর',
+    'view_order': 'অর্ডার দেখুন',
+    'continue_shopping': 'কেনাকাটা চালিয়ে যান',
+    'my_orders': 'আমার অর্ডার',
+    'track_order': 'অর্ডার ট্র্যাক করুন',
+    'track_hint': 'অর্ডার নম্বর এবং অর্ডারে ব্যবহৃত ফোন নম্বর দিন।',
+    'track': 'ট্র্যাক',
+    'login_to_see_orders': 'সব অর্ডার দেখতে লগইন করুন',
+    'cancel_order': 'অর্ডার বাতিল',
+    'cancel_confirm': 'এই অর্ডারটি বাতিল করবেন? এটি আর ফেরানো যাবে না।',
+    'keep_order': 'রেখে দিন',
+    'order_cancelled': 'অর্ডার বাতিল হয়েছে',
+    'no_orders': 'এখনও কোনো অর্ডার নেই',
+    'status_PLACING': 'প্রক্রিয়াধীন',
+    'status_PENDING_PAYMENT': 'পেমেন্টের অপেক্ষায়',
+    'status_CONFIRMED': 'কনফার্মড',
+    'status_PROCESSING': 'প্রস্তুত হচ্ছে',
+    'status_SHIPPED': 'পথে আছে',
+    'status_DELIVERED': 'ডেলিভারি হয়েছে',
+    'status_CANCELLED': 'বাতিল',
+    'status_REFUSED': 'ফেরত',
+    'courier': 'কুরিয়ার',
+    'tracking': 'ট্র্যাকিং নম্বর',
+    'items': 'পণ্যসমূহ',
+    'delivery_to': 'ডেলিভারি ঠিকানা',
+    'login': 'লগইন',
+    'register': 'অ্যাকাউন্ট খুলুন',
+    'logout': 'লগআউট',
+    'email': 'ইমেইল',
+    'password': 'পাসওয়ার্ড',
+    'password_hint': 'কমপক্ষে ৮ অক্ষর',
+    'no_account': 'অ্যাকাউন্ট নেই? সাইন আপ করুন',
+    'have_account': 'অ্যাকাউন্ট আছে? লগইন করুন',
+    'welcome_back': 'স্বাগতম',
+    'join': 'চিপ-বাজারে যোগ দিন',
+    'guest_hint': 'অর্ডার ট্র্যাক, নোটিফিকেশন ও বায়ার প্রো-র মাধ্যমে পাইকারি কেনাকাটার জন্য লগইন করুন।',
+    'language': 'ভাষা',
+    'english': 'English',
+    'bangla': 'বাংলা',
+    'notifications': 'নোটিফিকেশন',
+    'mark_all_read': 'সব পঠিত করুন',
+    'no_notifications': 'এখনও কোনো নোটিফিকেশন নেই',
+    'buyer_pro': 'বায়ার প্রো',
+    'buyer_pro_blurb': 'পাইকারি দাম ও বাল্ক অর্ডারের সুবিধা পান।',
+    'pro_active': '{d} পর্যন্ত সক্রিয়',
+    'pro_inactive': 'সক্রিয় নয়',
+    'pro_how': 'কীভাবে সাবস্ক্রাইব করবেন',
+    'pro_price': '{n} দিনের জন্য {p}',
+    'pro_instructions': 'নিচের প্ল্যাটফর্ম অ্যাকাউন্টে টাকা পাঠিয়ে পদ্ধতি ও ট্রানজেকশন আইডি দিন। পেমেন্ট যাচাইয়ের পর বায়ার প্রো চালু হবে।',
+    'pay_method': 'পেমেন্ট পদ্ধতি',
+    'trx_id': 'ট্রানজেকশন আইডি',
+    'submit_payment': 'পেমেন্ট জমা দিন',
+    'payment_submitted': 'পেমেন্ট জমা হয়েছে। যাচাইয়ের পর বায়ার প্রো চালু হবে।',
+    'recent_payments': 'আপনার পেমেন্ট',
+    'wholesale_locked_login': 'পাইকারি দাম দেখতে লগইন করুন।',
+    'wholesale_locked_pro': 'পাইকারি দাম দেখতে ও বাল্ক অর্ডার করতে বায়ার প্রো দরকার।',
+    'get_buyer_pro': 'বায়ার প্রো নিন',
+    'min_order_qty': 'সর্বনিম্ন অর্ডার: {n}',
+    'volume_prices': 'পরিমাণ অনুযায়ী দাম',
+    'from_qty': '{n} থেকে',
+    'wholesale_price': 'পাইকারি দাম',
+    'shop_owner_notice': 'এটি দোকান মালিকের অ্যাকাউন্ট। দোকান পরিচালনা করুন ওয়েবসাইটে।',
+    'delete_account': 'আমার অ্যাকাউন্ট মুছুন',
+    'delete_account_hint': 'এতে আপনার প্রোফাইল স্থায়ীভাবে মুছে যাবে এবং সব সেশন শেষ হবে। আগের অর্ডার দোকানের রেকর্ডে থাকবে।',
+    'enter_password_confirm': 'নিশ্চিত করতে পাসওয়ার্ড দিন',
+    'delete': 'মুছুন',
+    'cancel': 'বাতিল',
+    'retry': 'আবার চেষ্টা করুন',
+    'loading_failed': 'লোড করা যায়নি। নিচে টেনে আবার চেষ্টা করুন।',
+    'store_not_accepting': 'এই দোকান এখন অর্ডার নিচ্ছে না।',
+    'visit_store': 'দোকানে যান',
+    'products_count': '{n}টি পণ্য',
+    'update_required': 'চালিয়ে যেতে অ্যাপ আপডেট করুন।',
+    'cancelled_ok': 'সম্পন্ন',
+    'about': 'পরিচিতি',
+    'version': 'সংস্করণ',
+    'required_field': 'আবশ্যক',
+    'invalid_phone': 'সঠিক মোবাইল নম্বর দিন',
+    'sponsored': 'স্পনসর্ড',
+    'close': 'বন্ধ',
+  },
+};
+
+class LocaleController extends ChangeNotifier {
+  String _lang = 'en';
+  String get lang => _lang;
+  bool get isBn => _lang == 'bn';
+
+  Future<void> load() async {
+    try {
+      final p = await SharedPreferences.getInstance();
+      _lang = p.getString('lang') ?? 'en';
+    } catch (_) {}
+    notifyListeners();
+  }
+
+  Future<void> set(String lang) async {
+    if (lang != 'en' && lang != 'bn') return;
+    _lang = lang;
+    notifyListeners();
+    try {
+      final p = await SharedPreferences.getInstance();
+      await p.setString('lang', lang);
+    } catch (_) {}
+  }
+
+  String t(String key, [Map<String, String>? args]) {
+    var s = _strings[_lang]?[key] ?? _strings['en']![key] ?? key;
+    args?.forEach((k, v) => s = s.replaceAll('{$k}', v));
+    return s;
+  }
+}
+
+extension TrContext on BuildContext {
+  /// Translate [key] and rebuild when the language changes.
+  String tr(String key, [Map<String, String>? args]) => watch<LocaleController>().t(key, args);
+}
+
+/// ৳1,250.00 (Bangla digits when the app language is Bangla).
+String formatMoney(double v, {bool bn = false}) {
+  final neg = v < 0;
+  final fixed = v.abs().toStringAsFixed(2);
+  final parts = fixed.split('.');
+  final intPart = parts[0].replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
+  var out = '৳$intPart.${parts[1]}';
+  if (bn) out = toBnDigits(out);
+  return neg ? '-$out' : out;
+}
+
+String toBnDigits(String s) {
+  const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+  return s.replaceAllMapped(RegExp(r'[0-9]'), (m) => bn[int.parse(m[0]!)]);
+}

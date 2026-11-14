@@ -4,7 +4,8 @@ import { sslcommerzClient } from "./client";
 import type { PaymentPurpose, OrderStatus } from "@prisma/client";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-const PLATFORM_FEE_PERCENT = parseFloat(process.env.PLATFORM_FEE_PERCENTAGE || "5.0");
+// Commission on online-paid orders (default 0). Cash on Delivery never carries a platform fee.
+const PLATFORM_FEE_PERCENT = parseFloat(process.env.ONLINE_FEE_PERCENTAGE || "0");
 
 export class SSLCommerzService {
   /**
@@ -297,17 +298,19 @@ export class SSLCommerzService {
           },
         });
 
-        // 2. Platform Fee Commission
-        await tx.ledgerEntry.create({
-          data: {
-            storeId: order.storeId,
-            transactionId: tranId,
-            entryType: "PLATFORM_FEE",
-            description: `${PLATFORM_FEE_PERCENT}% Platform Commission on Order ${order.orderNumber}`,
-            credit: null,
-            debit: order.platformFee,
-          },
-        });
+        // 2. Platform Fee Commission (only when a commission is configured)
+        if (Number(order.platformFee) > 0) {
+          await tx.ledgerEntry.create({
+            data: {
+              storeId: order.storeId,
+              transactionId: tranId,
+              entryType: "PLATFORM_FEE",
+              description: `${PLATFORM_FEE_PERCENT}% Platform Commission on Order ${order.orderNumber}`,
+              credit: null,
+              debit: order.platformFee,
+            },
+          });
+        }
 
         return {
           status: "SUCCESS",
@@ -325,7 +328,7 @@ export class SSLCommerzService {
 
         if (store) {
           // Increment wallet balance
-          const updatedStore = await tx.store.update({
+          await tx.store.update({
             where: { id: store.id },
             data: {
               walletBalance: {
@@ -345,16 +348,6 @@ export class SSLCommerzService {
               debit: null,
             },
           });
-
-          // Store Status Enforcer:
-          // If store was in WARNING or COD_BLOCKED, and now has >= ৳500 available balance, restore to ACTIVE!
-          const availableBalance = Number(updatedStore.walletBalance) - Number(updatedStore.walletHolds);
-          if ((store.status === "WARNING" || store.status === "COD_BLOCKED") && availableBalance >= 500) {
-            await tx.store.update({
-              where: { id: store.id },
-              data: { status: "ACTIVE" },
-            });
-          }
 
           return {
             status: "SUCCESS",

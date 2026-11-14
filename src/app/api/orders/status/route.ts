@@ -49,40 +49,10 @@ export async function POST(request: Request) {
         data: { status: newStatus },
       });
 
-      // 2. Handle Cash On Delivery (COD) Financial Settlement Lifecycle (Diagram 4)
+      // 2. Cash On Delivery (COD): no platform fee, so the seller wallet is never touched.
+      //    Delivery needs no money movement; a cancelled / refused order only restocks.
       if (order.paymentMethod === "COD") {
-        const platformFee = Number(order.platformFee);
-
-        if (newStatus === "DELIVERED") {
-          // Delivery Successful: Settle the Hold to confirmed platform fee debit
-          await tx.store.update({
-            where: { id: store.id },
-            data: {
-              walletHolds: { decrement: platformFee },
-              walletBalance: { decrement: platformFee },
-            },
-          });
-
-          // Ledger Entry
-          await tx.ledgerEntry.create({
-            data: {
-              storeId: store.id,
-              transactionId: order.orderNumber,
-              entryType: "COD_FEE_SETTLED",
-              description: `COD Delivery Completed: Platform fee settled for ${order.orderNumber}`,
-              debit: platformFee,
-              credit: null,
-            },
-          });
-        } else if (newStatus === "CANCELLED" || newStatus === "REFUSED") {
-          // Delivery Refused or Cancelled: Release wallet hold without charging the seller!
-          await tx.store.update({
-            where: { id: store.id },
-            data: {
-              walletHolds: { decrement: platformFee },
-            },
-          });
-
+        if (newStatus === "CANCELLED" || newStatus === "REFUSED") {
           // Restock product inventory
           for (const item of order.items) {
             await tx.product.update({
@@ -97,7 +67,7 @@ export async function POST(request: Request) {
               storeId: store.id,
               transactionId: order.orderNumber,
               entryType: "COD_HOLD_RELEASED",
-              description: `COD Order ${newStatus}: Fee hold released and items restocked for ${order.orderNumber}`,
+              description: `COD Order ${newStatus}: items restocked for ${order.orderNumber}`,
               debit: null,
               credit: null,
             },

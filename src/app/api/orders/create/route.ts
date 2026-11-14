@@ -12,7 +12,8 @@ const ordersByIp = new RateLimiter(10, 10 * 60_000);
 const ordersByPhone = new RateLimiter(5, 10 * 60_000);
 const ordersByStore = new RateLimiter(60, 10 * 60_000);
 
-const PLATFORM_FEE_PERCENT = parseFloat(process.env.PLATFORM_FEE_PERCENTAGE || "5.0");
+// Commission on ONLINE-paid orders only (default 0). Cash on Delivery never carries a platform fee.
+const ONLINE_FEE_PERCENT = parseFloat(process.env.ONLINE_FEE_PERCENTAGE || "0");
 
 export async function POST(request: Request) {
   try {
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Too many orders. Please wait a few minutes and try again." }, { status: 429 });
     }
 
-    // Services path (USE_SERVICES=true): order-service decides prices, stock, fees and wallet holds.
+    // Services path (USE_SERVICES=true): order-service decides prices, stock and fees.
     if (servicesEnabled()) {
       const buyer = await currentUserViaService();
       const r = await placeOrderViaServices(body, {
@@ -60,7 +61,8 @@ export async function POST(request: Request) {
     }
 
     // Check store status
-    if (store.status === "PAUSED" || store.status === "DELISTED" || store.status === "SUSPENDED" || store.status === "BANNED") {
+    // Only an admin suspension or ban stops a store taking orders (there are no balance thresholds).
+    if (store.status === "SUSPENDED" || store.status === "BANNED") {
       return NextResponse.json(
         { error: "This store is currently not accepting orders due to platform policy." },
         { status: 403 }
@@ -108,22 +110,10 @@ export async function POST(request: Request) {
     });
 
     const totalAmount = calculatedTotal;
-    const platformFee = Math.round((totalAmount * (PLATFORM_FEE_PERCENT / 100)) * 100) / 100;
+    const feePercent = paymentMethod === "COD" ? 0 : ONLINE_FEE_PERCENT;
+    const platformFee = Math.round((totalAmount * (feePercent / 100)) * 100) / 100;
     const sellerNet = Math.round((totalAmount - platformFee) * 100) / 100;
     const orderNumber = `ORD-${Date.now().toString().slice(-5)}${Math.floor(100 + Math.random() * 900)}`;
-
-    // Store Status Enforcer Check for Cash On Delivery (COD)
-    if (paymentMethod === "COD") {
-      const availableBalance = Number(store.walletBalance) - Number(store.walletHolds);
-      if (store.status === "COD_BLOCKED" || availableBalance < platformFee) {
-        return NextResponse.json(
-          {
-            error: "Cash on Delivery is unavailable for this store. Please pay online with SSLCommerz (Cards/bKash/Nagad).",
-          },
-          { status: 400 }
-        );
-      }
-    }
 
     // Create Order in DB
     const order = await prisma.$transaction(async (tx) => {
@@ -147,7 +137,7 @@ export async function POST(request: Request) {
         },
       });
 
-      // If COD, reserve stock immediately and hold platform fee on seller wallet
+      // If COD, reserve stock immediately (no platform fee, nothing is held on the seller wallet)
       if (paymentMethod === "COD") {
         for (const item of orderItemsData) {
           const updateCount = await tx.product.updateMany({
@@ -158,26 +148,6 @@ export async function POST(request: Request) {
             throw new Error("One or more items in your bag just sold out. Please refresh your bag.");
           }
         }
-
-        // Lock platform fee hold on seller wallet
-        await tx.store.update({
-          where: { id: store.id },
-          data: {
-            walletHolds: { increment: platformFee },
-          },
-        });
-
-        // Record COD fee hold in Ledger
-        await tx.ledgerEntry.create({
-          data: {
-            storeId: store.id,
-            transactionId: orderNumber,
-            entryType: "COD_FEE_HOLD",
-            description: `Platform commission hold (৳${platformFee}) for active COD order ${orderNumber}`,
-            debit: platformFee,
-            credit: null,
-          },
-        });
       }
 
       return newOrder;

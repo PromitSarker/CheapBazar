@@ -23,15 +23,6 @@ export default async function StorefrontPage({ params }: { params: { slug: strin
     );
   }
 
-  if (store.status === "PAUSED" || store.status === "DELISTED") {
-    return (
-      <div className="status-screen" style={{ textAlign: "center", padding: "4rem 1rem" }}>
-        <h1>Store Temporarily Offline</h1>
-        <p className="muted">This storefront is currently paused by the merchant. Please check back later.</p>
-      </div>
-    );
-  }
-
   const Template = store.template === "modern" ? TemplateModern : TemplateClassic;
   // Services path: show a real paid banner (or none). Legacy path keeps the old placeholder.
   const sponsored = servicesEnabled() ? await sponsoredForStorefront(store.id) : undefined;

@@ -24,7 +24,7 @@ let n = 0;
 before(async () => {
   process.env.SERVICE_URL_LEDGER = `http://127.0.0.1:${LEDGER_PORT}`;
   const ledgerUrl = await resetDatabase(ADMIN_URL, "ledger_for_ad_test", path.join(__dirname, "../../ledger-service/prisma/schema.prisma"), createLedgerDb);
-  ledgerSvc = await startLedgerService({ secret: SECRET, port: LEDGER_PORT, databaseUrl: ledgerUrl, relay: false, daemon: false });
+  ledgerSvc = await startLedgerService({ secret: SECRET, port: LEDGER_PORT, databaseUrl: ledgerUrl, relay: false });
   const adUrl = await resetDatabase(ADMIN_URL, "ads_contract_test", path.join(__dirname, "../prisma/schema.prisma"), createAdDb);
   adSvc = await startAdService({ secret: SECRET, port: AD_PORT, databaseUrl: adUrl, relay: false, worker: false }); // default http ledger gateway
   L = serviceClient({ baseUrl: `http://127.0.0.1:${LEDGER_PORT}`, secret: SECRET, caller: "test" });
@@ -72,7 +72,7 @@ test("real ledger: unknown store, too-poor store and spent-meanwhile store are a
   assert.equal(await avail(s), 150, "nothing extra was taken");
 });
 
-test("real ledger: a store the enforcer paused cannot book", async () => {
+test("real ledger: a store an admin suspended cannot book", async () => {
   const s = await mkStore(1000);
   await L.post(`/wallets/${s}/status`, { status: "SUSPENDED", admin: "admin1", reason: "policy" });
   await assert.rejects(book(s), (e: any) => e.code === "STORE_NOT_ELIGIBLE" && e.status === 403);

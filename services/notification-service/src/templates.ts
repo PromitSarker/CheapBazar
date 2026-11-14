@@ -36,8 +36,6 @@ const PAY_BN = (m: string) => (m === "COD" ? "ক্যাশ অন ডেল�
 
 const STATUS_COPY: Record<string, { en: string; bn: string }> = {
   ACTIVE: { en: "Your store is active again.", bn: "আপনার স্টোর আবার সক্রিয় হয়েছে।" },
-  PAUSED: { en: "Your storefront is paused and your ads are suspended until you top up your wallet.", bn: "আপনার স্টোরফ্রন্ট বন্ধ এবং বিজ্ঞাপন স্থগিত আছে। ওয়ালেটে টাকা যোগ না করা পর্যন্ত এটি চলবে।" },
-  DELISTED: { en: "Your store has been removed from the marketplace. Top up your wallet and contact support to be re-listed.", bn: "আপনার স্টোর মার্কেটপ্লেস থেকে সরানো হয়েছে। ওয়ালেটে টাকা যোগ করে সাপোর্টের সাথে যোগাযোগ করুন।" },
   SUSPENDED: { en: "Your store has been suspended for review.", bn: "আপনার স্টোর পর্যালোচনার জন্য স্থগিত করা হয়েছে।" },
   BANNED: { en: "Your store has been permanently banned.", bn: "আপনার স্টোর স্থায়ীভাবে নিষিদ্ধ করা হয়েছে।" },
 };
@@ -100,9 +98,9 @@ export function plan(env: EventEnvelope): Plan {
 
     case "OrderDelivered":
       add({
-        to: seller, kind: "ORDER_DELIVERED", link: "/dashboard/wallet", dedupe: eid,
-        en: { title: `Order ${d.orderNumber} delivered`, body: d.paymentMethod === "COD" ? `Platform fee ${taka(d.fee)} was settled from your wallet.` : `Net ${taka(d.net)} was credited to your wallet.` },
-        bn: { title: `অর্ডার ${d.orderNumber} ডেলিভারি হয়েছে`, body: d.paymentMethod === "COD" ? `আপনার ওয়ালেট থেকে প্ল্যাটফর্ম ফি ${takaBn(d.fee)} কাটা হয়েছে।` : `আপনার ওয়ালেটে নিট ${takaBn(d.net)} জমা হয়েছে।` },
+        to: seller, kind: "ORDER_DELIVERED", link: d.paymentMethod === "COD" ? "/dashboard/orders" : "/dashboard/wallet", dedupe: eid,
+        en: { title: `Order ${d.orderNumber} delivered`, body: d.paymentMethod === "COD" ? "The cash was collected on delivery. No platform fee applies." : `Net ${taka(d.net)} was credited to your wallet.` },
+        bn: { title: `অর্ডার ${d.orderNumber} ডেলিভারি হয়েছে`, body: d.paymentMethod === "COD" ? "ডেলিভারিতে টাকা সংগ্রহ করা হয়েছে। কোনো প্ল্যাটফর্ম ফি নেই।" : `আপনার ওয়ালেটে নিট ${takaBn(d.net)} জমা হয়েছে।` },
       });
       buyerSms(`Your order ${d.orderNumber} was delivered. Thank you for shopping!`);
       break;
@@ -141,20 +139,8 @@ export function plan(env: EventEnvelope): Plan {
       });
       break;
 
-    case "BalanceLow": {
-      // Throttled: at most one alert per store+level every 6 hours.
-      const bucket = Math.floor(Date.parse(env.timestamp) / (6 * HOUR));
-      const blocked = d.status === "COD_BLOCKED";
-      add({
-        to: seller, kind: "BALANCE_LOW", email: true, link: "/dashboard/wallet", dedupe: `lowbal:${d.storeId}:${d.status}:${bucket}`,
-        en: { title: blocked ? "Cash on Delivery is blocked" : "Wallet balance is low", body: `Available balance is ${taka(d.available)}. ${blocked ? "New COD orders are blocked until you top up." : "Top up soon to avoid interruptions."}` },
-        bn: { title: blocked ? "ক্যাশ অন ডেলিভারি বন্ধ" : "ওয়ালেটের ব্যালেন্স কম", body: `উপলব্ধ ব্যালেন্স ${takaBn(d.available)}। ${blocked ? "টাকা যোগ না করা পর্যন্ত নতুন COD অর্ডার বন্ধ থাকবে।" : "সমস্যা এড়াতে শীঘ্রই টাকা যোগ করুন।"}` },
-      });
-      break;
-    }
-
     case "StoreStatusChanged": {
-      // WARNING / COD_BLOCKED are covered (throttled) by BalanceLow.
+      // Admin actions only (suspend / ban / reinstate); nothing changes a status automatically.
       const copy = STATUS_COPY[d.to];
       if (!copy) break;
       add({
@@ -239,7 +225,7 @@ export function plan(env: EventEnvelope): Plan {
 /** Events this service reacts to (used to register handlers). */
 export const NOTIFIABLE_EVENTS = [
   "UserRegistered", "StoreCreated", "OrderCreated", "OrderConfirmed", "OrderShipped", "OrderDelivered", "OrderCancelled",
-  "OrderRefused", "PaymentFailed", "StockDepleted", "WalletToppedUp", "BalanceLow", "StoreStatusChanged", "PayoutGenerated",
+  "OrderRefused", "PaymentFailed", "StockDepleted", "WalletToppedUp", "StoreStatusChanged", "PayoutGenerated",
   "ManualPaymentReviewed", "SubscriptionActivated", "SubscriptionEnteredGrace", "SubscriptionLapsed",
   "AdBookingRequested", "AdApproved", "AdRejected", "AdExpired",
 ] as const;

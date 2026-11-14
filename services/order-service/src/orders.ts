@@ -123,9 +123,8 @@ const newOrderNumber = () => `ORD-${crypto.randomBytes(5).toString("hex").slice(
  *
  *   1 persist order (PLACING)           -> cancel row
  *   2 catalog.reserve (15 min hold)     -> catalog.release
- *   3 COD: ledger.placeHold(fee)        -> ledger.releaseHold
- *   4 COD: catalog.commit               -> (nothing: stock already sold)
- *   5 CAS PLACING -> CONFIRMED | PENDING_PAYMENT, publish OrderCreated
+ *   3 COD: catalog.commit               -> (nothing: stock already sold)
+ *   4 CAS PLACING -> CONFIRMED | PENDING_PAYMENT, publish OrderCreated
  *
  * A crash anywhere leaves the order in PLACING; `recoverStuckOrders` compensates it.
  */
@@ -154,9 +153,6 @@ export async function createOrder(db: Db, deps: Deps, raw: unknown) {
     if (!wallet.acceptsOrders) {
       throw new HttpError(403, "This store is currently not accepting orders due to platform policy.", "STORE_NOT_ACCEPTING");
     }
-    if (input.paymentMethod === "COD" && !wallet.codAllowed) {
-      throw new HttpError(409, "Cash on Delivery is unavailable for this store.", "COD_UNAVAILABLE");
-    }
 
     if (input.orderType === "WHOLESALE") {
       if (!input.buyer.id) throw new HttpError(401, "Log in with a Pro account to place a wholesale order.", "LOGIN_REQUIRED");
@@ -179,10 +175,10 @@ export async function createOrder(db: Db, deps: Deps, raw: unknown) {
       );
     }
 
-    const feePercent = config.platformFeePercent;
+    const cod = input.paymentMethod === "COD";
+    const feePercent = cod ? 0 : config.onlineFeePercent; // no platform fee on Cash on Delivery
     const fee = round2((total * feePercent) / 100);
     const net = round2(total - fee);
-    const cod = input.paymentMethod === "COD";
     const orderNumber = newOrderNumber();
     const ttl = config.reservationMinutes;
 
@@ -202,7 +198,7 @@ export async function createOrder(db: Db, deps: Deps, raw: unknown) {
           idempotencyKey: input.idempotencyKey,
           reservationExpiresAt: new Date(Date.now() + ttl * 60_000),
           items: { create: quote.lines.map((l) => ({ productId: l.productId, productName: l.name, quantity: l.quantity, unitPrice: l.unitPrice })) },
-          feeSnapshot: { create: { orderType: input.orderType, feePercent, totalAmount: total, platformFee: fee, sellerNet: net, codFeeHold: cod ? fee : 0 } },
+          feeSnapshot: { create: { orderType: input.orderType, feePercent, totalAmount: total, platformFee: fee, sellerNet: net } },
           events: { create: { toStatus: "PLACING", source: "SYSTEM", note: "Checkout started" } },
         },
         include,
@@ -219,12 +215,9 @@ export async function createOrder(db: Db, deps: Deps, raw: unknown) {
     // ---- steps 2-4 with compensation
     try {
       await deps.catalog.reserve({ orderRef: orderNumber, storeId: store.id, items: input.items, ttlMinutes: ttl });
-      if (cod) {
-        await deps.ledger.placeHold(store.id, orderNumber, fee);
-        await deps.catalog.commit(orderNumber);
-      }
+      if (cod) await deps.catalog.commit(orderNumber);
     } catch (e) {
-      await compensate(deps, store.id, orderNumber, cod);
+      await compensate(deps, orderNumber);
       await cancelPlacing(db, order.id, `Checkout failed: ${(e as any)?.message ?? e}`);
       throw e;
     }
@@ -251,12 +244,11 @@ export async function createOrder(db: Db, deps: Deps, raw: unknown) {
 }
 
 /**
- * Undo whatever the saga may have done. We cannot know whether a call that timed
- * out actually succeeded remotely, so BOTH releases are always attempted; they are
+ * Undo whatever the saga may have done. We cannot know whether the stock call that timed
+ * out actually succeeded remotely, so the release is always attempted; it is
  * idempotent (releasing something that was never taken is a harmless no-op).
  */
-async function compensate(deps: Deps, storeId: string, orderNumber: string, cod: boolean) {
-  if (cod) await deps.ledger.releaseHold(storeId, orderNumber, "checkout failed").catch((e) => console.error("[order] hold release failed:", e?.message));
+async function compensate(deps: Deps, orderNumber: string) {
   await deps.catalog.release(orderNumber).catch((e) => console.error("[order] stock release failed:", e?.message));
 }
 
@@ -269,7 +261,7 @@ async function cancelPlacing(db: Runner, orderId: string, note: string) {
 
 /**
  * Recovery: orders stuck in PLACING (process crashed mid-saga) are rolled back by
- * releasing whatever they managed to take. Both releases are idempotent.
+ * releasing whatever stock they managed to reserve. The release is idempotent.
  */
 export async function recoverStuckOrders(db: Db, deps: Deps, now = new Date()) {
   const cutoff = new Date(now.getTime() - config.placingTimeoutSeconds * 1000);
@@ -277,7 +269,6 @@ export async function recoverStuckOrders(db: Db, deps: Deps, now = new Date()) {
   let recovered = 0;
   for (const o of stuck) {
     try {
-      await deps.ledger.releaseHold(o.storeId, o.orderNumber, "checkout recovery");
       await deps.catalog.release(o.orderNumber);
       await cancelPlacing(db, o.id, "Recovered: checkout did not complete");
       recovered++;

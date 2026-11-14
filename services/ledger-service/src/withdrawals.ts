@@ -2,7 +2,6 @@ import crypto from "crypto";
 import { HttpError } from "../../../packages/service-kit";
 import { config } from "./config";
 import { D, num, withTx, type Runner } from "./db";
-import { enforceWithin } from "./enforcer";
 import { InsufficientFundsError, lockKey, postTransaction, publish } from "./ledger";
 
 // ------------------------------------------------------------ payout methods
@@ -138,8 +137,8 @@ export async function requestWithdrawal(db: Runner, storeId: string, payoutMetho
         description: `Withdrawal request ${withdrawalNumber} to ${describeDestination(method)}`,
         entryType: "WITHDRAWAL_HOLD",
         idempotencyKey: `withdraw-request:${withdrawalNumber}`,
-        // Never dip into held funds or the platform reserve bond.
-        walletGuard: { minAvailableAfter: config.minOperatingReserve },
+        // The wallet can never go below zero.
+        walletGuard: { minAvailableAfter: 0 },
         postings: [
           { account: { type: "STORE_WALLET", storeId }, debit: amount },
           { account: { type: "PAYOUT_CLEARING" }, credit: net },
@@ -150,16 +149,15 @@ export async function requestWithdrawal(db: Runner, storeId: string, payoutMetho
         data: { withdrawalNumber, storeId, payoutMethodId, amount: D(amount), fee: D(fee), netAmount: D(net), ledgerTxId: posted.id },
         include: { payoutMethod: true },
       });
-      await enforceWithin(tx, storeId);
       return shape(w);
     });
   } catch (e) {
     if (e instanceof InsufficientFundsError) {
       const wal = await db.wallet.findUnique({ where: { storeId } });
-      const eligible = Math.max(0, num(wal?.balance) - num(wal?.holds) - config.minOperatingReserve);
+      const eligible = Math.max(0, num(wal?.balance));
       throw new HttpError(
         409,
-        `Insufficient withdrawable funds. Eligible: ৳${eligible.toFixed(2)} (after deducting active COD holds and ৳${config.minOperatingReserve.toFixed(2)} platform reserve bond).`,
+        `Insufficient withdrawable funds. Available: ৳${eligible.toFixed(2)}.`,
         "INSUFFICIENT_FUNDS"
       );
     }
@@ -218,7 +216,6 @@ export async function reviewWithdrawal(
           { account: { type: "STORE_WALLET", storeId: w.storeId }, credit: w.amount },
         ],
       });
-      await enforceWithin(tx, w.storeId);
     }
     const wal = await tx.wallet.findUnique({ where: { storeId: w.storeId } });
     await publish(tx as any, "ledger", "PayoutGenerated", {

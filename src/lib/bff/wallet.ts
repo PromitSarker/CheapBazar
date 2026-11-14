@@ -13,17 +13,15 @@ const stamp = (d: string | Date) =>
 export interface WalletSnapshot {
   status: string;
   balance: number;
-  holds: number;
   available: number;
   withdrawable: number;
-  minReserve: number;
 }
 
 export async function walletSnapshot(storeId: string): Promise<WalletSnapshot> {
   const w = await callService<any>("ledger", "GET", `/wallets/${q(storeId)}/status`);
   return {
-    status: w.status, balance: w.balance, holds: w.holds, available: w.available,
-    withdrawable: w.withdrawable, minReserve: w.thresholds?.reserve ?? 500,
+    status: w.status, balance: w.balance, available: w.available,
+    withdrawable: w.withdrawable,
   };
 }
 
@@ -88,7 +86,7 @@ export const withdrawalSummaryViaServices = (storeId: string) =>
       list: await callService<{ withdrawals: any[] }>("ledger", "GET", `/wallets/${q(storeId)}/withdrawals?limit=20`),
     }),
     ({ w, list }) => ({
-      totalBalance: w.balance, walletHolds: w.holds, minReserve: w.minReserve,
+      totalBalance: w.balance, walletHolds: 0, minReserve: 0,
       availableBalance: w.available, withdrawableBalance: w.withdrawable, withdrawals: list.withdrawals,
     })
   );

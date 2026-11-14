@@ -1,7 +1,6 @@
 import type { EventHandler } from "../../../packages/event-bus";
 import { ensureWallet } from "./ledger";
-import { enforceWithin } from "./enforcer";
-import { recordOnlineSettlement, recordPlatformRevenue, releaseCodHold, reversePlatformRevenue, reverseOnlineSettlement, settleCodHold, topUp } from "./wallets";
+import { recordOnlineSettlement, recordPlatformRevenue, reversePlatformRevenue, reverseOnlineSettlement, topUp } from "./wallets";
 
 /**
  * Events consumed by ledger-service. Handlers run in the same transaction as the
@@ -13,18 +12,12 @@ export const handlers: Record<string, EventHandler> = {
   StoreCreated: async (env, tx) => {
     const { storeId, ownerId } = env.data;
     await ensureWallet(tx, storeId, ownerId);
-    await enforceWithin(tx, storeId);
   },
 
-  // order-service: COD delivered -> fee hold becomes a confirmed debit
-  OrderDelivered: async (env, tx) => {
-    const d = env.data;
-    if (d.paymentMethod === "COD") await settleCodHold(tx, d.orderNumber);
-  },
-
-  // order-service: cancelled / refused -> release COD hold, or refund an online payment
-  OrderCancelled: async (env, tx) => releaseOrRefund(env.data, tx, "CANCELLED"),
-  OrderRefused: async (env, tx) => releaseOrRefund(env.data, tx, "REFUSED"),
+  // order-service: cancelled / refused -> refund an online payment. COD orders move no money here
+  // (there is no platform fee on COD).
+  OrderCancelled: async (env, tx) => refundOnline(env.data, tx, "CANCELLED"),
+  OrderRefused: async (env, tx) => refundOnline(env.data, tx, "REFUSED"),
 
   // payment-billing-service
   PaymentCaptured: async (env, tx) => {
@@ -51,10 +44,8 @@ export const handlers: Record<string, EventHandler> = {
   },
 };
 
-async function releaseOrRefund(d: any, tx: any, why: string) {
-  if (d.paymentMethod === "COD") {
-    await releaseCodHold(tx, d.orderNumber, why);
-  } else if (d.paymentRef) {
+async function refundOnline(d: any, tx: any, why: string) {
+  if (d.paymentMethod !== "COD" && d.paymentRef) {
     await reverseOnlineSettlement(tx, d.paymentRef, `Order ${d.orderNumber} ${why.toLowerCase()}`);
   }
 }

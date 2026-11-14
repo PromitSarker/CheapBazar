@@ -92,21 +92,13 @@ export default function DashboardNav({
     language === "bn"
       ? storeStatus === "ACTIVE"
         ? "সক্রিয় স্টোর"
-        : storeStatus === "WARNING"
-        ? "সতর্কতা"
-        : storeStatus === "COD_BLOCKED"
-        ? "সিওডি বন্ধ"
         : storeStatus
       : storeStatus === "ACTIVE"
       ? "Active Store"
       : storeStatus;
 
   const statusClass =
-    storeStatus === "ACTIVE"
-      ? "active"
-      : storeStatus === "WARNING"
-      ? "warning"
-      : "error";
+    storeStatus === "ACTIVE" ? "active" : "error";
 
   return (
     <aside className="dash-nav">

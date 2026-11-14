@@ -16,11 +16,11 @@ export function buildRouter(db: Db, ent: Entitlements): Router {
     const [row] = await db.$queryRawUnsafe<{ listings: bigint; retail: bigint; wholesale: bigint; stores: bigint; visibleStores: bigint }[]>(
       `SELECT (SELECT COUNT(*) FROM "ListingIndex" WHERE "deleted" = false)::bigint AS listings,
               (SELECT COUNT(*) FROM "ListingIndex" l JOIN "StoreProjection" s ON s."storeId"=l."storeId"
-                WHERE l."deleted"=false AND s."slug"<>'' AND s."status" IN ('ACTIVE','WARNING','COD_BLOCKED') AND l."channel" IN ('RETAIL','BOTH'))::bigint AS retail,
+                WHERE l."deleted"=false AND s."slug"<>'' AND s."status" NOT IN ('SUSPENDED','BANNED') AND l."channel" IN ('RETAIL','BOTH'))::bigint AS retail,
               (SELECT COUNT(*) FROM "ListingIndex" l JOIN "StoreProjection" s ON s."storeId"=l."storeId"
-                WHERE l."deleted"=false AND s."slug"<>'' AND s."status" IN ('ACTIVE','WARNING','COD_BLOCKED') AND l."channel" IN ('WHOLESALE','BOTH'))::bigint AS wholesale,
+                WHERE l."deleted"=false AND s."slug"<>'' AND s."status" NOT IN ('SUSPENDED','BANNED') AND l."channel" IN ('WHOLESALE','BOTH'))::bigint AS wholesale,
               (SELECT COUNT(*) FROM "StoreProjection")::bigint AS stores,
-              (SELECT COUNT(*) FROM "StoreProjection" WHERE "slug"<>'' AND "status" IN ('ACTIVE','WARNING','COD_BLOCKED'))::bigint AS "visibleStores"`
+              (SELECT COUNT(*) FROM "StoreProjection" WHERE "slug"<>'' AND "status" NOT IN ('SUSPENDED','BANNED'))::bigint AS "visibleStores"`
     );
     return { listings: Number(row.listings), retailVisible: Number(row.retail), wholesaleVisible: Number(row.wholesale), stores: Number(row.stores), visibleStores: Number(row.visibleStores) };
   });

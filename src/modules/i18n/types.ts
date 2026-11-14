@@ -162,12 +162,9 @@ export interface Translations {
 
   // Wallet
   totalLedgerBalance: string;
-  activeCodHolds: string;
   availableBalance: string;
   storeStatusEnforcer: string;
   topUpBalance: string;
-  softThresholdLabel: string;
-  hardThresholdLabel: string;
   doubleEntryTransactions: string;
 
   // Orders
@@ -206,10 +203,6 @@ export interface Translations {
 
   // Store Statuses
   statusActive: string;
-  statusWarning: string;
-  statusCodBlocked: string;
-  statusPaused: string;
-  statusDelisted: string;
   statusSuspended: string;
   statusBanned: string;
 }

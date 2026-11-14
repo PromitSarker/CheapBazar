@@ -79,7 +79,7 @@ export interface PostOptions {
   postings: PostingInput[];
   /** Statement type shown to the seller (defaults to kind). */
   entryType?: string;
-  /** For debits on a store wallet: require (balance - holds - amount) >= minAvailableAfter. */
+  /** For debits on a store wallet: require (balance - amount) >= minAvailableAfter. */
   walletGuard?: { minAvailableAfter: Amount };
   /** Backfill only: don't touch Wallet.balance. */
   skipWalletCache?: boolean;
@@ -152,7 +152,7 @@ export async function postTransaction(tx: Tx, opts: PostOptions): Promise<PostRe
       const floor = D(opts.walletGuard.minAvailableAfter);
       const n = await tx.$executeRaw`
         UPDATE "Wallet" SET "balance" = "balance" - ${need}, "updatedAt" = now()
-         WHERE "storeId" = ${storeId} AND ("balance" - "holds" - ${need}) >= ${floor}`;
+         WHERE "storeId" = ${storeId} AND ("balance" - ${need}) >= ${floor}`;
       if (n === 0) throw new InsufficientFundsError();
     } else {
       await tx.wallet.update({ where: { storeId }, data: { balance: { increment: delta } } });
@@ -207,22 +207,6 @@ export async function reverseTransaction(
       credit: p.debit,
     })),
   });
-}
-
-// ------------------------------------------------------------------- holds
-
-/** Atomically add to Wallet.holds only if (balance - holds) >= amount. */
-export async function reserveFunds(tx: Runner, storeId: string, amount: Amount): Promise<boolean> {
-  const a = D(amount);
-  const n = await tx.$executeRaw`
-    UPDATE "Wallet" SET "holds" = "holds" + ${a}, "updatedAt" = now()
-     WHERE "storeId" = ${storeId} AND ("balance" - "holds") >= ${a}`;
-  return n > 0;
-}
-
-export async function releaseFunds(tx: Runner, storeId: string, amount: Amount): Promise<void> {
-  const a = D(amount);
-  await tx.$executeRaw`UPDATE "Wallet" SET "holds" = GREATEST("holds" - ${a}, 0), "updatedAt" = now() WHERE "storeId" = ${storeId}`;
 }
 
 /** Per-key transaction advisory lock (e.g. serialise one store's withdrawals). */

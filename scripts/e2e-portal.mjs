@@ -118,8 +118,9 @@ let r = await setStatus("DELIVERED"); assert.equal(r.status, 409); ok("cannot ju
 r = await setStatus("SHIPPED"); let j = await r.json(); assert.equal(r.status, 200, JSON.stringify(j)); assert.equal(j.newStatus, "SHIPPED"); ok("seller marks the order SHIPPED");
 r = await setStatus("DELIVERED"); j = await r.json(); assert.equal(r.status, 200, JSON.stringify(j)); ok("seller marks the order DELIVERED");
 
-let w2; for (let i = 0; i < 30; i++) { w2 = await svc("ledger", "GET", `/wallets/${storeId}/status`); if (w2.holds === 0) break; await sleep(500); }
-assert.equal(w2.holds, 0); assert.equal(w2.balance, 1000 - 30); ok("hold settled by ledger: fee ৳30 (5% of ৳600) charged, hold released");
+await sleep(1500);
+const w2 = await svc("ledger", "GET", `/wallets/${storeId}/status`);
+assert.equal(w2.balance, 1000); ok("delivery moves no money: no COD fee, the wallet is still ৳1000");
 
 r = await fetch(`${WEB}/api/orders/status`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ orderId: rawId, newStatus: "CANCELLED" }), redirect: "manual" });
 assert.ok(r.status !== 200, `no cookie must not work, got ${r.status}`); ok("changing a status without a session is refused");

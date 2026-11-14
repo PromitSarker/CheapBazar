@@ -17,10 +17,9 @@ export function buildRouter(db: Db, deps: Deps): Router {
     const orderType = body.orderType === "WHOLESALE" ? "WHOLESALE" : "RETAIL";
     const q = await deps.catalog.quote({ storeId: store.id, orderType, items: body.items.map((i: any) => ({ productId: i.productId ?? i.id, quantity: i.quantity })) });
     const wallet = await deps.ledger.walletStatus(store.id);
-    const fee = Math.round(((q.subtotal * config.platformFeePercent) / 100) * 100) / 100;
     return {
-      ...q, fee, feePercent: config.platformFeePercent,
-      codAllowed: wallet.codAllowed && !(orderType === "WHOLESALE" && q.subtotal > config.wholesaleCodCap),
+      ...q,
+      codAllowed: !(orderType === "WHOLESALE" && q.subtotal > config.wholesaleCodCap),
       acceptsOrders: wallet.acceptsOrders,
       onlinePaymentsEnabled: config.onlinePaymentsEnabled,
     };

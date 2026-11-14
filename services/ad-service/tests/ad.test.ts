@@ -209,13 +209,12 @@ test("concurrency: five stores race for the last place - exactly one wins", asyn
   for (const r of results.filter((x) => x.status === "rejected") as PromiseRejectedResult[]) assert.equal(r.reason.code, "SLOT_UNAVAILABLE");
 });
 
-test("store standing: paused/unknown stores refused, balance checked, billing outage fails closed, pending cap", async () => {
+test("store standing: suspended/banned/unknown stores refused, balance checked, billing outage fails closed, pending cap", async () => {
   const slot = await mkSlot(10, 100);
-  await expectErr(book(slot, mkStore("PAUSED")), "STORE_NOT_ELIGIBLE", 403);
-  await expectErr(book(slot, mkStore("DELISTED")), "STORE_NOT_ELIGIBLE", 403);
+  await expectErr(book(slot, mkStore("SUSPENDED")), "STORE_NOT_ELIGIBLE", 403);
+  await expectErr(book(slot, mkStore("BANNED")), "STORE_NOT_ELIGIBLE", 403);
   await expectErr(book(slot, "ghost-store"), "STORE_NOT_FOUND", 404);
   await expectErr(book(slot, mkStore("ACTIVE", 50)), "INSUFFICIENT_FUNDS", 402);
-  await book(slot, mkStore("COD_BLOCKED")); // low balance only: may still advertise
 
   ledgerDown = true;
   await expectErr(book(slot, mkStore()), "BILLING_UNAVAILABLE", 503);
@@ -302,14 +301,14 @@ test("approve when funds ran out: rejected with a reason, nothing charged, dates
   assert.equal((await events("AdRejected")).filter((e) => e.bookingNumber === booking.bookingNumber).length, 1);
 });
 
-test("approve when the store got paused after booking: rejected, not charged", async () => {
+test("approve when the store got suspended after booking: rejected, not charged", async () => {
   const slot = await mkSlot(1);
   const store = mkStore();
   const { booking } = await book(slot, store);
-  wallets.get(store)!.status = "PAUSED";
+  wallets.get(store)!.status = "SUSPENDED";
   const r = await review(booking.id, "APPROVE");
   assert.equal(r.booking.status, "REJECTED");
-  assert.match(r.rejectedReason, /PAUSED/);
+  assert.match(r.rejectedReason, /SUSPENDED/);
   assert.ok(!charges.has(`ad:${booking.bookingNumber}`));
 });
 
@@ -409,7 +408,7 @@ test("approving after the start date has arrived is refused (DATES_PASSED), noth
   assert.equal((await A.get<any>(`/ads/bookings/${booking.id}?storeId=${store}`)).status, "PENDING_REVIEW");
 });
 
-test("store status: PAUSED suspends live ads, recovery resumes them, stale/duplicate events are harmless", async () => {
+test("store status: SUSPENDED suspends live ads, recovery resumes them, stale/duplicate events are harmless", async () => {
   const slot = await mkSlot(2);
   const store = mkStore();
   const s = span(30);
@@ -428,19 +427,19 @@ test("store status: PAUSED suspends live ads, recovery resumes them, stale/dupli
   assert.equal((await active(`?slot=${slot}`)).ads.length, 1);
   assert.equal((await active(`?slot=${slot2}`)).ads.length, 0);
 
-  await send("StoreStatusChanged", { storeId: store, from: "COD_BLOCKED", to: "PAUSED" }, new Date(t0 + 1000).toISOString());
+  await send("StoreStatusChanged", { storeId: store, from: "ACTIVE", to: "SUSPENDED" }, new Date(t0 + 1000).toISOString());
   assert.equal((await A.get<any>(`/ads/bookings/${b.id}?storeId=${store}`)).status, "SUSPENDED");
   await sleep(80); // event-driven changes reach the cache within its TTL
   assert.equal((await active(`?slot=${slot}`)).ads.length, 0);
 
-  // a late-arriving OLDER "ACTIVE" event must not undo the pause
-  await send("StoreStatusChanged", { storeId: store, from: "PAUSED", to: "ACTIVE" }, new Date(t0 - 60_000).toISOString());
+  // a late-arriving OLDER "ACTIVE" event must not undo the suspension
+  await send("StoreStatusChanged", { storeId: store, from: "SUSPENDED", to: "ACTIVE" }, new Date(t0 - 60_000).toISOString());
   assert.equal((await A.get<any>(`/ads/bookings/${b.id}?storeId=${store}`)).status, "SUSPENDED");
 
   // duplicate delivery of the same event is a no-op
   const dup = `dup${++seq}`;
-  await send("StoreStatusChanged", { storeId: store, to: "DELISTED" }, new Date(t0 + 2000).toISOString(), dup);
-  const r2: any = await send("StoreStatusChanged", { storeId: store, to: "DELISTED" }, new Date(t0 + 2000).toISOString(), dup);
+  await send("StoreStatusChanged", { storeId: store, to: "BANNED" }, new Date(t0 + 2000).toISOString(), dup);
+  const r2: any = await send("StoreStatusChanged", { storeId: store, to: "BANNED" }, new Date(t0 + 2000).toISOString(), dup);
   assert.equal(r2.duplicate, true);
   assert.equal((await A.get<any>(`/ads/bookings/${b.id}?storeId=${store}`)).status, "SUSPENDED");
 
@@ -453,18 +452,6 @@ test("store status: PAUSED suspends live ads, recovery resumes them, stale/dupli
   await send("StoreStatusChanged", { storeId: b2.storeId, to: "ACTIVE" }, new Date(t0 + 4000).toISOString());
   await tick(s.startDate);
   assert.equal((await A.get<any>(`/ads/bookings/${b2.id}?storeId=${b2.storeId}`)).status, "ACTIVE");
-});
-
-test("non-blocking status changes (WARNING / COD_BLOCKED) leave ads running", async () => {
-  const slot = await mkSlot(1);
-  const store = mkStore();
-  const s = span(30);
-  const b = await approved(slot, store, s);
-  await tick(s.startDate);
-  const t0 = Date.now();
-  await send("StoreStatusChanged", { storeId: store, to: "WARNING" }, new Date(t0).toISOString());
-  await send("StoreStatusChanged", { storeId: store, to: "COD_BLOCKED" }, new Date(t0 + 1).toISOString());
-  assert.equal((await A.get<any>(`/ads/bookings/${b.id}?storeId=${store}`)).status, "ACTIVE");
 });
 
 test("default slot seeding fills an empty database once", async () => {

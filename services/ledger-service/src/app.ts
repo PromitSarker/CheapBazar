@@ -5,15 +5,14 @@ import { splitSqlStatements } from "../../../packages/service-kit/sql";
 import { HttpTransport, registerEventRoute, startRelay, outboxStats, type Transport } from "../../../packages/event-bus";
 import { createDb, num, type Db } from "./db";
 import { handlers } from "./consumers";
-import { adminChangeStatus, enforceAll, enforceStore } from "./enforcer";
+import { adminChangeStatus } from "./storeStatus";
 import { platformAccountBalances, reconcileWallets, trialBalance } from "./ledger";
 import {
-  chargeWallet, getStatement, getWalletStatus, placeCodHold, releaseCodHold, reverseOnlineSettlement, settleCodHold, topUp,
+  chargeWallet, getStatement, getWalletStatus, reverseOnlineSettlement, topUp,
 } from "./wallets";
 import {
   addPayoutMethod, deletePayoutMethod, listPayoutMethods, listWithdrawals, requestWithdrawal, reviewWithdrawal,
 } from "./withdrawals";
-import { config } from "./config";
 
 export function buildRouter(db: Db): Router {
   const r = new Router();
@@ -29,7 +28,7 @@ export function buildRouter(db: Db): Router {
     return {
       wallets: rows.map((w) => ({
         storeId: w.storeId, ownerId: w.ownerId, status: w.status, statusReason: w.statusReason, statusChangedAt: w.statusChangedAt,
-        balance: num(w.balance), holds: num(w.holds), available: num(w.balance) - num(w.holds),
+        balance: num(w.balance), available: num(w.balance),
       })),
     };
   });
@@ -38,19 +37,6 @@ export function buildRouter(db: Db): Router {
   r.get("/wallets/:storeId/statement", async ({ params, query }) => ({
     entries: await getStatement(db, params.storeId, Number(query.limit) || 25),
   }));
-
-  r.post("/wallets/:storeId/holds", async ({ params, body }) => {
-    requireFields(body, ["reference", "amount"]);
-    return placeCodHold(db, params.storeId, String(body.reference), positiveNumber(body.amount, "amount"));
-  });
-  r.post("/wallets/:storeId/settle-hold", async ({ body }) => {
-    requireFields(body, ["reference"]);
-    return settleCodHold(db, String(body.reference));
-  });
-  r.post("/wallets/:storeId/release-hold", async ({ body }) => {
-    requireFields(body, ["reference"]);
-    return releaseCodHold(db, String(body.reference), String(body.reason ?? "released"));
-  });
 
   r.post("/wallets/:storeId/topup", async ({ params, body }) => {
     requireFields(body, ["amount", "reference"]);
@@ -76,6 +62,7 @@ export function buildRouter(db: Db): Router {
 
   r.post("/wallets/:storeId/status", async ({ params, body }) => {
     requireFields(body, ["status", "admin"]);
+    if (!["ACTIVE", "SUSPENDED", "BANNED"].includes(body.status)) throw new HttpError(400, "status must be ACTIVE, SUSPENDED or BANNED", "VALIDATION");
     await adminChangeStatus(db, params.storeId, body.status, String(body.reason ?? ""), String(body.admin));
     return getWalletStatus(db, params.storeId);
   });
@@ -110,10 +97,6 @@ export function buildRouter(db: Db): Router {
   r.get("/admin/trial-balance", async () => trialBalance(db));
   r.get("/admin/platform-accounts", async () => ({ accounts: await platformAccountBalances(db) }));
   r.get("/admin/outbox", async () => outboxStats(db));
-  r.post("/admin/enforcer/run", async ({ body }) => {
-    if (body.storeId) return { decision: await enforceStore(db, String(body.storeId), body.now ? new Date(body.now) : new Date()) };
-    return enforceAll(db, body.now ? new Date(body.now) : new Date());
-  });
 
   return r;
 }
@@ -125,8 +108,6 @@ export interface LedgerServiceOptions {
   databaseUrl?: string;
   /** Run the outbox relay (default true). */
   relay?: boolean;
-  /** Run the status-enforcer daemon (default true). */
-  daemon?: boolean;
   transport?: Transport;
   applyConstraints?: boolean;
 }
@@ -151,15 +132,6 @@ export async function startLedgerService(opts: LedgerServiceOptions) {
   const stops: Array<() => void> = [];
   if (opts.relay !== false) {
     stops.push(startRelay({ db: db as any, transport: opts.transport ?? new HttpTransport(opts.secret, "ledger"), name: "ledger" }));
-  }
-  if (opts.daemon !== false) {
-    let busy = false;
-    const t = setInterval(async () => {
-      if (busy) return;
-      busy = true;
-      try { await enforceAll(db); } catch (e: any) { console.error("[ledger] enforcer sweep failed:", e?.message); } finally { busy = false; }
-    }, config.enforcerIntervalMs);
-    stops.push(() => clearInterval(t));
   }
 
   return {

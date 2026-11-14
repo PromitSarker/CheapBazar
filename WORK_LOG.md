@@ -3,6 +3,28 @@
 Notes on what was done to this project and its servers, newest first. No secrets are recorded here.
 Commits are authored as `Claude <noreply@anthropic.com>` (owner's instruction, 2026-11-10).
 
+## 2026-11-11 (later): pending steps done, rehearsal re-run, installable web app (PWA)
+
+- Owner gave permission rules, so: `ledger_db` schema pushed (dropped `Wallet.holds`, `lastAlertAt`, table `Hold`, trimmed `StoreStatus`); `pm2 restart cheapbazar` done, so the LIVE site now runs the no-COD-fee code (still the monolith on Neon, `USE_SERVICES` off). `migrate:rehearse -- --wallets=carry --seed-accounts=lock` re-run on a fresh copy of Neon: **REHEARSAL OK** (all checks + smoke).
+- Owner asked for "the app": chose an **installable web app (PWA)**; no domain yet. Added `public/manifest.webmanifest`, icons (`public/icons/`, rendered from `icon.svg` with ImageMagick on the server), `public/sw.js` (conservative: never caches pages, `/api` or `/uploads`; only build assets and icons; shows `/offline.html` when offline), `src/components/pwa/RegisterSW.tsx`, `/app` page with install steps + an Install button, footer link "Get the app", theme colour and apple-touch icon in the layout.
+- Limits: browsers only register the service worker and offer one-tap **Install** on HTTPS (or localhost). On plain `http://103.228.38.69:3000` the manifest still lets Android Chrome use "Add to Home screen" (a shortcut) and iPhone Safari "Add to Home Screen". For full install: get a domain, point an A record at 103.228.38.69, put HTTPS in front (nginx + certbot; needs sudo), then remove `COOKIE_INSECURE=true`.
+- Not built: a native Android/iOS app (owner chose PWA).
+
+## 2026-11-11: COD fee, wallet thresholds and reserve bond removed
+
+Owner: "remove the cod fee and threshold thing. I dont need that."
+
+- **Gone:** the 5% platform fee on Cash on Delivery orders; the per-order fee hold on the seller wallet (and its settle/release on delivery or cancel); the soft/hard wallet thresholds and the whole Store Status Enforcer (WARNING, COD_BLOCKED, PAUSED, DELISTED, the 72 h / 168 h grace timers, the background sweep, `POST /admin/enforcer/run`); the ৳500 reserve bond on withdrawals; the "low balance" notification.
+- **Now:** a store's status is admin-only (ACTIVE, SUSPENDED, BANNED). A seller with a ৳0 wallet still takes COD orders. The wallet only pays for ads and can be withdrawn in full (minimum withdrawal ৳500 is unchanged). COD orders carry platformFee 0 and sellerNet = total.
+- **Kept on purpose:** an optional commission on ONLINE-paid orders only, `ONLINE_FEE_PERCENTAGE` (default 0), so the switched-off SSLCommerz path still has its split settlement. The wholesale COD cap (৳50,000) is unchanged.
+- **Services:** ledger (holds, enforcer, thresholds, daemon removed; new `storeStatus.ts` = admin suspend/ban/reinstate only; status API no longer returns `holds`, `thresholds`, `codAllowed`; `available` = `balance`), order (no fee for COD, no `placeHold`/`releaseHold`, `OrderFeeSnapshot.codFeeHold` dropped), aggregator and ad-service (a store is hidden / blocked only when SUSPENDED or BANNED), notification (BalanceLow and the PAUSED/DELISTED copy removed, COD delivered message no longer mentions a fee), event topology (`BalanceLow`, `WalletHold*` removed).
+- **Web:** wallet dashboard shows only Total and Eligible to Withdraw (no holds, reserve or threshold cards), admin store-status dropdown is ACTIVE/SUSPENDED/BANNED, `StoreStatus` type trimmed, unused i18n keys removed. **The legacy monolith routes are changed too:** `/api/orders/create` (no fee, no COD block), `/api/orders/status` (no wallet movement on COD), `/api/wallet/withdraw` (no reserve), SSLCommerz top-up (no status restore).
+- **Migration:** legacy COD orders migrate with platformFee 0; no holds are created; WARNING / COD_BLOCKED / PAUSED / DELISTED become ACTIVE (only SUSPENDED / BANNED are carried). Rehearsal fixture, verify and smoke scripts updated. **The migration rehearsal was NOT re-run after this change.**
+- **Tests:** services 126 pass (was 131: the hold and enforcer tests were removed and replaced by "status is admin-only" tests); web unit not touched; e2e all green against a throwaway :3100 instance: checkout 10, portal 18, wallet 22, admin 21, ads 20, browse 24, billing 15, my orders 16, bell 15. `typecheck:services` and the web `tsc` are clean.
+- **Deployed:** sources synced; services cb-ledger / cb-order / cb-aggregator / cb-ad / cb-notification restarted on the new code and healthy; `orders_db` schema pushed; `search_db` and `ledger_db` statuses normalised to ACTIVE; `next build` done. Backups of the three service DBs are in `~/db-backups-2026-11-11-fee-removal/`.
+- **NOT done (blocked, needs the owner):** (1) `prisma db push --accept-data-loss` on `ledger_db` (drops `Wallet.holds`, `Wallet.lastAlertAt`, table `Hold`, enum `HoldStatus`, and trims `StoreStatus` to ACTIVE/SUSPENDED/BANNED); the new ledger code runs fine against the old schema until then. (2) `pm2 restart cheapbazar`: the live site still runs the OLD monolith code in memory (COD fee still applied there) although the new build is on disk.
+- Incident worth knowing: the old running cb-ledger daemon kept moving the normalised test wallets back to WARNING / COD_BLOCKED, which is why the first ledger push failed (the enum cannot shrink while rows use the old values). cb-ledger is now on the new code, so that cannot recur.
+
 ## 2026-11-10 (chunk 14): guided cutover script and rollback (nothing cut over yet)
 
 - Owner said "keep as it is" for the open choices, which I read as: keep the defaults (`--wallets=carry`, `--seed-accounts=lock`, retail money flows stay, prices stay as the placeholders until set in /admin/billing). Not read as permission to take the live site down: the real cutover also needs the admin email and password, which only the owner should type.
@@ -192,3 +214,9 @@ Built the first part of the web-tier ("BFF") layer. Nothing here switches the li
 2. New screens: Buyer Pro upgrade, admin payment review, revenue, notification bell, refunds.
 3. Data migration from Neon (rehearse on a copy), cutover, retire the monolith data layer.
 4. Owner decisions: Buyer Pro price, ad slot prices, whether the 5% COD fee / top-ups / ad fees stay, ad refund policy.
+
+## 2026-11-14: mobile app committed
+
+- Committed the mobile work (commit `eab9c87`): Flutter app in `mobile/`, mobile API `src/lib/mobile` + `src/app/api/m/v1/*`, buyer account deletion in identity-service (10 identity tests), `/app` APK download page and `/downloads` route, `deploy/publish-apk.sh`, `.github/workflows/mobile.yml`. The PWA files were removed.
+- Signing key and `key.properties` live outside git (`~/dev/keys/`, ignored). Checked the staged diff for secrets before committing.
+- Release APK build restarted under `~/dev/capped.sh` (CPU/memory capped); log `/tmp/apk-build.log`. The first attempt was killed when the session was stopped.

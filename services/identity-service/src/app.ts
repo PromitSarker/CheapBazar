@@ -1,7 +1,7 @@
 import { Router, createServer, HttpError, requireFields, envInt } from "../../../packages/service-kit";
 import { HttpTransport, registerEventRoute, startRelay, outboxStats, type Transport } from "../../../packages/event-bus";
 import { createDb, type Db } from "./db";
-import { changeRole, cleanupSessions, login, logout, register, toPublicUser, verifySession } from "./auth";
+import { changeRole, cleanupSessions, deleteBuyerAccount, login, logout, register, toPublicUser, verifySession } from "./auth";
 import { createStore, listStores, resolveTenant, setKyc, updateStore } from "./stores";
 
 export function buildRouter(db: Db): Router {
@@ -33,6 +33,7 @@ export function buildRouter(db: Db): Router {
     if (!u) throw new HttpError(404, "User not found", "NOT_FOUND");
     return { roles: [u.role] };
   });
+  r.post("/users/:id/delete", ({ params, body }) => deleteBuyerAccount(db, params.id, String(body.password ?? "")));
   r.patch("/users/:id/role", ({ params, body }) => {
     requireFields(body, ["role", "admin"]);
     return changeRole(db, params.id, String(body.role), String(body.admin));

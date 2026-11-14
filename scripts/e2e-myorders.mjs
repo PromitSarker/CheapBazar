@@ -78,16 +78,14 @@ r = await cancelForm(b2.token, b1.token, ord1.id);
 assert.match(loc(r), /error=/);
 assert.equal((await svc("order", "GET", `/orders/by-number/${o1.orderNumber}`)).status, "CONFIRMED"); ok("another user cannot cancel your order, even with a forged request");
 
-// the real buyer cancels: stock returns, fee hold is released
-const holdsBefore = (await svc("ledger", "GET", `/wallets/${store.id}/status`)).holds;
+// the real buyer cancels: stock returns (there is no fee hold to release)
+const balanceBefore = (await svc("ledger", "GET", `/wallets/${store.id}/status`)).balance;
 r = await cancelForm(b1.token, b1.token, ord1.id);
 assert.match(loc(r), /cancelled=1/);
 assert.equal((await svc("order", "GET", `/orders/by-number/${o1.orderNumber}`)).status, "CANCELLED"); ok("the buyer cancels their own order");
 for (let i = 0; i < 30 && (await stock()) !== 18; i++) await sleep(500);
 assert.equal(await stock(), 18); ok("stock is returned to the shop (16 -> 18)");
-let holds = holdsBefore;
-for (let i = 0; i < 30 && holds === holdsBefore; i++) { await sleep(500); holds = (await svc("ledger", "GET", `/wallets/${store.id}/status`)).holds; }
-assert.ok(holds < holdsBefore); ok("the seller's COD fee hold is released");
+assert.equal((await svc("ledger", "GET", `/wallets/${store.id}/status`)).balance, balanceBefore); ok("the seller wallet is untouched by the cancellation");
 html = await (await get("/orders", b1.token)).text();
 assert.match(html, /Cancelled/); assert.match(html, /Your order was cancelled|<strong style/); ok("the list shows it as cancelled with no cancel button left for it");
 assert.ok(!html.includes(`value="${ord1.id}"`));

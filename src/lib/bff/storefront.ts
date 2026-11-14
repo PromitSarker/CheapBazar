@@ -49,8 +49,8 @@ export async function getStorefrontViaServices(identifier: string): Promise<{ st
     customDomain: tenant.customDomain ?? null,
   };
 
-  // Suspended/paused shops do not need a catalog (the page shows a notice instead).
-  if (["SUSPENDED", "BANNED", "PAUSED", "DELISTED"].includes(status)) return { store, products: [] };
+  // Suspended/banned shops do not need a catalog (the page shows a notice instead).
+  if (["SUSPENDED", "BANNED"].includes(status)) return { store, products: [] };
 
   const r = await callService<{ products: any[] }>("catalog", "GET", `/stores/${tenant.id}/products?channel=RETAIL`);
   const products: ProductVM[] = (r.products ?? []).map((p) => ({

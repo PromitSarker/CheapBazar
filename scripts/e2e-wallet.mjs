@@ -82,14 +82,14 @@ j = await r.json(); assert.equal(r.status, 403, JSON.stringify(j)); assert.match
 execFileSync("docker", ["exec", "cheapbazar-services-pg", "psql", "-U", "cheapbazar", "-d", "ledger_db", "-c", `UPDATE "PayoutMethod" SET "coolingUntil" = now() - interval '1 hour' WHERE id = '${mid}'`], { stdio: "ignore" });
 r = await json("/api/wallet/withdraw", "POST", { payoutMethodId: mid, amount: 100 });
 assert.equal(r.status, 400); ok("below the minimum withdrawal is refused");
-r = await json("/api/wallet/withdraw", "POST", { payoutMethodId: mid, amount: 900 });
-assert.ok(r.status >= 400 && r.status < 500); ok("withdrawing into the ৳500 reserve is refused");
+r = await json("/api/wallet/withdraw", "POST", { payoutMethodId: mid, amount: 1100 });
+assert.ok(r.status >= 400 && r.status < 500); ok("withdrawing more than the wallet holds is refused");
 r = await json("/api/wallet/withdraw", "POST", { payoutMethodId: mid, amount: 500 });
 j = await r.json(); assert.equal(r.status, 200, JSON.stringify(j)); assert.match(j.withdrawalNumber, /^WD-/); ok(`withdrawal of ৳500 requested (${j.withdrawalNumber})`);
 r = await json("/api/wallet/withdraw", "POST", { payoutMethodId: mid, amount: 500 });
 assert.ok(r.status >= 400 && r.status < 500); ok("a second request while one is pending is refused");
 r = await json("/api/wallet/withdraw", "GET"); j = await r.json();
-assert.equal(r.status, 200); assert.equal(j.withdrawals.length, 1); assert.equal(j.withdrawableBalance, 0); ok("summary shows one request and nothing left to withdraw");
+assert.equal(r.status, 200); assert.equal(j.withdrawals.length, 1); assert.equal(j.withdrawableBalance, 500); ok("summary shows one request; the other ৳500 is still withdrawable (no reserve bond)");
 html = await (await web("/dashboard/wallet")).text();
 assert.match(html, /WD-/); ok("wallet page lists the withdrawal");
 r = await json(`/api/wallet/payout-methods?id=${mid}`, "DELETE");
