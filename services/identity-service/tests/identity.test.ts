@@ -181,3 +181,30 @@ test("KYC flag, admin stats and store listing", async () => {
   const users = await api.get("/users?role=SELLER");
   assert.ok(users.users.every((u: any) => u.role === "SELLER" && u.passwordHash === undefined));
 });
+
+test("store branding: logo must be an uploaded image path, colour must be #rrggbb, both can be removed", async () => {
+  const { user } = await reg("SELLER");
+  const store = await api.post("/stores", { ownerId: user.id, name: "Brand Shop", slug: `brand-${Math.random().toString(36).slice(2, 7)}`, template: "modern" });
+  assert.equal(store.logoUrl, null);
+  assert.equal(store.themeColor, null);
+
+  const ok = await api.patch(`/stores/${store.id}`, { actorId: user.id, logoUrl: "/uploads/abc-123.png", themeColor: "#1D4ED8" });
+  assert.equal(ok.logoUrl, "/uploads/abc-123.png");
+  assert.equal(ok.themeColor, "#1d4ed8", "colour is normalised to lower case");
+  const resolved = await api.get(`/tenants/resolve?slug=${store.slug}`);
+  assert.equal(resolved.logoUrl, "/uploads/abc-123.png");
+
+  await expectErr(api.patch(`/stores/${store.id}`, { actorId: user.id, logoUrl: "https://evil.example/x.png" }), "VALIDATION", 400);
+  await expectErr(api.patch(`/stores/${store.id}`, { actorId: user.id, logoUrl: "/uploads/../etc/passwd" }), "VALIDATION", 400);
+  await expectErr(api.patch(`/stores/${store.id}`, { actorId: user.id, logoUrl: "/uploads/x.svg" }), "VALIDATION", 400);
+  await expectErr(api.patch(`/stores/${store.id}`, { actorId: user.id, themeColor: "red" }), "VALIDATION", 400);
+  const still = await api.get(`/tenants/resolve?slug=${store.slug}`);
+  assert.equal(still.themeColor, "#1d4ed8", "a rejected update changes nothing");
+
+  const other = await reg("SELLER");
+  await expectErr(api.patch(`/stores/${store.id}`, { actorId: other.user.id, themeColor: "#000000" }), "FORBIDDEN", 403);
+
+  const cleared = await api.patch(`/stores/${store.id}`, { actorId: user.id, logoUrl: null, themeColor: null });
+  assert.equal(cleared.logoUrl, null);
+  assert.equal(cleared.themeColor, null);
+});

@@ -50,6 +50,8 @@ model Store {
   customDomain String?  @unique
   template     String   @default("classic") // "classic" | "modern"
   kycVerified  Boolean  @default(false)
+  logoUrl      String?  // /uploads/<file> - the only branding asset a seller can set
+  themeColor   String?  // #rrggbb accent, chosen from the web preset list
   ownerId      String   @unique
   owner        User     @relation(fields: [ownerId], references: [id])
   createdAt    DateTime @default(now())

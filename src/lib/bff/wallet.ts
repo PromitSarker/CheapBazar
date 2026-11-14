@@ -110,7 +110,7 @@ export const listTopUpsViaServices = (storeId: string) =>
   asRoute(() => callService<any>("payment", "GET", `/topups/manual?storeId=${q(storeId)}&limit=10`), (r) => ({ payments: r.payments }));
 
 export async function updateStoreViaServices(
-  storeId: string, actorId: string, input: { name: string; slug: string; template: string; customDomain: string | null }
+  storeId: string, actorId: string, input: { name: string; slug: string; template: string; customDomain: string | null; logoUrl?: string | null; themeColor?: string | null }
 ): Promise<"ok" | "slug-taken" | "domain-taken" | "invalid"> {
   try {
     await callService("identity", "PATCH", `/stores/${q(storeId)}`, { ...input, actorId });

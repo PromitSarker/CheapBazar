@@ -1,10 +1,12 @@
 import { requireStore } from "@/lib/tenant";
 import { updateStore } from "./actions";
+import { THEME_PRESETS, themeOrDefault } from "@/lib/storefront-theme";
 
 const ERRORS: Record<string, string> = {
   invalid: "Please enter a valid store name, URL slug, and template.",
   "slug-taken": "That store URL is already taken by another store. Try another one.",
   "domain-taken": "That custom domain is already registered to another store.",
+  logo: "The logo must be a PNG, JPEG, GIF or WebP image under 5 MB.",
 };
 
 export default async function SettingsPage({ searchParams }: { searchParams: { error?: string, success?: string } }) {
@@ -48,6 +50,37 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
           </small>
         </label>
 
+
+        <div className="brand-field">
+          <strong>Logo</strong>
+          <div className="brand-logo-row">
+            <div className="brand-logo-preview" aria-hidden="true">
+              {store.logoUrl
+                ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={store.logoUrl} alt="" />
+                : store.name.trim().charAt(0).toUpperCase()}
+            </div>
+            <input type="file" name="logo" accept="image/png,image/jpeg,image/gif,image/webp" aria-label="Upload a new logo" style={{ flex: 1, minWidth: 200 }} />
+          </div>
+          {store.logoUrl && (
+            <label style={{ flexDirection: "row", alignItems: "center", gap: "0.5rem", fontWeight: 400 }}>
+              <input type="checkbox" name="removeLogo" value="1" /> Remove the current logo
+            </label>
+          )}
+          <small className="muted">Shown in the same fixed spot in every template. PNG, JPEG, GIF or WebP, up to 5 MB.</small>
+        </div>
+
+        <fieldset className="swatches-group" style={{ border: "none", padding: 0, margin: 0 }}>
+          <legend style={{ fontWeight: 600, marginBottom: "0.6rem", padding: 0 }}>Theme colour</legend>
+          <div className="swatches">
+            {THEME_PRESETS.map((p) => (
+              <label key={p.id} className="swatch" title={p.label} style={{ ["--swatch" as string]: p.hex }}>
+                <input type="radio" name="themeColor" value={p.hex} defaultChecked={themeOrDefault(store.themeColor) === p.hex} aria-label={p.label} />
+                <span />
+              </label>
+            ))}
+          </div>
+          <small className="muted" style={{ display: "block", marginTop: "0.5rem" }}>Used for buttons and highlights on your storefront.</small>
+        </fieldset>
 
         <fieldset className="template-picker">
           <legend>Choose a template</legend>

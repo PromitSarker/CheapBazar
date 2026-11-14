@@ -7,6 +7,11 @@ import { TEMPLATES, TemplateId } from "@/lib/constants";
 import { servicesEnabled } from "@/lib/bff/client";
 import { getCurrentStore } from "@/lib/tenant";
 import { updateStoreViaServices } from "@/lib/bff/wallet";
+import { presetHex } from "@/lib/storefront-theme";
+import { validateImage, UploadError } from "@/lib/security/uploads";
+import { promises as fs } from "fs";
+import path from "path";
+import crypto from "crypto";
 
 export async function updateStore(formData: FormData) {
   const user = await getCurrentUser();
@@ -29,7 +34,30 @@ export async function updateStore(formData: FormData) {
   if (servicesEnabled()) {
     const mine = await getCurrentStore();
     if (!mine) redirect("/onboarding");
-    const r = await updateStoreViaServices(mine.id, user.id, { name, slug, template, customDomain });
+    // Branding: one logo file (type sniffed from its bytes) and one preset colour.
+    const branding: { logoUrl?: string | null; themeColor?: string | null } = {};
+    const logoFile = formData.get("logo");
+    if (logoFile instanceof File && logoFile.size > 0) {
+      const buffer = Buffer.from(await logoFile.arrayBuffer());
+      let ext: string;
+      try {
+        ext = validateImage(buffer).ext;
+      } catch (e) {
+        if (e instanceof UploadError) redirect("/dashboard/settings?error=logo");
+        throw e;
+      }
+      const filename = crypto.randomUUID() + ext;
+      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      await fs.mkdir(uploadDir, { recursive: true });
+      await fs.writeFile(path.join(uploadDir, filename), buffer);
+      branding.logoUrl = `/uploads/${filename}`;
+    } else if (formData.get("removeLogo") === "1") {
+      branding.logoUrl = null;
+    }
+    const color = presetHex(String(formData.get("themeColor") || ""));
+    if (color) branding.themeColor = color;
+
+    const r = await updateStoreViaServices(mine.id, user.id, { name, slug, template, customDomain, ...branding });
     redirect(r === "ok" ? "/dashboard/settings?success=1" : `/dashboard/settings?error=${r}`);
   }
 
