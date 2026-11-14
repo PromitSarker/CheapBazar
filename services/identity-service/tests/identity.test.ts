@@ -73,6 +73,19 @@ test("login: correct password works; wrong/unknown fail identically; brute force
   await expectErr(api.post("/auth/login", { email: e, password: PW, ip: "9.9.9.9" }), "RATE_LIMITED", 429);
 });
 
+test("buyer account deletion: needs the password, anonymises, ends sessions; sellers cannot self-delete", async () => {
+  const b = await api.post("/auth/register", { email: "del-me@example.com", name: "Del Me", password: "supersecret1", role: "BUYER", ip: "9.9.9.1" });
+  await expectErr(api.post(`/users/${b.user.id}/delete`, { password: "wrong-password" }), "BAD_CREDENTIALS", 401);
+  assert.equal((await api.post(`/users/${b.user.id}/delete`, { password: "supersecret1" })).ok, true);
+  await expectErr(api.post("/auth/session", { token: b.token }), "NO_SESSION", 401);
+  await expectErr(api.post("/auth/login", { email: "del-me@example.com", password: "supersecret1", ip: "9.9.9.1" }), "BAD_CREDENTIALS", 401);
+  const gone = await api.get(`/users/${b.user.id}`);
+  assert.equal(gone.name, "Deleted user");
+  assert.match(gone.email, /@deleted\.invalid$/);
+  const s = await api.post("/auth/register", { email: "seller-del@example.com", name: "S", password: "supersecret1", role: "SELLER", ip: "9.9.9.2" });
+  await expectErr(api.post(`/users/${s.user.id}/delete`, { password: "supersecret1" }), "NOT_ALLOWED", 403);
+});
+
 test("expired sessions are rejected and cleaned up", async () => {
   const r = await reg("BUYER");
   await svc.db.session.updateMany({ where: { userId: r.user.id }, data: { expiresAt: new Date(Date.now() - 1000) } });

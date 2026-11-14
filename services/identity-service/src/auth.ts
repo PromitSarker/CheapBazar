@@ -92,6 +92,33 @@ export async function logout(db: Db, token: string) {
   return { ok: true };
 }
 
+/**
+ * Buyer self-service account deletion (App Store / Play Store requirement). Needs the password.
+ * The account is anonymised in place (the row stays so past orders keep a valid buyer id for
+ * accounting) and every session is ended. Sellers and admins cannot use this: a store and its
+ * money history must be closed by an admin.
+ */
+export async function deleteBuyerAccount(db: Db, userId: string, password: string) {
+  const u = await db.user.findUnique({ where: { id: userId } });
+  if (!u) throw new HttpError(404, "User not found", "NOT_FOUND");
+  if (u.role !== "BUYER" && u.role !== "PRO_BUYER") {
+    throw new HttpError(403, "Shop owner and admin accounts must be closed by support.", "NOT_ALLOWED");
+  }
+  if (!(await bcrypt.compare(password, u.passwordHash))) throw new HttpError(401, "Wrong password.", "BAD_CREDENTIALS");
+  await db.$transaction(async (tx) => {
+    await tx.session.deleteMany({ where: { userId } });
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        email: `deleted-${userId}@deleted.invalid`,
+        name: "Deleted user",
+        passwordHash: await bcrypt.hash(crypto.randomBytes(24).toString("hex"), 10),
+      },
+    });
+  });
+  return { ok: true };
+}
+
 export async function cleanupSessions(db: Db) {
   const r = await db.session.deleteMany({ where: { expiresAt: { lt: new Date() } } });
   return { deleted: r.count };

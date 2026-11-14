@@ -6,3 +6,6 @@ node_modules/
 # microservice generated Prisma clients
 services/*/generated/
 deploy/.env
+
+# built app files served by /downloads (not source)
+/downloads/

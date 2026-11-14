@@ -6,7 +6,6 @@ import SiteHeader from "@/components/layout/SiteHeader";
 import SiteFooter from "@/components/layout/SiteFooter";
 import { servicesEnabled } from "@/lib/bff/client";
 import { unreadCountViaServices } from "@/lib/bff/notifications";
-import RegisterSW from "@/components/pwa/RegisterSW";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 
@@ -16,12 +15,10 @@ export const metadata: Metadata = {
   title: "Cheap-Bazar — Create your own store",
   description: "Spin up a storefront in minutes. Built-in templates, simple inventory management in Bangladeshi Taka.",
   applicationName: "Cheap-Bazar",
-  manifest: "/manifest.webmanifest",
   icons: {
     icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
   },
-  appleWebApp: { capable: true, title: "Cheap-Bazar", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
@@ -46,7 +43,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SiteHeader user={user} marketplace={servicesEnabled()} unread={unread} />
           <main className="site-main">{children}</main>
           <SiteFooter />
-          <RegisterSW />
         </LanguageProvider>
       </body>
     </html>
