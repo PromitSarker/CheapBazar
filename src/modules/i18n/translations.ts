@@ -40,7 +40,7 @@ export const translations: Record<Language, Translations> = {
     logout: "Log out",
     getStarted: "Get Started",
     createStore: "Create your store",
-    footerText: "Made with ❤️ for every shopkeeper, seller, and shopper in Bangladesh.",
+    footerText: "Made for every shopkeeper, seller, and shopper in Bangladesh.",
 
     // Landing Page
     heroBadge: "Bangladesh's Easiest Free Online Shop Maker",
@@ -74,7 +74,7 @@ export const translations: Record<Language, Translations> = {
     previewItem2: "Embroidered Cotton Panjabi",
     previewClassic: "Classic Template",
     previewModern: "Modern Template",
-    previewCartReserved: "⏱️ Items saved for you while ordering",
+    previewCartReserved: "Items saved for you while ordering",
 
     // Core Features / Bento
     featuresHeading: "Everything you need to sell easily across Bangladesh",
@@ -164,7 +164,7 @@ export const translations: Record<Language, Translations> = {
     total: "Total",
     proceedToCheckout: "Proceed to Checkout",
     reservingStock: "Reserving stock...",
-    stockHoldNotice: "⏱️ Items saved for you while completing order",
+    stockHoldNotice: "Items saved for you while completing order",
     orderReservedTitle: "Order Placed!",
     orderReservedDesc: "Your order details are confirmed. The merchant will process your delivery.",
     continueShopping: "Continue Shopping",
@@ -280,7 +280,7 @@ export const translations: Record<Language, Translations> = {
     previewItem2: "সেমি-লং সুতি পাঞ্জাবি",
     previewClassic: "ক্লাসিক ডিজাইন",
     previewModern: "মডার্ন ডিজাইন",
-    previewCartReserved: "⏱️ অর্ডার করার সময় পণ্যটি আপনার জন্য সংরক্ষিত",
+    previewCartReserved: "অর্ডার করার সময় পণ্যটি আপনার জন্য সংরক্ষিত",
 
     // Core Features / Bento
     featuresHeading: "বাংলাদেশে সহজে পণ্য বিক্রির সব সমাধান এক জায়গায়",
@@ -370,7 +370,7 @@ export const translations: Record<Language, Translations> = {
     total: "সর্বমোট",
     proceedToCheckout: "চেকআউট করুন",
     reservingStock: "পণ্যটি সংরক্ষিত হচ্ছে...",
-    stockHoldNotice: "⏱️ অর্ডার করার সময় পণ্যটি আপনার জন্য সংরক্ষিত থাকবে",
+    stockHoldNotice: "অর্ডার করার সময় পণ্যটি আপনার জন্য সংরক্ষিত থাকবে",
     orderReservedTitle: "অর্ডার গ্রহণ করা হয়েছে!",
     orderReservedDesc: "আপনার অর্ডার সফল হয়েছে। বিক্রেতা দ্রুত আপনার পার্সেল ডেলিভারির ব্যবস্থা করবেন।",
     continueShopping: "আরও কেনাকাটা করুন",

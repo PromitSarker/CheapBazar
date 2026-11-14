@@ -50,8 +50,8 @@ export default function LanguageSwitcher() {
         type="button"
         onClick={() => handleSwitch("bn")}
         style={{
-          background: lang === "bn" ? "#10b981" : "transparent",
-          color: lang === "bn" ? "#ffffff" : "var(--text-tertiary)",
+          background: lang === "bn" ? "#ffffff" : "transparent",
+          color: lang === "bn" ? "#09090b" : "var(--text-tertiary)",
           border: "none",
           borderRadius: "999px",
           padding: "4px 10px",
