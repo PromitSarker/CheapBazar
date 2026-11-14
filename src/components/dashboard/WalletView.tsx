@@ -107,26 +107,7 @@ export default function WalletView({
   const availableBalance = totalBalance;
   const withdrawableBalance = Math.max(0, availableBalance);
 
-  const defaultHistory: LedgerItem[] = [
-    {
-      id: "TXN-8812",
-      type: "ORDER_SPLIT_SETTLEMENT",
-      desc: "Net settlement from Order ORD-9390 via SSLCommerz",
-      debit: null,
-      credit: 1620.00,
-      timestamp: "Oct 11, 2026, 04:30 PM",
-    },
-    {
-      id: "TXN-8500",
-      type: "WALLET_TOP_UP",
-      desc: "Merchant prepaid balance top-up via SSLCommerz (bKash/Card)",
-      debit: null,
-      credit: 2500.00,
-      timestamp: "Oct 08, 2026, 02:15 PM",
-    },
-  ];
-
-  const ledgerHistory = initialLedgerEntries.length > 0 ? initialLedgerEntries : defaultHistory;
+  const ledgerHistory = initialLedgerEntries;
 
   // Handle Top-Up
   const handleInitiateTopUp = async () => {
@@ -447,37 +428,44 @@ export default function WalletView({
       {activeTab === "ledger" && (
         <>
           <h2>{t.doubleEntryTransactions}</h2>
-          <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
-              <thead>
-                <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--bg-secondary)" }}>
-                  <th style={{ padding: "0.85rem 1rem" }}>Transaction ID</th>
-                  <th style={{ padding: "0.85rem 1rem" }}>Reference / Reason</th>
-                  <th style={{ padding: "0.85rem 1rem" }}>Debit (-)</th>
-                  <th style={{ padding: "0.85rem 1rem" }}>Credit (+)</th>
-                  <th style={{ padding: "0.85rem 1rem" }}>Timestamp</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ledgerHistory.map((txn) => (
-                  <tr key={txn.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                    <td style={{ padding: "0.85rem 1rem", fontWeight: 600 }}>{toNumerals(txn.id)}</td>
-                    <td style={{ padding: "0.85rem 1rem" }}>
-                      <div>{txn.desc}</div>
-                      <small className="muted" style={{ fontSize: "0.75rem" }}>{txn.type}</small>
-                    </td>
-                    <td style={{ padding: "0.85rem 1rem", color: txn.debit ? "var(--danger)" : "#71717a" }}>
-                      {txn.debit ? `-${formatMoney(txn.debit)}` : "—"}
-                    </td>
-                    <td style={{ padding: "0.85rem 1rem", color: txn.credit ? "var(--success)" : "#71717a", fontWeight: txn.credit ? 600 : 400 }}>
-                      {txn.credit ? `+${formatMoney(txn.credit)}` : "—"}
-                    </td>
-                    <td style={{ padding: "0.85rem 1rem", color: "var(--text-tertiary)", fontSize: "0.8rem" }}>{txn.timestamp}</td>
+          {ledgerHistory.length === 0 ? (
+            <div className="empty-state">
+              <strong>No transactions yet</strong>
+              <p className="muted">Top-ups, ad charges, withdrawals and order settlements will be listed here.</p>
+            </div>
+          ) : (
+            <div className="data-table-wrapper">
+              <table className="data-table ledger-table">
+                <thead>
+                  <tr>
+                    <th>Transaction</th>
+                    <th>Reference / Reason</th>
+                    <th className="num">Debit (-)</th>
+                    <th className="num">Credit (+)</th>
+                    <th>Time</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {ledgerHistory.map((txn) => (
+                    <tr key={txn.id}>
+                      <td className="nowrap"><strong>{toNumerals(txn.id)}</strong></td>
+                      <td>
+                        <div>{txn.desc}</div>
+                        <small className="muted">{txn.type}</small>
+                      </td>
+                      <td className="num nowrap" style={{ color: txn.debit ? "var(--danger)" : "var(--text-tertiary)" }}>
+                        {txn.debit ? `-${formatMoney(txn.debit)}` : "—"}
+                      </td>
+                      <td className="num nowrap" style={{ color: txn.credit ? "var(--success)" : "var(--text-tertiary)", fontWeight: txn.credit ? 600 : 400 }}>
+                        {txn.credit ? `+${formatMoney(txn.credit)}` : "—"}
+                      </td>
+                      <td className="muted small">{txn.timestamp}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
       )}
 
