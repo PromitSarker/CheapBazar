@@ -20,10 +20,10 @@ export default function LanguageSwitcher() {
       style={{
         display: "inline-flex",
         alignItems: "center",
-        backgroundColor: "rgba(255, 255, 255, 0.08)",
+        backgroundColor: "var(--surface-muted)",
         borderRadius: "999px",
         padding: "3px",
-        border: "1px solid rgba(255, 255, 255, 0.12)",
+        border: "1px solid var(--border)",
         fontSize: "0.8rem",
         fontWeight: 600,
       }}
@@ -33,7 +33,7 @@ export default function LanguageSwitcher() {
         onClick={() => handleSwitch("en")}
         style={{
           background: lang === "en" ? "#ffffff" : "transparent",
-          color: lang === "en" ? "#09090b" : "#a1a1aa",
+          color: lang === "en" ? "#09090b" : "var(--text-tertiary)",
           border: "none",
           borderRadius: "999px",
           padding: "4px 10px",
@@ -51,7 +51,7 @@ export default function LanguageSwitcher() {
         onClick={() => handleSwitch("bn")}
         style={{
           background: lang === "bn" ? "#10b981" : "transparent",
-          color: lang === "bn" ? "#ffffff" : "#a1a1aa",
+          color: lang === "bn" ? "#ffffff" : "var(--text-tertiary)",
           border: "none",
           borderRadius: "999px",
           padding: "4px 10px",

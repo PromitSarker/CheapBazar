@@ -17,11 +17,11 @@ export default function SiteFooter() {
           </Link>
           <p>{t.footerAbout}</p>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem" }}>
-            <span style={{ fontSize: "0.75rem", background: "rgba(16, 185, 129, 0.1)", color: "#059669", padding: "3px 8px", borderRadius: "99px", fontWeight: 600 }}>
-              {language === "bn" ? "🔒 ১০০% সুরক্ষিত ও নিরাপদ" : "🔒 100% Safe & Secure"}
+            <span style={{ fontSize: "0.78rem", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "2px 8px", borderRadius: "var(--radius-sm)", fontWeight: 500 }}>
+              {language === "bn" ? "১০০% সুরক্ষিত ও নিরাপদ" : "100% Safe & Secure"}
             </span>
-            <span style={{ fontSize: "0.75rem", background: "rgba(59, 130, 246, 0.1)", color: "#2563eb", padding: "3px 8px", borderRadius: "99px", fontWeight: 600 }}>
-              {language === "bn" ? "🇧🇩 ৬৪ জেলায় ডেলিভারি সুবিধা" : "🇧🇩 All 64 Districts Supported"}
+            <span style={{ fontSize: "0.78rem", border: "1px solid var(--border)", color: "var(--text-secondary)", padding: "2px 8px", borderRadius: "var(--radius-sm)", fontWeight: 500 }}>
+              {language === "bn" ? "৬৪ জেলায় ডেলিভারি সুবিধা" : "All 64 Districts Supported"}
             </span>
           </div>
         </div>
@@ -71,9 +71,6 @@ export default function SiteFooter() {
         <div className="footer-col">
           <h5>{t.footerSecurity}</h5>
           <ul className="footer-links">
-            <li>
-              <Link href="/admin">{t.adminPortal}</Link>
-            </li>
             <li>
               <span className="small muted">{language === "bn" ? "টাকার শতভাগ সঠিক হিসাব" : "Accurate Balance & Accounts"}</span>
             </li>

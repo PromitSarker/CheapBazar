@@ -4,7 +4,6 @@ import React from "react";
 import { CartProvider, useCart } from "@/components/cart/CartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { useLanguage } from "@/modules/i18n/LanguageContext";
-import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import SponsoredBanner from "@/components/sponsored/SponsoredBanner";
 
 type SponsoredVM = { headline: string; imageUrl: string; targetUrl: string };
@@ -32,14 +31,13 @@ function ModernContent({
             <p>{t.modernTagline}</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <LanguageSwitcher />
             <button
               type="button"
               onClick={openCart}
-              className="button glow-button"
+              className="button"
               style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.2rem" }}
             >
-              <span>🛍️ {t.cart}</span>
+              <span>{t.cart}</span>
               {totalCount > 0 && (
                 <span style={{
                   background: "white",
@@ -69,12 +67,12 @@ function ModernContent({
           alignItems: "center",
           fontSize: "0.85rem"
         }}>
-          <span>⚡ <strong>{t.sponsored}:</strong> {t.flashDealNotice}</span>
-          <span style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "#60a5fa", fontWeight: 600 }}>{t.sponsored}</span>
+          <span><strong>{t.sponsored}:</strong> {t.flashDealNotice}</span>
+          <span style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--link)", fontWeight: 600 }}>{t.sponsored}</span>
         </div>
         </>
         ) : sponsored ? (
-          <SponsoredBanner ad={sponsored} label={t.sponsored} accent="#60a5fa" />
+          <SponsoredBanner ad={sponsored} label={t.sponsored} accent="var(--link)" />
         ) : null}
       </section>
 

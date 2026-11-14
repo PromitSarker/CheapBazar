@@ -27,14 +27,14 @@ export default async function AdminPayoutsPage() {
           <h1>Seller Disbursements & Payout Queue</h1>
           <p className="muted">Approve seller withdrawals, export batch banking files, and verify MFS transactions.</p>
           <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.75rem" }}>
-            <a href="/api/admin/payouts/export?format=beftn" className="button button-small" download>📥 Export Bank BEFTN CSV</a>
-            <a href="/api/admin/payouts/export?format=bkash" className="button button-small" download>📥 Export bKash Bulk CSV</a>
+            <a href="/api/admin/payouts/export?format=beftn" className="button button-small" download>Export Bank BEFTN CSV</a>
+            <a href="/api/admin/payouts/export?format=bkash" className="button button-small" download>Export bKash Bulk CSV</a>
           </div>
         </div>
         <div className="stat-grid" style={{ marginBottom: "2rem" }}>
-          <div className="stat-card"><span className="stat-value" style={{ color: "#facc15" }}>৳{sum(pending).toFixed(2)}</span><span className="muted">Pending Payouts ({pending.length} requests)</span></div>
-          <div className="stat-card"><span className="stat-value" style={{ color: "#4ade80" }}>৳{sum(completed).toFixed(2)}</span><span className="muted">Settled to Date ({completed.length} disbursements)</span></div>
-          <div className="stat-card"><span className="stat-value" style={{ color: "#38bdf8" }}>{rows.length}</span><span className="muted">Total Lifetime Claims</span></div>
+          <div className="stat-card"><span className="stat-value" style={{ color: "var(--warning)" }}>৳{sum(pending).toFixed(2)}</span><span className="muted">Pending Payouts ({pending.length} requests)</span></div>
+          <div className="stat-card"><span className="stat-value" style={{ color: "var(--success)" }}>৳{sum(completed).toFixed(2)}</span><span className="muted">Settled to Date ({completed.length} disbursements)</span></div>
+          <div className="stat-card"><span className="stat-value" style={{ color: "var(--text-primary)" }}>{rows.length}</span><span className="muted">Total Lifetime Claims</span></div>
         </div>
         <AdminPayoutClient initialWithdrawals={rows as any} />
       </div>
@@ -123,15 +123,15 @@ export default async function AdminPayoutsPage() {
             href="/api/admin/payouts/export?format=beftn"
             className="button button-small"
             style={{
-              backgroundColor: "rgba(56, 189, 248, 0.15)",
-              color: "#38bdf8",
-              border: "1px solid rgba(56, 189, 248, 0.4)",
+              backgroundColor: "var(--surface-muted)",
+              color: "var(--text-primary)",
+              border: "1px solid var(--surface-muted)",
               fontWeight: 600,
               textDecoration: "none",
             }}
             download
           >
-            📥 Export Bank BEFTN CSV
+            Export Bank BEFTN CSV
           </a>
           <a
             href="/api/admin/payouts/export?format=bkash"
@@ -145,22 +145,22 @@ export default async function AdminPayoutsPage() {
             }}
             download
           >
-            📥 Export bKash Bulk CSV
+            Export bKash Bulk CSV
           </a>
         </div>
       </div>
 
       <div className="stat-grid" style={{ marginBottom: "2rem" }}>
         <div className="stat-card">
-          <span className="stat-value" style={{ color: "#facc15" }}>৳{pendingTotal.toFixed(2)}</span>
+          <span className="stat-value" style={{ color: "var(--warning)" }}>৳{pendingTotal.toFixed(2)}</span>
           <span className="muted">Pending Payouts ({pendingCount} requests)</span>
         </div>
         <div className="stat-card">
-          <span className="stat-value" style={{ color: "#4ade80" }}>৳{completedTotal.toFixed(2)}</span>
+          <span className="stat-value" style={{ color: "var(--success)" }}>৳{completedTotal.toFixed(2)}</span>
           <span className="muted">Settled to Date ({completedCount} disbursements)</span>
         </div>
         <div className="stat-card">
-          <span className="stat-value" style={{ color: "#38bdf8" }}>{rawWithdrawals.length}</span>
+          <span className="stat-value" style={{ color: "var(--text-primary)" }}>{rawWithdrawals.length}</span>
           <span className="muted">Total Lifetime Claims</span>
         </div>
       </div>

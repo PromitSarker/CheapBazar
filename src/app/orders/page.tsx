@@ -8,8 +8,8 @@ import { cancelOrder } from "./actions";
 export const dynamic = "force-dynamic";
 
 const COLOR: Record<string, string> = {
-  CONFIRMED: "#38bdf8", PENDING_PAYMENT: "#facc15", PROCESSING: "#38bdf8", SHIPPED: "#a78bfa",
-  DELIVERED: "#4ade80", CANCELLED: "#94a3b8", REFUSED: "#f87171",
+  CONFIRMED: "var(--text-primary)", PENDING_PAYMENT: "var(--warning)", PROCESSING: "var(--text-primary)", SHIPPED: "#a78bfa",
+  DELIVERED: "var(--success)", CANCELLED: "#94a3b8", REFUSED: "var(--danger)",
 };
 const LABEL: Record<string, string> = { PENDING_PAYMENT: "Awaiting payment", REFUSED: "Refused at delivery" };
 const day = (v: string) => new Date(v).toISOString().slice(0, 10);
@@ -26,7 +26,7 @@ export default async function MyOrdersPage({ searchParams }: { searchParams: { e
       <p className="muted">Orders you placed while signed in to this account. Orders placed as a guest are not listed here; use the link on their confirmation page.</p>
 
       {searchParams.error && <p className="error">{searchParams.error}</p>}
-      {searchParams.cancelled && <p style={{ color: "#4ade80" }}>Your order was cancelled.</p>}
+      {searchParams.cancelled && <p style={{ color: "var(--success)" }}>Your order was cancelled.</p>}
 
       {orders.length === 0 && (
         <div className="card" style={{ padding: "1.5rem", margin: "1.25rem 0" }}>

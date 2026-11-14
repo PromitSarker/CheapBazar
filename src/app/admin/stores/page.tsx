@@ -69,7 +69,7 @@ export default async function AdminStoresPage({ searchParams }: { searchParams?:
                         color: s.kycVerified ? "#15803d" : "#a16207",
                       }}
                     >
-                      {s.kycVerified ? "✅ Verified" : "⏳ Pending"}
+                      {s.kycVerified ? "Verified" : "Pending"}
                     </button>
                   </form>
                 </td>

@@ -214,7 +214,7 @@ export default function AdminPayoutClient({
                     <strong style={{ color: "#0f172a" }}>{w.storeName}</strong>
                     <div style={{ color: "#64748b", fontSize: "0.75rem" }}>{w.ownerEmail}</div>
                   </td>
-                  <td style={{ padding: "0.85rem 1rem", fontWeight: 600, color: "#4ade80", fontSize: "0.95rem" }}>
+                  <td style={{ padding: "0.85rem 1rem", fontWeight: 600, color: "var(--success)", fontSize: "0.95rem" }}>
                     ৳{w.amount.toFixed(2)}
                   </td>
                   <td style={{ padding: "0.85rem 1rem" }}>
@@ -251,19 +251,19 @@ export default function AdminPayoutClient({
                           : "rgba(250, 204, 21, 0.2)",
                       color:
                         w.status === "COMPLETED"
-                          ? "#4ade80"
+                          ? "var(--success)"
                           : w.status === "REJECTED"
-                          ? "#f87171"
-                          : "#facc15",
+                          ? "var(--danger)"
+                          : "var(--warning)",
                     }}>
                       ● {w.status}
                     </span>
                   </td>
-                  <td style={{ padding: "0.85rem 1rem", fontSize: "0.8rem", color: "#a1a1aa" }}>
+                  <td style={{ padding: "0.85rem 1rem", fontSize: "0.8rem", color: "var(--text-tertiary)" }}>
                     {w.disbursementTxId ? (
-                      <span style={{ color: "#38bdf8" }}>Ref: {w.disbursementTxId}</span>
+                      <span style={{ color: "var(--text-primary)" }}>Ref: {w.disbursementTxId}</span>
                     ) : w.rejectionReason ? (
-                      <span style={{ color: "#f87171" }}>Reason: {w.rejectionReason}</span>
+                      <span style={{ color: "var(--danger)" }}>Reason: {w.rejectionReason}</span>
                     ) : (
                       "—"
                     )}
@@ -281,14 +281,14 @@ export default function AdminPayoutClient({
                             padding: "0.3rem 0.6rem",
                             borderRadius: "4px",
                             backgroundColor: "rgba(74, 222, 128, 0.2)",
-                            color: "#4ade80",
+                            color: "var(--success)",
                             border: "1px solid rgba(74, 222, 128, 0.4)",
                             cursor: "pointer",
                             fontSize: "0.75rem",
                             fontWeight: 600,
                           }}
                         >
-                          ✓ Mark Paid
+                          Mark Paid
                         </button>
                         <button
                           type="button"
@@ -300,14 +300,14 @@ export default function AdminPayoutClient({
                             padding: "0.3rem 0.6rem",
                             borderRadius: "4px",
                             backgroundColor: "rgba(239, 68, 68, 0.2)",
-                            color: "#f87171",
+                            color: "var(--danger)",
                             border: "1px solid rgba(239, 68, 68, 0.4)",
                             cursor: "pointer",
                             fontSize: "0.75rem",
                             fontWeight: 600,
                           }}
                         >
-                          ✕ Reject
+                          Reject
                         </button>
                       </div>
                     )}
@@ -326,7 +326,6 @@ export default function AdminPayoutClient({
             position: "fixed",
             inset: 0,
             backgroundColor: "rgba(0,0,0,0.7)",
-            backdropFilter: "blur(4px)",
             zIndex: 10000,
             display: "flex",
             alignItems: "center",
@@ -411,7 +410,6 @@ export default function AdminPayoutClient({
             position: "fixed",
             inset: 0,
             backgroundColor: "rgba(0,0,0,0.7)",
-            backdropFilter: "blur(4px)",
             zIndex: 10000,
             display: "flex",
             alignItems: "center",

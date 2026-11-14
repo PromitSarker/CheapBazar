@@ -58,7 +58,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pa
     <div style={{ maxWidth: "680px", margin: "3rem auto", padding: "0 1.5rem" }}>
       <div className="card" style={{ padding: "2.5rem 2rem", textAlign: "center" }}>
         <div style={{ fontSize: "3.5rem", marginBottom: "1rem" }}>
-          {isPaid ? "✅" : "📦"}
+          
         </div>
         <h1 style={{ fontSize: "1.85rem", marginBottom: "0.5rem" }}>
           {isPaid ? "Payment Confirmed!" : "Order Placed Successfully"}
@@ -71,25 +71,25 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pa
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          backgroundColor: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          backgroundColor: "var(--bg-secondary)",
+          border: "1px solid var(--border)",
           borderRadius: "8px",
           padding: "1rem",
           marginBottom: "1.5rem",
           textAlign: "left",
         }}>
           <div>
-            <div style={{ fontSize: "0.85rem", color: "#a1a1aa" }}>Order Number</div>
-            <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "#38bdf8" }}>{order.orderNumber}</div>
+            <div style={{ fontSize: "0.85rem", color: "var(--text-tertiary)" }}>Order Number</div>
+            <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)" }}>{order.orderNumber}</div>
           </div>
           <div>
-            <div style={{ fontSize: "0.85rem", color: "#a1a1aa" }}>Payment Method</div>
+            <div style={{ fontSize: "0.85rem", color: "var(--text-tertiary)" }}>Payment Method</div>
             <div style={{ fontSize: "0.95rem", fontWeight: 600 }}>
               {order.paymentMethod === "SSLCOMMERZ" ? "SSLCommerz (Online)" : "Cash On Delivery"}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: "0.85rem", color: "#a1a1aa" }}>Status</div>
+            <div style={{ fontSize: "0.85rem", color: "var(--text-tertiary)" }}>Status</div>
             <span style={{
               display: "inline-block",
               padding: "0.2rem 0.6rem",
@@ -97,7 +97,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pa
               fontSize: "0.8rem",
               fontWeight: 600,
               backgroundColor: isPaid ? "rgba(74, 222, 128, 0.15)" : "rgba(250, 204, 21, 0.15)",
-              color: isPaid ? "#4ade80" : "#facc15",
+              color: isPaid ? "var(--success)" : "var(--warning)",
             }}>
               ● {order.status}
             </span>
@@ -107,10 +107,10 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pa
         {order.payment && (
           <div style={{
             fontSize: "0.85rem",
-            color: "#a1a1aa",
+            color: "var(--text-tertiary)",
             textAlign: "left",
-            backgroundColor: "rgba(56, 189, 248, 0.05)",
-            border: "1px solid rgba(56, 189, 248, 0.2)",
+            backgroundColor: "var(--surface-muted)",
+            border: "1px solid var(--surface-muted)",
             borderRadius: "6px",
             padding: "0.75rem 1rem",
             marginBottom: "1.5rem",
@@ -122,12 +122,12 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pa
         )}
 
         <div style={{ textAlign: "left", marginBottom: "2rem" }}>
-          <h3 style={{ fontSize: "1.1rem", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "0.5rem" }}>
+          <h3 style={{ fontSize: "1.1rem", borderBottom: "1px solid var(--border)", paddingBottom: "0.5rem" }}>
             Items Ordered
           </h3>
           <ul style={{ listStyle: "none", padding: 0, margin: "1rem 0" }}>
             {order.items.map((it) => (
-              <li key={it.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+              <li key={it.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", borderBottom: "1px solid var(--border)" }}>
                 <div>
                   <span style={{ fontWeight: 600 }}>{it.name}</span>
                   <span className="muted" style={{ marginLeft: "0.5rem" }}>&times; {it.quantity}</span>
@@ -141,13 +141,13 @@ export default async function OrderConfirmationPage({ params, searchParams }: Pa
 
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.2rem", fontWeight: 700, paddingTop: "0.5rem" }}>
             <span>Total</span>
-            <span style={{ color: "#38bdf8" }}>{formatTaka(order.totalAmount)}</span>
+            <span style={{ color: "var(--text-primary)" }}>{formatTaka(order.totalAmount)}</span>
           </div>
         </div>
 
-        <div style={{ textAlign: "left", marginBottom: "2rem", backgroundColor: "rgba(255,255,255,0.02)", padding: "1rem", borderRadius: "6px" }}>
+        <div style={{ textAlign: "left", marginBottom: "2rem", backgroundColor: "var(--bg-secondary)", padding: "1rem", borderRadius: "6px" }}>
           <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.95rem" }}>Shipping Details</h4>
-          <p style={{ margin: 0, fontSize: "0.85rem", color: "#d4d4d8" }}>
+          <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)" }}>
             <strong>{order.buyerName}</strong> ({order.buyerPhone})<br />
             {order.shippingAddress}, {order.shippingCity}
           </p>

@@ -18,7 +18,7 @@ export default function AdsServicesView({
 }) {
   const { t, formatMoney, language } = useLanguage();
   const bn = language === "bn";
-  const input = { padding: "0.6rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "white" } as const;
+  const input = { padding: "0.6rem", background: "var(--surface-muted)", border: "1px solid var(--border)", borderRadius: 6, color: "white" } as const;
 
   return (
     <div>
@@ -28,8 +28,8 @@ export default function AdsServicesView({
       </div>
 
       {error && <p className="error">{error}</p>}
-      {booked && <p className="success" style={{ color: "#4ade80" }}>{bn ? `বিজ্ঞাপন ${booked} জমা হয়েছে। অ্যাডমিন অনুমোদনের পর ওয়ালেট থেকে চার্জ কাটা হবে।` : `Ad ${booked} submitted. Your wallet is charged when an admin approves it.`}</p>}
-      {cancelled && <p className="success" style={{ color: "#4ade80" }}>{bn ? "অনুরোধ বাতিল হয়েছে।" : "Request cancelled."}</p>}
+      {booked && <p className="success" style={{ color: "var(--success)" }}>{bn ? `বিজ্ঞাপন ${booked} জমা হয়েছে। অ্যাডমিন অনুমোদনের পর ওয়ালেট থেকে চার্জ কাটা হবে।` : `Ad ${booked} submitted. Your wallet is charged when an admin approves it.`}</p>}
+      {cancelled && <p className="success" style={{ color: "var(--success)" }}>{bn ? "অনুরোধ বাতিল হয়েছে।" : "Request cancelled."}</p>}
 
       <h2>{t.availableAdInventory}</h2>
       <div className="card-grid" style={{ marginBottom: "2rem" }}>
@@ -37,10 +37,10 @@ export default function AdsServicesView({
           <div key={s.code} className="card" style={{ padding: "1.25rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
               <strong>{s.name}</strong>
-              <span style={{ color: "#38bdf8", fontWeight: 700 }}>{formatMoney(s.pricePerDay)} / {bn ? "দিন" : "day"}</span>
+              <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>{formatMoney(s.pricePerDay)} / {bn ? "দিন" : "day"}</span>
             </div>
             <p className="muted" style={{ fontSize: "0.85rem", margin: 0 }}>
-              📍 {s.placement === "STOREFRONT" ? (bn ? "স্টোরফ্রন্ট" : "Storefronts") : (bn ? "মার্কেটপ্লেস" : "Marketplace")} · {bn ? "ধারণক্ষমতা" : "capacity"} {s.capacity}
+              {s.placement === "STOREFRONT" ? (bn ? "স্টোরফ্রন্ট" : "Storefronts") : (bn ? "মার্কেটপ্লেস" : "Marketplace")} · {bn ? "ধারণক্ষমতা" : "capacity"} {s.capacity}
             </p>
           </div>
         ))}
@@ -82,21 +82,21 @@ export default function AdsServicesView({
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
+            <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--bg-secondary)" }}>
               {[bn ? "আইডি" : "ID", bn ? "স্লট" : "Slot", bn ? "শিরোনাম" : "Headline", bn ? "মেয়াদ" : "Dates", bn ? "চার্জ" : "Fee", t.status, ""].map((h, i) => <th key={i} style={{ padding: "0.85rem 1rem" }}>{h}</th>)}
             </tr>
           </thead>
           <tbody>
             {bookings.length === 0 && <tr><td colSpan={7} style={{ padding: "1rem", textAlign: "center" }} className="muted">{bn ? "এখনও কোনো ক্যাম্পেইন নেই।" : "No campaigns yet."}</td></tr>}
             {bookings.map((b) => (
-              <tr key={b.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <tr key={b.id} style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={{ padding: "0.85rem 1rem", fontWeight: 600 }}>{b.bookingNumber}</td>
                 <td style={{ padding: "0.85rem 1rem" }}>{b.slot?.name}</td>
                 <td style={{ padding: "0.85rem 1rem" }}>{b.headline}{b.reviewNote && b.status === "REJECTED" ? <small className="muted" style={{ display: "block" }}>{b.reviewNote}</small> : null}</td>
-                <td style={{ padding: "0.85rem 1rem", color: "#a1a1aa", fontSize: "0.85rem" }}>{b.startDate} → {b.endDate}</td>
+                <td style={{ padding: "0.85rem 1rem", color: "var(--text-tertiary)", fontSize: "0.85rem" }}>{b.startDate} → {b.endDate}</td>
                 <td style={{ padding: "0.85rem 1rem", fontWeight: 600 }}>{formatMoney(b.totalPrice)}</td>
                 <td style={{ padding: "0.85rem 1rem" }}>
-                  <span style={{ fontSize: "0.75rem", fontWeight: 600, padding: "0.2rem 0.5rem", borderRadius: 4, backgroundColor: b.status === "ACTIVE" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: b.status === "ACTIVE" ? "#4ade80" : "#facc15" }}>
+                  <span style={{ fontSize: "0.75rem", fontWeight: 600, padding: "0.2rem 0.5rem", borderRadius: 4, backgroundColor: b.status === "ACTIVE" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: b.status === "ACTIVE" ? "var(--success)" : "var(--warning)" }}>
                     {bn ? STATUS_BN[b.status] ?? b.status : b.status}
                   </span>
                 </td>

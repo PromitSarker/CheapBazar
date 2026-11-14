@@ -98,15 +98,13 @@ export default function ProductsInventoryView({
         style={{
           marginBottom: "2.5rem",
           padding: "1.75rem",
-          background: "rgba(255, 255, 255, 0.85)",
-          backdropFilter: "blur(20px)",
+          background: "var(--surface-muted)",
           border: "1px solid rgba(0, 0, 0, 0.08)",
           borderRadius: "20px",
           boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.04)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.25rem" }}>
-          <span style={{ fontSize: "1.2rem" }}>✨</span>
           <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "#09090b" }}>
             {t.addProduct}
           </h3>
@@ -332,11 +330,10 @@ export default function ProductsInventoryView({
           style={{
             padding: "3rem 1.5rem",
             textAlign: "center",
-            background: "rgba(255, 255, 255, 0.7)",
+            background: "var(--surface-muted)",
             borderRadius: "20px",
           }}
         >
-          <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>📦</div>
           <h3 style={{ margin: "0 0 0.5rem 0", color: "#09090b" }}>
             {language === "bn" ? "এখনও কোনো পণ্য নেই" : "No products in inventory"}
           </h3>
@@ -406,7 +403,6 @@ export default function ProductsInventoryView({
                             fontSize: "1.3rem",
                           }}
                         >
-                          🥐
                         </div>
                       )}
                       <div>

@@ -29,7 +29,7 @@ export default function OverviewView({
       <h1>{t.overview}</h1>
       <p className="muted" style={{ marginBottom: "1.5rem" }}>
         {t.yourStoreLivesAt}{" "}
-        <a href={`/store/${storeSlug}`} style={{ color: "#38bdf8" }}>
+        <a href={`/store/${storeSlug}`} style={{ color: "var(--text-primary)" }}>
           /store/{storeSlug}
         </a>{" "}
         {t.usingTemplate} <strong>{template}</strong>.

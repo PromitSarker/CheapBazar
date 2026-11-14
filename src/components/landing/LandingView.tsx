@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/modules/i18n/LanguageContext";
+import Icon from "@/components/ui/Icon";
 import SponsoredBanner from "@/components/sponsored/SponsoredBanner";
 
 interface StoreItem {
@@ -124,13 +125,8 @@ export default function LandingView({ stores, heroAds = [] }: { stores: StoreIte
           <div className="interactive-preview-card">
             {/* Simulated Browser Bar */}
             <div className="preview-topbar">
-              <div className="preview-browser-dots">
-                <span className="browser-dot red"></span>
-                <span className="browser-dot yellow"></span>
-                <span className="browser-dot green"></span>
-              </div>
-              <div className="preview-address-bar">
-                <span>🔒</span>
+                            <div className="preview-address-bar">
+                <Icon name="lock" size={13} />
                 <span>cheapbazar.com/store/tushar-fashion</span>
               </div>
               <div className="preview-template-switch">
@@ -152,35 +148,22 @@ export default function LandingView({ stores, heroAds = [] }: { stores: StoreIte
             </div>
 
             {/* Storefront Header */}
-            <div
-              className="preview-store-hero"
-              style={{
-                background:
-                  previewTemplate === "modern"
-                    ? "linear-gradient(135deg, rgba(244, 244, 245, 0.9) 0%, rgba(228, 228, 231, 0.6) 100%)"
-                    : "rgba(255, 255, 255, 0.95)",
-              }}
-            >
+            <div className="preview-store-hero" data-template={previewTemplate}>
               <div className="preview-store-info">
-                <div
-                  className="preview-store-avatar"
-                  style={{
-                    background: previewTemplate === "modern" ? "linear-gradient(135deg, #db2777, #be185d)" : "#18181b",
-                  }}
-                >
-                  👗
+                <div className="preview-store-avatar" aria-hidden="true">
+                  {t.previewStoreName.trim().charAt(0)}
                 </div>
                 <div className="preview-store-title">
                   <h4>
                     {t.previewStoreName}
-                    <span className="preview-verified-badge">✓ Verified</span>
+                    <span className="preview-verified-badge">Verified</span>
                   </h4>
                   <p>{t.previewStoreTagline}</p>
                 </div>
               </div>
 
               <div className="preview-cart-counter">
-                <span>🛍️</span>
+                <Icon name="bag" size={16} />
                 <span>
                   {toNumerals(previewCartCount)} {t.bag}
                 </span>
@@ -191,9 +174,7 @@ export default function LandingView({ stores, heroAds = [] }: { stores: StoreIte
             <div className="preview-products-grid">
               {/* Product 1 */}
               <div className="preview-product-card">
-                <div className="preview-prod-img-box" style={{ background: "#fce7f3" }}>
-                  👗
-                </div>
+                <div className="preview-prod-img-box" aria-hidden="true" />
                 <h5 className="preview-prod-name">{t.previewItem1}</h5>
                 <p className="muted small" style={{ margin: 0 }}>
                   {language === "bn" ? "খাঁটি সুতি সুতা দিয়ে বোনা ঐতিহ্যবাহী জামদানি শাড়ি।" : "Handloom woven soft cotton authentic Jamdani saree."}
@@ -205,16 +186,14 @@ export default function LandingView({ stores, heroAds = [] }: { stores: StoreIte
                     className="preview-add-btn"
                     onClick={() => handlePreviewAddToCart(t.previewItem1)}
                   >
-                    {addedItemName === t.previewItem1 ? "✓ Added" : t.addToCart}
+                    {addedItemName === t.previewItem1 ? "Added" : t.addToCart}
                   </button>
                 </div>
               </div>
 
               {/* Product 2 */}
               <div className="preview-product-card">
-                <div className="preview-prod-img-box" style={{ background: "#e0f2fe" }}>
-                  👔
-                </div>
+                <div className="preview-prod-img-box" aria-hidden="true" />
                 <h5 className="preview-prod-name">{t.previewItem2}</h5>
                 <p className="muted small" style={{ margin: 0 }}>
                   {language === "bn" ? "আরামদায়ক প্রিমিয়াম সুতি কাপড়ে নিখুঁত সুতার কাজ।" : "Comfortable premium breathable cotton with neat embroidery."}
@@ -226,7 +205,7 @@ export default function LandingView({ stores, heroAds = [] }: { stores: StoreIte
                     className="preview-add-btn"
                     onClick={() => handlePreviewAddToCart(t.previewItem2)}
                   >
-                    {addedItemName === t.previewItem2 ? "✓ Added" : t.addToCart}
+                    {addedItemName === t.previewItem2 ? "Added" : t.addToCart}
                   </button>
                 </div>
               </div>
@@ -236,7 +215,7 @@ export default function LandingView({ stores, heroAds = [] }: { stores: StoreIte
             <div className="preview-footer-strip">
               <span>{t.previewCartReserved}</span>
               <span className="small">
-                {language === "bn" ? "🚚 সারা দেশে দ্রুত হোম ডেলিভারি" : "🚚 Fast Nationwide Home Delivery"}
+                {language === "bn" ? "সারা দেশে দ্রুত হোম ডেলিভারি" : "Fast nationwide home delivery"}
               </span>
             </div>
           </div>
@@ -264,42 +243,42 @@ export default function LandingView({ stores, heroAds = [] }: { stores: StoreIte
         <div className="feature-bento-grid">
           {/* Feature 1 */}
           <div className="feature-box">
-            <div className="feature-icon-bubble">🌐</div>
+            <div className="feature-icon-bubble"><Icon name="globe" size={22} /></div>
             <h3>{t.feat1Title}</h3>
             <p>{t.feat1Desc}</p>
           </div>
 
           {/* Feature 2 */}
           <div className="feature-box">
-            <div className="feature-icon-bubble">📦</div>
+            <div className="feature-icon-bubble"><Icon name="package" size={22} /></div>
             <h3>{t.feat2Title}</h3>
             <p>{t.feat2Desc}</p>
           </div>
 
           {/* Feature 3 */}
           <div className="feature-box">
-            <div className="feature-icon-bubble">📱</div>
+            <div className="feature-icon-bubble"><Icon name="smartphone" size={22} /></div>
             <h3>{t.feat3Title}</h3>
             <p>{t.feat3Desc}</p>
           </div>
 
           {/* Feature 4 */}
           <div className="feature-box">
-            <div className="feature-icon-bubble">⚖️</div>
+            <div className="feature-icon-bubble"><Icon name="scale" size={22} /></div>
             <h3>{t.feat4Title}</h3>
             <p>{t.feat4Desc}</p>
           </div>
 
           {/* Feature 5 */}
           <div className="feature-box">
-            <div className="feature-icon-bubble">🚀</div>
+            <div className="feature-icon-bubble"><Icon name="rocket" size={22} /></div>
             <h3>{t.feat5Title}</h3>
             <p>{t.feat5Desc}</p>
           </div>
 
           {/* Feature 6 */}
           <div className="feature-box">
-            <div className="feature-icon-bubble">🔒</div>
+            <div className="feature-icon-bubble"><Icon name="lock" size={22} /></div>
             <h3>{t.feat6Title}</h3>
             <p>{t.feat6Desc}</p>
           </div>
@@ -359,7 +338,7 @@ export default function LandingView({ stores, heroAds = [] }: { stores: StoreIte
                 <div className="card-content">
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div className="card-icon">
-                      {s.template === "modern" ? "✨" : "🛍️"}
+                      <Icon name="store" size={22} />
                     </div>
                     <span
                       style={{
@@ -439,7 +418,7 @@ export default function LandingView({ stores, heroAds = [] }: { stores: StoreIte
         <div className="testimonials-grid">
           {/* Testimonial 1 */}
           <div className="testimonial-card">
-            <div className="testimonial-stars">★★★★★</div>
+            <div className="testimonial-stars"></div>
             <p className="testimonial-quote">
               {language === "bn"
                 ? "“আমরা মাত্র ৫ মিনিটে আমাদের বুটিক শপ অনলাইন করেছি। কাস্টমাররা সরাসরি বিকাশ বা ক্যাশ অন ডেলিভারিতে অর্ডার করতে পারছে। প্রথম মাসেই আমাদের বিক্রি দ্বিগুণ হয়ে গেছে!”"
@@ -456,7 +435,7 @@ export default function LandingView({ stores, heroAds = [] }: { stores: StoreIte
 
           {/* Testimonial 2 */}
           <div className="testimonial-card">
-            <div className="testimonial-stars">★★★★★</div>
+            <div className="testimonial-stars"></div>
             <p className="testimonial-quote">
               {language === "bn"
                 ? "“একই দোকানে সাধারণ ক্রেতাদের কাছে খুচরা আবার পাইকারি ব্যবসায়ীদের কাছে একসাথে বেশি পণ্য বিক্রি করতে পারছি। বিক্রির লাভ ও টাকার হিসাব ড্যাশবোর্ডে একদম পরিষ্কার থাকে—কোনো ভুল হয় না!”"
@@ -473,7 +452,7 @@ export default function LandingView({ stores, heroAds = [] }: { stores: StoreIte
 
           {/* Testimonial 3 */}
           <div className="testimonial-card">
-            <div className="testimonial-stars">★★★★★</div>
+            <div className="testimonial-stars"></div>
             <p className="testimonial-quote">
               {language === "bn"
                 ? "“ফেসবুক পেজে আগে ইনবক্সে মেসেজ সামলাতে দিনরাত শেষ হয়ে যেত। এখন কাস্টমারকে শুধু দোকানের লিঙ্ক পাঠিয়ে দিই, তারা নিজেরাই সাইজ ও রঙ দেখে অর্ডার করে ফেলে। সময় বেঁচে যায় এবং নিশ্চিন্তে ব্যবসা চালাচ্ছি।”"

@@ -24,13 +24,13 @@ export default async function ServicesAds({ error, done }: { error?: string; don
       <h2>Pending Review Queue</h2>
       <div className="card" style={{ padding: 0, overflow: "hidden", marginBottom: "2.5rem" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
-          <thead><tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
+          <thead><tr style={{ borderBottom: "1px solid var(--border)", background: "var(--bg-secondary)" }}>
             {["Campaign", "Merchant", "Slot", "Creative", "Dates & fee", "Decision"].map((h) => <th key={h} style={th}>{h}</th>)}
           </tr></thead>
           <tbody>
             {pending.length === 0 && <tr><td colSpan={6} style={{ ...td, textAlign: "center" }} className="muted">Nothing is waiting for review.</td></tr>}
             {pending.map((b) => (
-              <tr key={b.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <tr key={b.id} style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={{ ...td, fontWeight: 600 }}>{b.bookingNumber}</td>
                 <td style={td}>{b.storeName}</td>
                 <td style={td}>{b.slot?.name}</td>
@@ -40,13 +40,13 @@ export default async function ServicesAds({ error, done }: { error?: string; don
                   <div style={{ fontWeight: 500 }}>&ldquo;{b.headline}&rdquo;</div>
                   <small className="muted">Target: {b.targetUrl}</small>
                 </td>
-                <td style={td}>{b.startDate} → {b.endDate} ({b.days} d)<br /><strong style={{ color: "#38bdf8" }}>৳ {b.totalPrice.toFixed(2)}</strong></td>
+                <td style={td}>{b.startDate} → {b.endDate} ({b.days} d)<br /><strong style={{ color: "var(--text-primary)" }}>৳ {b.totalPrice.toFixed(2)}</strong></td>
                 <td style={td}>
                   <form action={reviewAd} style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
                     <input type="hidden" name="id" value={b.id} />
                     <input name="note" placeholder="Reason (needed to reject)" style={{ padding: "0.35rem 0.5rem", borderRadius: 6 }} />
                     <button type="submit" name="decision" value="APPROVE" className="button button-small glow-button">Approve</button>
-                    <button type="submit" name="decision" value="REJECT" className="button button-small button-outline" style={{ color: "#f87171" }}>Reject</button>
+                    <button type="submit" name="decision" value="REJECT" className="button button-small button-outline" style={{ color: "var(--danger)" }}>Reject</button>
                   </form>
                 </td>
               </tr>
@@ -58,18 +58,18 @@ export default async function ServicesAds({ error, done }: { error?: string; don
       <h2>Reviewed &amp; Live Ads</h2>
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
-          <thead><tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
+          <thead><tr style={{ borderBottom: "1px solid var(--border)", background: "var(--bg-secondary)" }}>
             {["ID", "Merchant", "Slot", "Headline", "Dates", "Status"].map((h) => <th key={h} style={th}>{h}</th>)}
           </tr></thead>
           <tbody>
             {live.length === 0 && <tr><td colSpan={6} style={{ ...td, textAlign: "center" }} className="muted">No reviewed ads yet.</td></tr>}
             {live.map((b) => (
-              <tr key={b.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <tr key={b.id} style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={{ ...td, fontWeight: 600 }}>{b.bookingNumber}</td>
                 <td style={td}>{b.storeName}</td>
                 <td style={td}>{b.slot?.name}</td>
                 <td style={td}>{b.headline}{b.reviewNote ? <small className="muted" style={{ display: "block" }}>{b.reviewNote}</small> : null}</td>
-                <td style={{ ...td, color: "#a1a1aa", fontSize: "0.85rem" }}>{b.startDate} → {b.endDate}</td>
+                <td style={{ ...td, color: "var(--text-tertiary)", fontSize: "0.85rem" }}>{b.startDate} → {b.endDate}</td>
                 <td style={td}><strong>{b.status}</strong>{b.chargeState && b.chargeState !== "NONE" ? ` · ${b.chargeState}` : ""}</td>
               </tr>
             ))}

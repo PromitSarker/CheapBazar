@@ -64,15 +64,15 @@ export default function AdsView({ storeSlug }: { storeSlug: string }) {
           <div key={slot.id} className="card" style={{ padding: "1.25rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
               <strong style={{ fontSize: "1rem" }}>{slot.name}</strong>
-              <span style={{ color: "#38bdf8", fontWeight: 700 }}>
+              <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>
                 {formatMoney(slot.pricePerDay)} / {language === "bn" ? "দিন" : "day"}
               </span>
             </div>
             <p className="muted" style={{ fontSize: "0.85rem", margin: "0 0 1rem 0" }}>
-              📍 {slot.placement}
+              {slot.placement}
             </p>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: "0.8rem", color: "#4ade80" }}>● {slot.availability}</span>
+              <span style={{ fontSize: "0.8rem", color: "var(--success)" }}>● {slot.availability}</span>
               <button type="button" className="button button-small button-outline">
                 {t.bookSlot}
               </button>
@@ -91,8 +91,8 @@ export default function AdsView({ storeSlug }: { storeSlug: string }) {
               defaultValue="slot-storefront-top"
               style={{
                 padding: "0.6rem",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                background: "var(--surface-muted)",
+                border: "1px solid var(--border)",
                 borderRadius: "6px",
                 color: "white",
               }}
@@ -144,7 +144,7 @@ export default function AdsView({ storeSlug }: { storeSlug: string }) {
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
+            <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--bg-secondary)" }}>
               <th style={{ padding: "0.85rem 1rem" }}>{language === "bn" ? "ক্যাম্পেইন আইডি" : "Campaign ID"}</th>
               <th style={{ padding: "0.85rem 1rem" }}>{language === "bn" ? "স্লট" : "Slot"}</th>
               <th style={{ padding: "0.85rem 1rem" }}>{language === "bn" ? "শিরোনাম" : "Headline"}</th>
@@ -155,11 +155,11 @@ export default function AdsView({ storeSlug }: { storeSlug: string }) {
           </thead>
           <tbody>
             {existingCampaigns.map((camp) => (
-              <tr key={camp.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <tr key={camp.id} style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={{ padding: "0.85rem 1rem", fontWeight: 600 }}>{toNumerals(camp.id)}</td>
                 <td style={{ padding: "0.85rem 1rem" }}>{camp.slot}</td>
-                <td style={{ padding: "0.85rem 1rem", color: "#e4e4e7" }}>{camp.headline}</td>
-                <td style={{ padding: "0.85rem 1rem", color: "#a1a1aa", fontSize: "0.85rem" }}>{camp.dates}</td>
+                <td style={{ padding: "0.85rem 1rem", color: "var(--text-primary)" }}>{camp.headline}</td>
+                <td style={{ padding: "0.85rem 1rem", color: "var(--text-tertiary)", fontSize: "0.85rem" }}>{camp.dates}</td>
                 <td style={{ padding: "0.85rem 1rem", fontWeight: 600 }}>{formatMoney(camp.fee)}</td>
                 <td style={{ padding: "0.85rem 1rem" }}>
                   <span
@@ -170,7 +170,7 @@ export default function AdsView({ storeSlug }: { storeSlug: string }) {
                       padding: "0.2rem 0.5rem",
                       borderRadius: "4px",
                       backgroundColor: camp.status === "ACTIVE" ? "rgba(34, 197, 94, 0.15)" : "rgba(234, 179, 8, 0.15)",
-                      color: camp.status === "ACTIVE" ? "#4ade80" : "#facc15",
+                      color: camp.status === "ACTIVE" ? "var(--success)" : "var(--warning)",
                     }}
                   >
                     {camp.status === "ACTIVE" ? (language === "bn" ? "সক্রিয়" : "ACTIVE") : (language === "bn" ? "পর্যালোচনাধীন" : "PENDING_REVIEW")}

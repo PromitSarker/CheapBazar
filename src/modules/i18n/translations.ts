@@ -43,7 +43,7 @@ export const translations: Record<Language, Translations> = {
     footerText: "Made with ❤️ for every shopkeeper, seller, and shopper in Bangladesh.",
 
     // Landing Page
-    heroBadge: "🇧🇩 Bangladesh's Easiest Free Online Shop Maker",
+    heroBadge: "Bangladesh's Easiest Free Online Shop Maker",
     heroHeading1: "Start your online shop in 1 minute.",
     heroHeadingGradient: "Sell anywhere in Bangladesh.",
     heroDesc: "Run your entire shop right from your mobile phone—no computer or coding needed. Accept payments via bKash, Nagad, Bank, or Cash on Delivery (COD) and withdraw profits anytime. 100% free to start.",
@@ -228,7 +228,7 @@ export const translations: Record<Language, Translations> = {
     userRoleManagement: "User & Role Management",
     approve: "Approve",
     reject: "Reject",
-    verified: "✅ Verified",
+    verified: "✓ Verified",
     pending: "⏳ Pending",
 
     // Store Statuses
@@ -249,7 +249,7 @@ export const translations: Record<Language, Translations> = {
     footerText: "বাংলাদেশের প্রতিটি ব্যবসায়ী, বিক্রেতা ও সাধারণ ক্রেতার বিশ্বস্ত অনলাইন সঙ্গী।",
 
     // Landing Page
-    heroBadge: "🇧🇩 বাংলাদেশের সবচেয়ে সহজ ফ্রি অনলাইন শপ প্ল্যাটফর্ম",
+    heroBadge: "বাংলাদেশের সবচেয়ে সহজ ফ্রি অনলাইন শপ প্ল্যাটফর্ম",
     heroHeading1: "মাত্র ১ মিনিটে খুলুন নিজের অনলাইন দোকান।",
     heroHeadingGradient: "পণ্য বিক্রি করুন সারা বাংলাদেশে।",
     heroDesc: "কম্পিউটার বা কোডিংয়ের কোনো ঝামেলা নেই—নিজের মোবাইল ফোন দিয়েই পুরো দোকান চালান। বিকাশ, নগদ, ব্যাংক এবং ক্যাশ অন ডেলিভারিতে টাকা বুঝে নিন। সম্পূর্ণ ফ্রিতে আজই শুরু করুন।",
@@ -434,7 +434,7 @@ export const translations: Record<Language, Translations> = {
     userRoleManagement: "ব্যবহারকারী ও রোল ব্যবস্থাপনা",
     approve: "অনুমোদন করুন",
     reject: "বাতিল করুন",
-    verified: "✅ যাচাইকৃত",
+    verified: "✓ যাচাইকৃত",
     pending: "⏳ অপেক্ষমাণ",
 
     // Store Statuses

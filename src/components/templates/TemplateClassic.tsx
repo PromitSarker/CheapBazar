@@ -4,7 +4,6 @@ import React from "react";
 import { CartProvider, useCart } from "@/components/cart/CartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { useLanguage } from "@/modules/i18n/LanguageContext";
-import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import SponsoredBanner from "@/components/sponsored/SponsoredBanner";
 
 type SponsoredVM = { headline: string; imageUrl: string; targetUrl: string };
@@ -32,14 +31,13 @@ function ClassicContent({
             <p className="tpl-tagline">{t.classicTagline}</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <LanguageSwitcher />
             <button
               type="button"
               onClick={openCart}
-              className="button glow-button"
+              className="button"
               style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 1rem" }}
             >
-              <span>🛍️ {t.bag}</span>
+              <span>{t.bag}</span>
               {totalCount > 0 && (
                 <span style={{
                   background: "white",
@@ -69,12 +67,12 @@ function ClassicContent({
           alignItems: "center",
           fontSize: "0.85rem"
         }}>
-          <span>✨ <strong>{t.sponsored}:</strong> {t.featuredNotice}</span>
-          <span style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "#f97316", fontWeight: 600 }}>{t.sponsored}</span>
+          <span><strong>{t.sponsored}:</strong> {t.featuredNotice}</span>
+          <span style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "#c2410c", fontWeight: 600 }}>{t.sponsored}</span>
         </div>
         </>
         ) : sponsored ? (
-          <SponsoredBanner ad={sponsored} label={t.sponsored} accent="#f97316" />
+          <SponsoredBanner ad={sponsored} label={t.sponsored} accent="#c2410c" />
         ) : null}
       </header>
 

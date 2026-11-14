@@ -39,7 +39,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={initialLang}>
       <body className={outfit.className}>
         <LanguageProvider initialLang={initialLang}>
-          <div className="bg-gradient-mesh"></div>
           <SiteHeader user={user} marketplace={servicesEnabled()} unread={unread} />
           <main className="site-main">{children}</main>
           <SiteFooter />

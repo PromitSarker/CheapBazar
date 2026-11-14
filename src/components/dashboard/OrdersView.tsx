@@ -106,7 +106,7 @@ export default function OrdersView({ initialOrders = [] }: OrdersViewProps) {
         <div style={{
           backgroundColor: feedback.startsWith("Error") ? "rgba(239, 68, 68, 0.15)" : "rgba(74, 222, 128, 0.15)",
           border: `1px solid ${feedback.startsWith("Error") ? "rgba(239, 68, 68, 0.3)" : "rgba(74, 222, 128, 0.3)"}`,
-          color: feedback.startsWith("Error") ? "#f87171" : "#4ade80",
+          color: feedback.startsWith("Error") ? "var(--danger)" : "var(--success)",
           borderRadius: "6px",
           padding: "0.75rem 1rem",
           marginBottom: "1rem",
@@ -119,7 +119,7 @@ export default function OrdersView({ initialOrders = [] }: OrdersViewProps) {
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
+            <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--bg-secondary)" }}>
               <th style={{ padding: "0.85rem 1rem" }}>{t.orderId}</th>
               <th style={{ padding: "0.85rem 1rem" }}>{t.customer}</th>
               <th style={{ padding: "0.85rem 1rem" }}>{t.items}</th>
@@ -135,10 +135,10 @@ export default function OrdersView({ initialOrders = [] }: OrdersViewProps) {
               const isTerminal = ord.status === "DELIVERED" || ord.status === "CANCELLED" || ord.status === "REFUSED";
 
               return (
-                <tr key={ord.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                  <td style={{ padding: "0.85rem 1rem", fontWeight: 600, color: "#38bdf8" }}>{toNumerals(ord.id)}</td>
+                <tr key={ord.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <td style={{ padding: "0.85rem 1rem", fontWeight: 600, color: "var(--text-primary)" }}>{toNumerals(ord.id)}</td>
                   <td style={{ padding: "0.85rem 1rem" }}>{ord.customer}</td>
-                  <td style={{ padding: "0.85rem 1rem", color: "#a1a1aa" }}>{ord.items}</td>
+                  <td style={{ padding: "0.85rem 1rem", color: "var(--text-tertiary)" }}>{ord.items}</td>
                   <td style={{ padding: "0.85rem 1rem", fontWeight: 600 }}>{formatMoney(ord.total)}</td>
                   <td style={{ padding: "0.85rem 1rem", fontSize: "0.8rem", color: "#cbd5e1" }}>{ord.paymentMethod}</td>
                   <td style={{ padding: "0.85rem 1rem" }}>
@@ -159,12 +159,12 @@ export default function OrdersView({ initialOrders = [] }: OrdersViewProps) {
                             : "rgba(239, 68, 68, 0.15)",
                         color:
                           ord.status === "DELIVERED"
-                            ? "#4ade80"
+                            ? "var(--success)"
                             : ord.status === "CONFIRMED" || ord.status === "PROCESSING"
-                            ? "#60a5fa"
+                            ? "var(--link)"
                             : ord.status === "SHIPPED"
                             ? "#c084fc"
-                            : "#f87171",
+                            : "var(--danger)",
                       }}
                     >
                       ● {ord.status}
@@ -181,7 +181,7 @@ export default function OrdersView({ initialOrders = [] }: OrdersViewProps) {
                         style={{
                           backgroundColor: "#27272a",
                           color: "#fff",
-                          border: "1px solid rgba(255,255,255,0.15)",
+                          border: "1px solid var(--border)",
                           borderRadius: "4px",
                           padding: "0.25rem 0.5rem",
                           fontSize: "0.75rem",

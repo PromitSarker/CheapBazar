@@ -314,7 +314,7 @@ export default function WalletView({
         <div style={{
           backgroundColor: "rgba(74, 222, 128, 0.15)",
           border: "1px solid rgba(74, 222, 128, 0.3)",
-          color: "#4ade80",
+          color: "var(--success)",
           borderRadius: "8px",
           padding: "1rem",
           marginBottom: "1.5rem",
@@ -322,7 +322,6 @@ export default function WalletView({
           alignItems: "center",
           gap: "0.75rem",
         }}>
-          <span style={{ fontSize: "1.25rem" }}>🎉</span>
           <div>
             <strong>Wallet Top-Up Successful!</strong>
             <div style={{ fontSize: "0.85rem", opacity: 0.9 }}>
@@ -336,7 +335,7 @@ export default function WalletView({
         <div style={{
           backgroundColor: "rgba(74, 222, 128, 0.15)",
           border: "1px solid rgba(74, 222, 128, 0.3)",
-          color: "#4ade80",
+          color: "var(--success)",
           borderRadius: "8px",
           padding: "1rem",
           marginBottom: "1.5rem",
@@ -356,7 +355,7 @@ export default function WalletView({
             className="button"
             style={{
               backgroundColor: "rgba(74, 222, 128, 0.15)",
-              color: "#4ade80",
+              color: "var(--success)",
               border: "1px solid rgba(74, 222, 128, 0.4)",
               fontWeight: 600,
             }}
@@ -369,7 +368,7 @@ export default function WalletView({
               }
             }}
           >
-            💸 Withdraw Profits
+            Withdraw Profits
           </button>
           <button
             className="button glow-button"
@@ -384,11 +383,11 @@ export default function WalletView({
       {/* Stat Grid */}
       <div className="stat-grid" style={{ marginBottom: "2rem" }}>
         <div className="stat-card">
-          <span className="stat-value" style={{ color: "#38bdf8" }}>{formatMoney(totalBalance)}</span>
+          <span className="stat-value" style={{ color: "var(--text-primary)" }}>{formatMoney(totalBalance)}</span>
           <span className="muted">{t.totalLedgerBalance}</span>
         </div>
         <div className="stat-card">
-          <span className="stat-value" style={{ color: withdrawableBalance > 0 ? "#4ade80" : "#f87171" }}>
+          <span className="stat-value" style={{ color: withdrawableBalance > 0 ? "var(--success)" : "var(--danger)" }}>
             {formatMoney(withdrawableBalance)}
           </span>
           <span className="muted">Eligible to Withdraw</span>
@@ -396,21 +395,21 @@ export default function WalletView({
       </div>
 
       {/* Navigation Tabs */}
-      <div style={{ display: "flex", gap: "1rem", borderBottom: "1px solid rgba(255,255,255,0.08)", marginBottom: "1.5rem" }}>
+      <div style={{ display: "flex", gap: "1rem", borderBottom: "1px solid var(--border)", marginBottom: "1.5rem" }}>
         <button
           type="button"
           onClick={() => setActiveTab("ledger")}
           style={{
             background: "none",
             border: "none",
-            borderBottom: activeTab === "ledger" ? "2px solid #38bdf8" : "2px solid transparent",
-            color: activeTab === "ledger" ? "#38bdf8" : "#a1a1aa",
+            borderBottom: activeTab === "ledger" ? "2px solid var(--text-primary)" : "2px solid transparent",
+            color: activeTab === "ledger" ? "var(--text-primary)" : "var(--text-tertiary)",
             padding: "0.75rem 0.5rem",
             fontWeight: 600,
             cursor: "pointer",
           }}
         >
-          📜 Transaction Ledger
+          Transaction Ledger
         </button>
         <button
           type="button"
@@ -418,14 +417,14 @@ export default function WalletView({
           style={{
             background: "none",
             border: "none",
-            borderBottom: activeTab === "payouts" ? "2px solid #38bdf8" : "2px solid transparent",
-            color: activeTab === "payouts" ? "#38bdf8" : "#a1a1aa",
+            borderBottom: activeTab === "payouts" ? "2px solid var(--text-primary)" : "2px solid transparent",
+            color: activeTab === "payouts" ? "var(--text-primary)" : "var(--text-tertiary)",
             padding: "0.75rem 0.5rem",
             fontWeight: 600,
             cursor: "pointer",
           }}
         >
-          🏦 Payout Accounts ({payoutMethods.length})
+          Payout Accounts ({payoutMethods.length})
         </button>
         <button
           type="button"
@@ -433,14 +432,14 @@ export default function WalletView({
           style={{
             background: "none",
             border: "none",
-            borderBottom: activeTab === "withdrawals" ? "2px solid #38bdf8" : "2px solid transparent",
-            color: activeTab === "withdrawals" ? "#38bdf8" : "#a1a1aa",
+            borderBottom: activeTab === "withdrawals" ? "2px solid var(--text-primary)" : "2px solid transparent",
+            color: activeTab === "withdrawals" ? "var(--text-primary)" : "var(--text-tertiary)",
             padding: "0.75rem 0.5rem",
             fontWeight: 600,
             cursor: "pointer",
           }}
         >
-          💸 Withdrawal History ({withdrawals.length})
+          Withdrawal History ({withdrawals.length})
         </button>
       </div>
 
@@ -451,7 +450,7 @@ export default function WalletView({
           <div className="card" style={{ padding: 0, overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
               <thead>
-                <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
+                <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--bg-secondary)" }}>
                   <th style={{ padding: "0.85rem 1rem" }}>Transaction ID</th>
                   <th style={{ padding: "0.85rem 1rem" }}>Reference / Reason</th>
                   <th style={{ padding: "0.85rem 1rem" }}>Debit (-)</th>
@@ -461,19 +460,19 @@ export default function WalletView({
               </thead>
               <tbody>
                 {ledgerHistory.map((txn) => (
-                  <tr key={txn.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <tr key={txn.id} style={{ borderBottom: "1px solid var(--border)" }}>
                     <td style={{ padding: "0.85rem 1rem", fontWeight: 600 }}>{toNumerals(txn.id)}</td>
                     <td style={{ padding: "0.85rem 1rem" }}>
                       <div>{txn.desc}</div>
                       <small className="muted" style={{ fontSize: "0.75rem" }}>{txn.type}</small>
                     </td>
-                    <td style={{ padding: "0.85rem 1rem", color: txn.debit ? "#f87171" : "#71717a" }}>
+                    <td style={{ padding: "0.85rem 1rem", color: txn.debit ? "var(--danger)" : "#71717a" }}>
                       {txn.debit ? `-${formatMoney(txn.debit)}` : "—"}
                     </td>
-                    <td style={{ padding: "0.85rem 1rem", color: txn.credit ? "#4ade80" : "#71717a", fontWeight: txn.credit ? 600 : 400 }}>
+                    <td style={{ padding: "0.85rem 1rem", color: txn.credit ? "var(--success)" : "#71717a", fontWeight: txn.credit ? 600 : 400 }}>
                       {txn.credit ? `+${formatMoney(txn.credit)}` : "—"}
                     </td>
-                    <td style={{ padding: "0.85rem 1rem", color: "#a1a1aa", fontSize: "0.8rem" }}>{txn.timestamp}</td>
+                    <td style={{ padding: "0.85rem 1rem", color: "var(--text-tertiary)", fontSize: "0.8rem" }}>{txn.timestamp}</td>
                   </tr>
                 ))}
               </tbody>
@@ -503,7 +502,6 @@ export default function WalletView({
 
           {payoutMethods.length === 0 ? (
             <div className="card" style={{ textAlign: "center", padding: "3rem 1rem" }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>💳</div>
               <h3>No Payout Destination Registered</h3>
               <p className="muted" style={{ maxWidth: "420px", margin: "0 auto 1.5rem auto", fontSize: "0.9rem" }}>
                 To withdraw profits from your online sales, add your Bank Account (BEFTN/NPSB) or bKash/Nagad/Rocket account.
@@ -524,12 +522,9 @@ export default function WalletView({
                   <div key={m.id} className="card" style={{ padding: "1.25rem", position: "relative" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                        <span style={{ fontSize: "1.25rem" }}>
-                          {m.type === "BANK_TRANSFER" ? "🏦" : m.type === "BKASH" ? "🌸" : m.type === "NAGAD" ? "🔥" : "🚀"}
-                        </span>
                         <strong>{m.type === "BANK_TRANSFER" ? m.bankName : m.type}</strong>
                         {m.isDefault && (
-                          <span style={{ fontSize: "0.7rem", backgroundColor: "rgba(56, 189, 248, 0.2)", color: "#38bdf8", padding: "0.15rem 0.4rem", borderRadius: "4px" }}>
+                          <span style={{ fontSize: "0.7rem", backgroundColor: "var(--surface-muted)", color: "var(--text-primary)", padding: "0.15rem 0.4rem", borderRadius: "4px" }}>
                             Default
                           </span>
                         )}
@@ -537,21 +532,21 @@ export default function WalletView({
                       <button
                         type="button"
                         onClick={() => handleDeletePayoutMethod(m.id)}
-                        style={{ background: "none", border: "none", color: "#f87171", cursor: "pointer", fontSize: "0.85rem" }}
+                        style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", fontSize: "0.85rem" }}
                       >
                         Remove
                       </button>
                     </div>
 
                     {m.type === "BANK_TRANSFER" ? (
-                      <div style={{ fontSize: "0.85rem", color: "#d4d4d8", lineHeight: 1.6 }}>
+                      <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: 1.6 }}>
                         <div><strong>A/C Title:</strong> {m.accountName}</div>
                         <div><strong>A/C Number:</strong> {m.accountNumber}</div>
                         <div><strong>Branch:</strong> {m.branchName || "N/A"}</div>
                         <div><strong>Routing No:</strong> {m.routingNumber}</div>
                       </div>
                     ) : (
-                      <div style={{ fontSize: "0.85rem", color: "#d4d4d8", lineHeight: 1.6 }}>
+                      <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: 1.6 }}>
                         <div><strong>Wallet Number:</strong> {m.phoneNumber}</div>
                         <div><strong>Account Type:</strong> {m.accountType}</div>
                       </div>
@@ -561,12 +556,12 @@ export default function WalletView({
                       <div style={{
                         marginTop: "0.75rem",
                         padding: "0.4rem 0.6rem",
-                        backgroundColor: "rgba(56, 189, 248, 0.1)",
+                        backgroundColor: "var(--surface-muted)",
                         borderRadius: "4px",
                         fontSize: "0.75rem",
-                        color: "#38bdf8",
+                        color: "var(--text-primary)",
                       }}>
-                        ❄️ Security Lock: Active until {new Date(m.coolingUntil!).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        Security Lock: Active until {new Date(m.coolingUntil!).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </div>
                     )}
                   </div>
@@ -592,7 +587,7 @@ export default function WalletView({
               className="button button-small"
               style={{
                 backgroundColor: "rgba(74, 222, 128, 0.15)",
-                color: "#4ade80",
+                color: "var(--success)",
                 border: "1px solid rgba(74, 222, 128, 0.4)",
               }}
               onClick={() => setIsWithdrawOpen(true)}
@@ -603,7 +598,6 @@ export default function WalletView({
 
           {withdrawals.length === 0 ? (
             <div className="card" style={{ textAlign: "center", padding: "3rem 1rem" }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>💸</div>
               <h3>No Withdrawal Requests Yet</h3>
               <p className="muted" style={{ fontSize: "0.9rem" }}>
                 When you withdraw your sales earnings, all records and bank reference numbers will appear here.
@@ -613,7 +607,7 @@ export default function WalletView({
             <div className="card" style={{ padding: 0, overflow: "hidden" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
+                  <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--bg-secondary)" }}>
                     <th style={{ padding: "0.85rem 1rem" }}>Withdrawal ID</th>
                     <th style={{ padding: "0.85rem 1rem" }}>Destination</th>
                     <th style={{ padding: "0.85rem 1rem" }}>Amount</th>
@@ -624,10 +618,10 @@ export default function WalletView({
                 </thead>
                 <tbody>
                   {withdrawals.map((w) => (
-                    <tr key={w.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                    <tr key={w.id} style={{ borderBottom: "1px solid var(--border)" }}>
                       <td style={{ padding: "0.85rem 1rem", fontWeight: 600 }}>{w.withdrawalNumber}</td>
                       <td style={{ padding: "0.85rem 1rem" }}>{w.destination}</td>
-                      <td style={{ padding: "0.85rem 1rem", fontWeight: 600, color: "#4ade80" }}>
+                      <td style={{ padding: "0.85rem 1rem", fontWeight: 600, color: "var(--success)" }}>
                         {formatMoney(w.amount)}
                       </td>
                       <td style={{ padding: "0.85rem 1rem" }}>
@@ -644,18 +638,18 @@ export default function WalletView({
                               : "rgba(250, 204, 21, 0.2)",
                           color:
                             w.status === "COMPLETED"
-                              ? "#4ade80"
+                              ? "var(--success)"
                               : w.status === "REJECTED"
-                              ? "#f87171"
-                              : "#facc15",
+                              ? "var(--danger)"
+                              : "var(--warning)",
                         }}>
                           ● {w.status}
                         </span>
                       </td>
-                      <td style={{ padding: "0.85rem 1rem", color: "#a1a1aa", fontSize: "0.8rem" }}>
+                      <td style={{ padding: "0.85rem 1rem", color: "var(--text-tertiary)", fontSize: "0.8rem" }}>
                         {w.disbursementTxId ? `Ref: ${w.disbursementTxId}` : w.rejectionReason ? `Reason: ${w.rejectionReason}` : "Pending Admin Review"}
                       </td>
-                      <td style={{ padding: "0.85rem 1rem", color: "#a1a1aa", fontSize: "0.8rem" }}>{w.createdAt}</td>
+                      <td style={{ padding: "0.85rem 1rem", color: "var(--text-tertiary)", fontSize: "0.8rem" }}>{w.createdAt}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -672,7 +666,6 @@ export default function WalletView({
             position: "fixed",
             inset: 0,
             backgroundColor: "rgba(0,0,0,0.7)",
-            backdropFilter: "blur(4px)",
             zIndex: 10000,
             display: "flex",
             alignItems: "center",
@@ -691,15 +684,15 @@ export default function WalletView({
               <button
                 type="button"
                 onClick={() => setIsWithdrawOpen(false)}
-                style={{ background: "none", border: "none", color: "#a1a1aa", fontSize: "1.5rem", cursor: "pointer" }}
+                style={{ background: "none", border: "none", color: "var(--text-tertiary)", fontSize: "1.5rem", cursor: "pointer" }}
               >
                 &times;
               </button>
             </div>
 
             <div style={{
-              backgroundColor: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              backgroundColor: "var(--bg-secondary)",
+              border: "1px solid var(--border)",
               borderRadius: "6px",
               padding: "0.85rem",
               marginBottom: "1.25rem",
@@ -708,9 +701,9 @@ export default function WalletView({
                 <span className="muted">Total Ledger Balance:</span>
                 <span>{formatMoney(totalBalance)}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.95rem", fontWeight: 600, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.95rem", fontWeight: 600, borderTop: "1px solid var(--border)", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
                 <span>Eligible to Withdraw:</span>
-                <span style={{ color: "#4ade80" }}>{formatMoney(withdrawableBalance)}</span>
+                <span style={{ color: "var(--success)" }}>{formatMoney(withdrawableBalance)}</span>
               </div>
             </div>
 
@@ -718,7 +711,7 @@ export default function WalletView({
               <div style={{
                 backgroundColor: "rgba(239, 68, 68, 0.15)",
                 border: "1px solid rgba(239, 68, 68, 0.3)",
-                color: "#f87171",
+                color: "var(--danger)",
                 padding: "0.75rem",
                 borderRadius: "6px",
                 fontSize: "0.85rem",
@@ -745,7 +738,7 @@ export default function WalletView({
             ) : (
               <>
                 <div style={{ marginBottom: "1rem" }}>
-                  <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.4rem" }}>
+                  <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.4rem" }}>
                     Select Destination Account
                   </label>
                   <select
@@ -755,14 +748,14 @@ export default function WalletView({
                       width: "100%",
                       padding: "0.6rem 0.75rem",
                       borderRadius: "6px",
-                      backgroundColor: "rgba(255,255,255,0.05)",
-                      border: "1px solid rgba(255,255,255,0.15)",
-                      color: "#fff",
+                      backgroundColor: "var(--surface-muted)",
+                      border: "1px solid var(--border)",
+                      color: "var(--text-primary)",
                       fontSize: "0.9rem",
                     }}
                   >
                     {payoutMethods.map((m) => (
-                      <option key={m.id} value={m.id} style={{ background: "#18181b", color: "#fff" }}>
+                      <option key={m.id} value={m.id} style={{ background: "#ffffff", color: "#18181b" }}>
                         {m.type === "BANK_TRANSFER"
                           ? `Bank: ${m.bankName} (A/C: ${m.accountNumber})`
                           : `${m.type}: ${m.phoneNumber} (${m.accountType})`}
@@ -772,7 +765,7 @@ export default function WalletView({
                 </div>
 
                 <div style={{ marginBottom: "1.25rem" }}>
-                  <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.4rem" }}>
+                  <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.4rem" }}>
                     Withdrawal Amount (৳ BDT)
                   </label>
                   <input
@@ -784,9 +777,9 @@ export default function WalletView({
                       width: "100%",
                       padding: "0.6rem 0.75rem",
                       borderRadius: "6px",
-                      backgroundColor: "rgba(255,255,255,0.05)",
-                      border: "1px solid rgba(255,255,255,0.15)",
-                      color: "#fff",
+                      backgroundColor: "var(--surface-muted)",
+                      border: "1px solid var(--border)",
+                      color: "var(--text-primary)",
                       fontSize: "0.9rem",
                       marginBottom: "0.5rem",
                     }}
@@ -800,9 +793,9 @@ export default function WalletView({
                         style={{
                           padding: "0.3rem 0.6rem",
                           borderRadius: "4px",
-                          border: "1px solid rgba(255,255,255,0.1)",
+                          border: "1px solid var(--border)",
                           background: "none",
-                          color: "#a1a1aa",
+                          color: "var(--text-tertiary)",
                           fontSize: "0.75rem",
                           cursor: "pointer",
                         }}
@@ -819,7 +812,7 @@ export default function WalletView({
                           borderRadius: "4px",
                           border: "1px solid rgba(74, 222, 128, 0.3)",
                           background: "rgba(74, 222, 128, 0.1)",
-                          color: "#4ade80",
+                          color: "var(--success)",
                           fontSize: "0.75rem",
                           cursor: "pointer",
                         }}
@@ -839,8 +832,8 @@ export default function WalletView({
                     width: "100%",
                     padding: "0.85rem",
                     fontSize: "1rem",
-                    backgroundColor: withdrawableBalance >= 500 ? "#22c55e" : "#52525b",
-                    color: "#fff",
+                    backgroundColor: withdrawableBalance >= 500 ? "var(--success)" : "#52525b",
+                    color: "#ffffff",
                     fontWeight: 600,
                   }}
                 >
@@ -863,7 +856,6 @@ export default function WalletView({
             position: "fixed",
             inset: 0,
             backgroundColor: "rgba(0,0,0,0.7)",
-            backdropFilter: "blur(4px)",
             zIndex: 10000,
             display: "flex",
             alignItems: "center",
@@ -882,7 +874,7 @@ export default function WalletView({
               <button
                 type="button"
                 onClick={() => setIsAddAccountOpen(false)}
-                style={{ background: "none", border: "none", color: "#a1a1aa", fontSize: "1.5rem", cursor: "pointer" }}
+                style={{ background: "none", border: "none", color: "var(--text-tertiary)", fontSize: "1.5rem", cursor: "pointer" }}
               >
                 &times;
               </button>
@@ -896,14 +888,14 @@ export default function WalletView({
                 style={{
                   padding: "0.6rem",
                   borderRadius: "6px",
-                  border: accountCategory === "MFS" ? "1px solid #38bdf8" : "1px solid rgba(255,255,255,0.1)",
-                  backgroundColor: accountCategory === "MFS" ? "rgba(56, 189, 248, 0.15)" : "transparent",
-                  color: "#fff",
+                  border: accountCategory === "MFS" ? "1px solid var(--text-primary)" : "1px solid var(--border)",
+                  backgroundColor: accountCategory === "MFS" ? "var(--surface-muted)" : "transparent",
+                  color: "var(--text-primary)",
                   fontWeight: 600,
                   cursor: "pointer",
                 }}
               >
-                📱 Mobile Wallet (bKash/Nagad)
+                Mobile Wallet (bKash/Nagad)
               </button>
               <button
                 type="button"
@@ -911,14 +903,14 @@ export default function WalletView({
                 style={{
                   padding: "0.6rem",
                   borderRadius: "6px",
-                  border: accountCategory === "BANK" ? "1px solid #38bdf8" : "1px solid rgba(255,255,255,0.1)",
-                  backgroundColor: accountCategory === "BANK" ? "rgba(56, 189, 248, 0.15)" : "transparent",
-                  color: "#fff",
+                  border: accountCategory === "BANK" ? "1px solid var(--text-primary)" : "1px solid var(--border)",
+                  backgroundColor: accountCategory === "BANK" ? "var(--surface-muted)" : "transparent",
+                  color: "var(--text-primary)",
                   fontWeight: 600,
                   cursor: "pointer",
                 }}
               >
-                🏦 Bank Account (BEFTN)
+                Bank Account (BEFTN)
               </button>
             </div>
 
@@ -926,7 +918,7 @@ export default function WalletView({
               <div style={{
                 backgroundColor: "rgba(239, 68, 68, 0.15)",
                 border: "1px solid rgba(239, 68, 68, 0.3)",
-                color: "#f87171",
+                color: "var(--danger)",
                 padding: "0.75rem",
                 borderRadius: "6px",
                 fontSize: "0.85rem",
@@ -940,7 +932,7 @@ export default function WalletView({
               {accountCategory === "MFS" ? (
                 <>
                   <div style={{ marginBottom: "1rem" }}>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.4rem" }}>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.4rem" }}>
                       Select Provider
                     </label>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.5rem" }}>
@@ -952,9 +944,9 @@ export default function WalletView({
                           style={{
                             padding: "0.5rem",
                             borderRadius: "6px",
-                            border: mfsType === prov ? "1px solid #38bdf8" : "1px solid rgba(255,255,255,0.1)",
-                            backgroundColor: mfsType === prov ? "rgba(56, 189, 248, 0.1)" : "transparent",
-                            color: "#fff",
+                            border: mfsType === prov ? "1px solid var(--text-primary)" : "1px solid var(--border)",
+                            backgroundColor: mfsType === prov ? "var(--surface-muted)" : "transparent",
+                            color: "var(--text-primary)",
                             cursor: "pointer",
                             fontSize: "0.8rem",
                             fontWeight: 600,
@@ -967,7 +959,7 @@ export default function WalletView({
                   </div>
 
                   <div style={{ marginBottom: "1rem" }}>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.4rem" }}>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.4rem" }}>
                       Wallet Type
                     </label>
                     <select
@@ -977,20 +969,20 @@ export default function WalletView({
                         width: "100%",
                         padding: "0.6rem",
                         borderRadius: "6px",
-                        backgroundColor: "rgba(255,255,255,0.05)",
-                        border: "1px solid rgba(255,255,255,0.15)",
-                        color: "#fff",
+                        backgroundColor: "var(--surface-muted)",
+                        border: "1px solid var(--border)",
+                        color: "var(--text-primary)",
                         fontSize: "0.9rem",
                       }}
                     >
-                      <option value="PERSONAL" style={{ background: "#18181b" }}>Personal Wallet</option>
-                      <option value="MERCHANT" style={{ background: "#18181b" }}>Merchant Account</option>
-                      <option value="AGENT" style={{ background: "#18181b" }}>Agent Account</option>
+                      <option value="PERSONAL" style={{ background: "#ffffff", color: "#18181b" }}>Personal Wallet</option>
+                      <option value="MERCHANT" style={{ background: "#ffffff", color: "#18181b" }}>Merchant Account</option>
+                      <option value="AGENT" style={{ background: "#ffffff", color: "#18181b" }}>Agent Account</option>
                     </select>
                   </div>
 
                   <div style={{ marginBottom: "1.25rem" }}>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.4rem" }}>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.4rem" }}>
                       Registered Mobile Number (11 digits)
                     </label>
                     <input
@@ -1003,9 +995,9 @@ export default function WalletView({
                         width: "100%",
                         padding: "0.6rem 0.75rem",
                         borderRadius: "6px",
-                        backgroundColor: "rgba(255,255,255,0.05)",
-                        border: "1px solid rgba(255,255,255,0.15)",
-                        color: "#fff",
+                        backgroundColor: "var(--surface-muted)",
+                        border: "1px solid var(--border)",
+                        color: "var(--text-primary)",
                         fontSize: "0.9rem",
                       }}
                     />
@@ -1014,7 +1006,7 @@ export default function WalletView({
               ) : (
                 <>
                   <div style={{ marginBottom: "0.75rem" }}>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.3rem" }}>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>
                       Bank Name
                     </label>
                     <input
@@ -1027,16 +1019,16 @@ export default function WalletView({
                         width: "100%",
                         padding: "0.6rem",
                         borderRadius: "6px",
-                        backgroundColor: "rgba(255,255,255,0.05)",
-                        border: "1px solid rgba(255,255,255,0.15)",
-                        color: "#fff",
+                        backgroundColor: "var(--surface-muted)",
+                        border: "1px solid var(--border)",
+                        color: "var(--text-primary)",
                         fontSize: "0.9rem",
                       }}
                     />
                   </div>
 
                   <div style={{ marginBottom: "0.75rem" }}>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.3rem" }}>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>
                       Branch Name
                     </label>
                     <input
@@ -1048,16 +1040,16 @@ export default function WalletView({
                         width: "100%",
                         padding: "0.6rem",
                         borderRadius: "6px",
-                        backgroundColor: "rgba(255,255,255,0.05)",
-                        border: "1px solid rgba(255,255,255,0.15)",
-                        color: "#fff",
+                        backgroundColor: "var(--surface-muted)",
+                        border: "1px solid var(--border)",
+                        color: "var(--text-primary)",
                         fontSize: "0.9rem",
                       }}
                     />
                   </div>
 
                   <div style={{ marginBottom: "0.75rem" }}>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.3rem" }}>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>
                       Bangladesh Bank 9-digit Routing Number
                     </label>
                     <input
@@ -1070,16 +1062,16 @@ export default function WalletView({
                         width: "100%",
                         padding: "0.6rem",
                         borderRadius: "6px",
-                        backgroundColor: "rgba(255,255,255,0.05)",
-                        border: "1px solid rgba(255,255,255,0.15)",
-                        color: "#fff",
+                        backgroundColor: "var(--surface-muted)",
+                        border: "1px solid var(--border)",
+                        color: "var(--text-primary)",
                         fontSize: "0.9rem",
                       }}
                     />
                   </div>
 
                   <div style={{ marginBottom: "0.75rem" }}>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.3rem" }}>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>
                       Account Holder Name (Must match KYC/NID)
                     </label>
                     <input
@@ -1092,16 +1084,16 @@ export default function WalletView({
                         width: "100%",
                         padding: "0.6rem",
                         borderRadius: "6px",
-                        backgroundColor: "rgba(255,255,255,0.05)",
-                        border: "1px solid rgba(255,255,255,0.15)",
-                        color: "#fff",
+                        backgroundColor: "var(--surface-muted)",
+                        border: "1px solid var(--border)",
+                        color: "var(--text-primary)",
                         fontSize: "0.9rem",
                       }}
                     />
                   </div>
 
                   <div style={{ marginBottom: "1.25rem" }}>
-                    <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.3rem" }}>
+                    <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>
                       Bank Account Number
                     </label>
                     <input
@@ -1114,9 +1106,9 @@ export default function WalletView({
                         width: "100%",
                         padding: "0.6rem",
                         borderRadius: "6px",
-                        backgroundColor: "rgba(255,255,255,0.05)",
-                        border: "1px solid rgba(255,255,255,0.15)",
-                        color: "#fff",
+                        backgroundColor: "var(--surface-muted)",
+                        border: "1px solid var(--border)",
+                        color: "var(--text-primary)",
                         fontSize: "0.9rem",
                       }}
                     />
@@ -1125,15 +1117,15 @@ export default function WalletView({
               )}
 
               <div style={{
-                backgroundColor: "rgba(255,255,255,0.02)",
-                border: "1px solid rgba(255,255,255,0.06)",
+                backgroundColor: "var(--bg-secondary)",
+                border: "1px solid var(--border)",
                 borderRadius: "6px",
                 padding: "0.75rem",
                 fontSize: "0.75rem",
-                color: "#a1a1aa",
+                color: "var(--text-tertiary)",
                 marginBottom: "1.25rem",
               }}>
-                🔒 <strong>Fraud Prevention:</strong> For your protection, newly added payout destinations have a 24-hour security cooling period before withdrawals can be initiated to that account.
+                <strong>Fraud Prevention:</strong> For your protection, newly added payout destinations have a 24-hour security cooling period before withdrawals can be initiated to that account.
               </div>
 
               <button
@@ -1156,7 +1148,6 @@ export default function WalletView({
             position: "fixed",
             inset: 0,
             backgroundColor: "rgba(0,0,0,0.7)",
-            backdropFilter: "blur(4px)",
             zIndex: 10000,
             display: "flex",
             alignItems: "center",
@@ -1175,7 +1166,7 @@ export default function WalletView({
               <button
                 type="button"
                 onClick={() => setIsTopUpOpen(false)}
-                style={{ background: "none", border: "none", color: "#a1a1aa", fontSize: "1.5rem", cursor: "pointer" }}
+                style={{ background: "none", border: "none", color: "var(--text-tertiary)", fontSize: "1.5rem", cursor: "pointer" }}
               >
                 &times;
               </button>
@@ -1189,7 +1180,7 @@ export default function WalletView({
               <div style={{
                 backgroundColor: "rgba(74, 222, 128, 0.15)",
                 border: "1px solid rgba(74, 222, 128, 0.3)",
-                color: "#4ade80",
+                color: "var(--success)",
                 padding: "0.75rem",
                 borderRadius: "6px",
                 fontSize: "0.85rem",
@@ -1203,7 +1194,7 @@ export default function WalletView({
               <div style={{
                 backgroundColor: "rgba(239, 68, 68, 0.15)",
                 border: "1px solid rgba(239, 68, 68, 0.3)",
-                color: "#f87171",
+                color: "var(--danger)",
                 padding: "0.75rem",
                 borderRadius: "6px",
                 fontSize: "0.85rem",
@@ -1214,7 +1205,7 @@ export default function WalletView({
             )}
 
             <div style={{ marginBottom: "1rem" }}>
-              <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.5rem" }}>
+              <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
                 Select Top-Up Amount
               </label>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginBottom: "0.75rem" }}>
@@ -1229,9 +1220,9 @@ export default function WalletView({
                     style={{
                       padding: "0.6rem",
                       borderRadius: "6px",
-                      border: (!customAmount && topUpAmount === amt) ? "1px solid #38bdf8" : "1px solid rgba(255,255,255,0.1)",
-                      backgroundColor: (!customAmount && topUpAmount === amt) ? "rgba(56, 189, 248, 0.1)" : "rgba(255,255,255,0.03)",
-                      color: "#fff",
+                      border: (!customAmount && topUpAmount === amt) ? "1px solid var(--text-primary)" : "1px solid var(--border)",
+                      backgroundColor: (!customAmount && topUpAmount === amt) ? "var(--surface-muted)" : "var(--border)",
+                      color: "var(--text-primary)",
                       fontWeight: 600,
                       cursor: "pointer",
                     }}
@@ -1251,9 +1242,9 @@ export default function WalletView({
                     width: "100%",
                     padding: "0.6rem 0.75rem",
                     borderRadius: "6px",
-                    backgroundColor: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.15)",
-                    color: "#fff",
+                    backgroundColor: "var(--surface-muted)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text-primary)",
                     fontSize: "0.9rem",
                   }}
                 />
@@ -1263,12 +1254,12 @@ export default function WalletView({
             {manualTopUp ? (
               <div style={{ marginBottom: "1.5rem" }}>
                 <div style={{
-                  backgroundColor: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.06)",
+                  backgroundColor: "var(--bg-secondary)",
+                  border: "1px solid var(--border)",
                   borderRadius: "6px",
                   padding: "0.75rem",
                   fontSize: "0.8rem",
-                  color: "#a1a1aa",
+                  color: "var(--text-tertiary)",
                   marginBottom: "0.75rem",
                 }}>
                   Send the amount to the platform account, then enter the payment method and the transaction ID below.{" "}
@@ -1277,7 +1268,7 @@ export default function WalletView({
                 <select
                   value={topUpMethod}
                   onChange={(e) => setTopUpMethod(e.target.value)}
-                  style={{ width: "100%", padding: "0.6rem 0.75rem", borderRadius: "6px", marginBottom: "0.5rem", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }}
+                  style={{ width: "100%", padding: "0.6rem 0.75rem", borderRadius: "6px", marginBottom: "0.5rem", backgroundColor: "var(--surface-muted)", border: "1px solid var(--border)", color: "#fff" }}
                 >
                   <option value="BKASH">bKash</option>
                   <option value="NAGAD">Nagad</option>
@@ -1290,20 +1281,20 @@ export default function WalletView({
                   placeholder="Transaction ID (TrxID)"
                   value={topUpTrxId}
                   onChange={(e) => setTopUpTrxId(e.target.value)}
-                  style={{ width: "100%", padding: "0.6rem 0.75rem", borderRadius: "6px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: "0.9rem" }}
+                  style={{ width: "100%", padding: "0.6rem 0.75rem", borderRadius: "6px", backgroundColor: "var(--surface-muted)", border: "1px solid var(--border)", color: "#fff", fontSize: "0.9rem" }}
                 />
               </div>
             ) : (
             <div style={{
-              backgroundColor: "rgba(255,255,255,0.02)",
-              border: "1px solid rgba(255,255,255,0.06)",
+              backgroundColor: "var(--bg-secondary)",
+              border: "1px solid var(--border)",
               borderRadius: "6px",
               padding: "0.75rem",
               fontSize: "0.8rem",
-              color: "#a1a1aa",
+              color: "var(--text-tertiary)",
               marginBottom: "1.5rem",
             }}>
-              🔒 Payment Gateway: <strong>SSLCommerz</strong> (Supported: bKash, Nagad, Rocket, VISA, Mastercard, Amex, DBBL Nexus).
+              Payment Gateway: <strong>SSLCommerz</strong> (Supported: bKash, Nagad, Rocket, VISA, Mastercard, Amex, DBBL Nexus).
             </div>
             )}
 

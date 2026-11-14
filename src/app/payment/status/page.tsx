@@ -34,8 +34,7 @@ export default function PaymentStatusPage({ searchParams }: PageProps) {
       }}>
         {isSuccess && (
           <>
-            <div style={{ fontSize: "3.5rem", marginBottom: "1rem" }}>🎉</div>
-            <h1 style={{ fontSize: "1.75rem", marginBottom: "0.5rem", color: "#4ade80" }}>Payment Successful</h1>
+            <h1 style={{ fontSize: "1.75rem", marginBottom: "0.5rem", color: "var(--success)" }}>Payment Successful</h1>
             <p className="muted" style={{ marginBottom: "1.5rem" }}>
               Your transaction has been securely processed and confirmed via SSLCommerz.
             </p>
@@ -44,8 +43,7 @@ export default function PaymentStatusPage({ searchParams }: PageProps) {
 
         {isCancelled && (
           <>
-            <div style={{ fontSize: "3.5rem", marginBottom: "1rem" }}>⚠️</div>
-            <h1 style={{ fontSize: "1.75rem", marginBottom: "0.5rem", color: "#facc15" }}>Payment Cancelled</h1>
+            <h1 style={{ fontSize: "1.75rem", marginBottom: "0.5rem", color: "var(--warning)" }}>Payment Cancelled</h1>
             <p className="muted" style={{ marginBottom: "1.5rem" }}>
               You chose to cancel the payment on the SSLCommerz gateway. No charges were made.
             </p>
@@ -54,7 +52,6 @@ export default function PaymentStatusPage({ searchParams }: PageProps) {
 
         {isFailed && (
           <>
-            <div style={{ fontSize: "3.5rem", marginBottom: "1rem" }}>❌</div>
             <h1 style={{ fontSize: "1.75rem", marginBottom: "0.5rem", color: "#ef4444" }}>Payment Failed</h1>
             <p className="muted" style={{ marginBottom: "1.5rem" }}>
               {error ? decodeURIComponent(error) : "The transaction could not be completed by your bank or mobile wallet."}
@@ -64,8 +61,8 @@ export default function PaymentStatusPage({ searchParams }: PageProps) {
 
         {tranId && (
           <div style={{
-            backgroundColor: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.1)",
+            backgroundColor: "var(--bg-secondary)",
+            border: "1px solid var(--border)",
             borderRadius: "6px",
             padding: "0.75rem",
             fontSize: "0.85rem",
@@ -80,7 +77,7 @@ export default function PaymentStatusPage({ searchParams }: PageProps) {
           <Link href="/" className="button glow-button">
             Return Home
           </Link>
-          <Link href="/dashboard/wallet" className="button" style={{ backgroundColor: "rgba(255,255,255,0.1)" }}>
+          <Link href="/dashboard/wallet" className="button" style={{ backgroundColor: "var(--surface-muted)" }}>
             Merchant Wallet
           </Link>
         </div>
