@@ -214,3 +214,9 @@ Built the first part of the web-tier ("BFF") layer. Nothing here switches the li
 2. New screens: Buyer Pro upgrade, admin payment review, revenue, notification bell, refunds.
 3. Data migration from Neon (rehearse on a copy), cutover, retire the monolith data layer.
 4. Owner decisions: Buyer Pro price, ad slot prices, whether the 5% COD fee / top-ups / ad fees stay, ad refund policy.
+
+## 2026-11-14: mobile app committed
+
+- Committed the mobile work (commit `eab9c87`): Flutter app in `mobile/`, mobile API `src/lib/mobile` + `src/app/api/m/v1/*`, buyer account deletion in identity-service (10 identity tests), `/app` APK download page and `/downloads` route, `deploy/publish-apk.sh`, `.github/workflows/mobile.yml`. The PWA files were removed.
+- Signing key and `key.properties` live outside git (`~/dev/keys/`, ignored). Checked the staged diff for secrets before committing.
+- Release APK build restarted under `~/dev/capped.sh` (CPU/memory capped); log `/tmp/apk-build.log`. The first attempt was killed when the session was stopped.

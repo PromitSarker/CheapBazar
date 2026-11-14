@@ -1,6 +1,6 @@
 # CheapBazar: where things stand
 
-Last updated 2026-11-11. This is the page to read when you come back. The detailed, dated diary is `WORK_LOG.md`;
+Last updated 2026-11-14. This is the page to read when you come back. The detailed, dated diary is `WORK_LOG.md`;
 the step-by-step cutover is `deploy/CUTOVER.md`. Nothing here contains secrets.
 
 ## In one paragraph
@@ -10,9 +10,15 @@ server (103.228.38.69) and have 131 passing tests. Every screen (buyers, sellers
 switched by `USE_SERVICES`.** The flag is **OFF**, so the **live site is still the old app on Neon, unchanged for users**.
 The data migration is written and rehearsed on copies of the live data. **What is left is the cutover itself, which needs you.**
 
-## Changed 2026-11-11: no COD fee, no wallet thresholds, installable web app
+## Changed 2026-11-11: no COD fee, no wallet thresholds, mobile app
 
-The 5% COD platform fee, the wallet soft/hard thresholds, the pause/delist timers and the ৳500 reserve bond are **removed** (services and the live site; deployed, ledger schema cleaned, migration rehearsal re-run OK). A store's status is admin-only (ACTIVE / SUSPENDED / BANNED). The site is now also an **installable web app (PWA)**: open `/app` on the site for the steps. One-tap install needs HTTPS (a domain); until then "Add to Home screen" works from the browser menu. Details in `WORK_LOG.md`.
+The 5% COD platform fee, the wallet soft/hard thresholds, the pause/delist timers and the ৳500 reserve bond are **removed** (services and the live site; deployed, ledger schema cleaned, migration rehearsal re-run OK). A store's status is admin-only (ACTIVE / SUSPENDED / BANNED). The earlier installable web app (PWA) was **replaced by a native Flutter buyer app** (`mobile/`, 12 screens, English + Bangla). `/app` on the site is now its APK download page (`/downloads/`, published by `deploy/publish-apk.sh`). The app talks to a new mobile API at `/api/m/v1/*` and buyers can delete their own account (needed for the app stores). Details in `WORK_LOG.md`.
+
+### Mobile app: what is left
+- Android APK: build with `~/dev/capped.sh ~/E-Bazar-Unified/mobile "flutter build apk --release --target-platform android-arm,android-arm64 --dart-define=API_BASE_URL=http://103.228.38.69:3000"`, then `deploy/publish-apk.sh` (see the 2026-11-14 entry in `WORK_LOG.md` for whether it is published).
+- **Back up `~/dev/keys/` (release signing key).** If it is lost, phones refuse updates to the installed app.
+- iPhone: needs a Mac and an Apple developer account. `.github/workflows/mobile.yml` builds it but has never been run.
+- Before any Play Store / App Store submission: HTTPS on the site, then turn off the app's plain-http allowance.
 
 ## What you need to do (nothing else blocks go-live)
 
