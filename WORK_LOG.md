@@ -248,3 +248,9 @@ Built the first part of the web-tier ("BFF") layer. Nothing here switches the li
 - Tests: 14 web (3 new), 31 Flutter (14 new) run on ebazar-vps (~/mobile-dev; flutter test + analyze clean).
 - Needs a NEW APK (build on ebazar-vps from GitHub, then deploy/publish-apk.sh). Installed 1.0.0 apps keep working unchanged.
 - Data: the 7 existing products have no category yet, so every department count is 0 and Home shows only the New shelf until sellers/admin assign categories (Phase 4 UI).
+
+## 2026-11-15: categories phases 3 + 4 (BUILT, TESTED, NOT YET DEPLOYED)
+- Phase 3 (app + mobile API): filter sheet (brand, price, in stock, on sale) with removable chips; search suggestions (product names + matching categories) and on-device recent searches; product page loads the live listing and shows similar products. Aggregator: GET /aggregator/products/:id and /aggregator/suggest. Mobile API: GET /products/:id, GET /search/suggest.
+- Phase 4 (web): admin /admin/categories (add/rename/Bangla name/icon/sort/hide/delete-when-empty + a work-list of products with no category, one-click filing); seller manual product form (category 2-step, brand, pack size, original price, up to 8 photos), new Edit product page (/dashboard/products/[id]), optional CSV import (/dashboard/products/import: template, preview, per-row errors, skips duplicate names; max 300 rows / 1 MB; images by https URL only, never fetched server-side). Catalog: GET /admin/products?uncategorized=true, productCount on the admin tree.
+- Tests: services 137, web 23, Flutter 41; flutter analyze + next build clean. No DB schema change.
+- DEPLOY (not run): in ~/E-Bazar-Unified: git merge --ff-only feat/catalogue-phase3-4; pm2 restart cb-catalog cb-aggregator --update-env; npm run build; pm2 restart cheapbazar --update-env.
