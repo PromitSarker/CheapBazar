@@ -31,7 +31,16 @@ flutter build apk --release --target-platform android-arm,android-arm64 --dart-d
 ```
 `deploy/publish-apk.sh` copies the APK to `downloads/` so the website serves it at `/app` (download page) and `/downloads/<file>`.
 
-Memory-safe on a shared server: `android/gradle.properties` caps Gradle; wrap builds with `~/dev/capped.sh` (systemd cgroup limits).
+Memory-safe on a shared server: `android/gradle.properties` caps Gradle; `deploy/build-apk.sh` runs the build in a memory-capped systemd scope.
+
+### Everything on the app server (103.228.38.77)
+The whole pipeline lives on the server that runs the site; the old build box is no longer needed.
+1. Once: `deploy/setup-android-toolchain.sh` installs JDK 17, Flutter and the Android SDK under `~/dev` (no sudo). Put the release key in `~/dev/keys/` and `mobile/android/key.properties`.
+2. Each release: bump `version:` in `pubspec.yaml` **and** `lib/config.dart` (a test keeps them in sync), then in `~/E-Bazar-Unified` run `deploy/release-apk.sh`.
+   It builds the APK and runs `publish-apk.sh`, which writes `downloads/latest.json`.
+3. On a phone: Account > **Check for updates**. The app downloads the APK itself (progress + SHA-256 check) and opens Android's installer. Android only accepts it if it is signed with the same key as the installed app.
+
+The first install of a build that has this feature must still be done by hand (older apps only open the link in the browser).
 
 ## iOS (needs a Mac with Xcode, and an Apple Developer account to publish)
 ```
