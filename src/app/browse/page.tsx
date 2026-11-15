@@ -30,7 +30,7 @@ export default async function BrowsePage({ searchParams }: { searchParams: Recor
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "1.5rem 1rem" }}>
-      <h1>Marketplace</h1>
+      <h1 style={{ fontSize: "2rem" }}>Marketplace</h1>
       <p className="muted">Shop across every store. Wholesale prices are for Buyer Pro members.</p>
 
       <nav style={{ display: "flex", gap: "0.5rem", margin: "1rem 0" }} aria-label="Marketplace tabs">
@@ -38,13 +38,13 @@ export default async function BrowsePage({ searchParams }: { searchParams: Recor
         <Link href={href({ tab: "wholesale", store: undefined, page: undefined })} className={`button button-small ${tab === "wholesale" ? "glow-button" : "button-outline"}`}>Wholesale (Pro)</Link>
       </nav>
 
-      {top.slice(0, 1).map((a, i) => <SponsoredBanner key={i} ad={a} label="Sponsored" accent="#f97316" />)}
+      {top.slice(0, 1).map((a, i) => <SponsoredBanner key={i} ad={a} label="Sponsored" accent="#c2410c" />)}
 
-      <form method="get" action="/browse" style={{ display: "flex", gap: "0.5rem", margin: "1rem 0", flexWrap: "wrap" }}>
+      <form method="get" action="/browse" className="toolbar">
         <input type="hidden" name="tab" value={tab} />
-        <input name="q" defaultValue={searchParams.q} placeholder="Search products or stores" style={{ flex: 1, minWidth: 200, padding: "0.55rem 0.75rem", borderRadius: 6 }} />
+        <input name="q" defaultValue={searchParams.q} placeholder="Search products or stores" />
         {!locked && (
-          <select name="sort" defaultValue={searchParams.sort || "relevance"} style={{ padding: "0.55rem", borderRadius: 6 }}>
+          <select name="sort" defaultValue={searchParams.sort || "relevance"}>
             <option value="relevance">Newest / relevance</option>
             <option value="price_asc">Price: low to high</option>
             <option value="price_desc">Price: high to low</option>
@@ -55,8 +55,8 @@ export default async function BrowsePage({ searchParams }: { searchParams: Recor
       </form>
 
       {locked && (
-        <div className="card" role="note" style={{ padding: "1.25rem", marginBottom: "1.25rem", borderColor: "rgba(250,204,21,0.5)" }}>
-          <h3 style={{ margin: "0 0 0.4rem 0" }}>🔒 Wholesale prices are for Buyer Pro members</h3>
+        <div className="card" role="note" style={{ padding: "1.25rem", marginBottom: "1.25rem", background: "var(--surface-muted)", borderColor: "var(--border-hover)" }}>
+          <h3 style={{ margin: "0 0 0.4rem 0" }}>Wholesale prices are for Buyer Pro members</h3>
           <p className="muted" style={{ margin: "0 0 0.8rem 0" }}>
             {res.paywall?.reason === "LOGIN_REQUIRED" ? "Log in, then upgrade to see wholesale prices, minimum quantities and volume discounts." : "Upgrade to Buyer Pro to see wholesale prices, minimum quantities and volume discounts."}
           </p>
@@ -78,15 +78,15 @@ export default async function BrowsePage({ searchParams }: { searchParams: Recor
                 <div className="muted" style={{ fontSize: "0.85rem" }}>by <Link href={`/store/${it.store.slug}`}>{it.store.name}</Link></div>
                 {tab === "retail" ? (
                   <>
-                    <div style={{ margin: "0.4rem 0", fontWeight: 700, color: "#38bdf8" }}>{taka(it.price ?? 0)}</div>
+                    <div style={{ margin: "0.4rem 0", fontWeight: 700, color: "var(--text-primary)" }}>{taka(it.price ?? 0)}</div>
                     <div className="muted" style={{ fontSize: "0.8rem" }}>{it.inStock ? `${it.stock} in stock` : "Out of stock"}</div>
                     <Link href={`/store/${it.store.slug}`} className="button button-small button-outline" style={{ marginTop: 8 }}>Open store</Link>
                   </>
                 ) : it.locked ? (
-                  <div className="muted" style={{ margin: "0.5rem 0", fontSize: "0.9rem" }}>🔒 Price and minimum order are hidden. Buyer Pro unlocks them.</div>
+                  <div className="muted" style={{ margin: "0.5rem 0", fontSize: "0.9rem" }}>Price and minimum order are hidden. Buyer Pro unlocks them.</div>
                 ) : (
                   <>
-                    <div style={{ margin: "0.4rem 0", fontWeight: 700, color: "#38bdf8" }}>{taka(it.wholesalePrice ?? 0)} <small className="muted">each</small></div>
+                    <div style={{ margin: "0.4rem 0", fontWeight: 700, color: "var(--text-primary)" }}>{taka(it.wholesalePrice ?? 0)} <small className="muted">each</small></div>
                     <div className="muted" style={{ fontSize: "0.8rem" }}>Minimum order: {it.moq} · {it.inStock ? "In stock" : "Out of stock"}</div>
                     {it.tiers && it.tiers.length > 0 && (
                       <ul style={{ margin: "0.4rem 0", paddingLeft: "1rem", fontSize: "0.8rem" }}>
@@ -114,14 +114,14 @@ export default async function BrowsePage({ searchParams }: { searchParams: Recor
             <div className="card" style={{ padding: "1rem", marginBottom: "1rem" }}>
               <strong>Stores</strong>
               <ul style={{ listStyle: "none", padding: 0, margin: "0.5rem 0 0 0", fontSize: "0.9rem" }}>
-                {searchParams.store && <li><Link href={href({ store: undefined, page: undefined })}>✕ All stores</Link></li>}
+                {searchParams.store && <li><Link href={href({ store: undefined, page: undefined })}>All stores</Link></li>}
                 {res.facets.stores.map((s) => (
                   <li key={s.storeId}><Link href={href({ store: s.storeId, page: undefined })}>{s.name}</Link> <span className="muted">({s.count})</span></li>
                 ))}
               </ul>
             </div>
           )}
-          {side.slice(0, 2).map((a, i) => <SponsoredBanner key={i} ad={a} label="Sponsored" accent="#60a5fa" />)}
+          {side.slice(0, 2).map((a, i) => <SponsoredBanner key={i} ad={a} label="Sponsored" accent="var(--link)" />)}
         </aside>
       </div>
     </div>

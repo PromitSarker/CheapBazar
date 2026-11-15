@@ -24,6 +24,7 @@ export async function storeForOwner(ownerId: string): Promise<TenantResolution |
     return {
       id: s.id, name: s.name, slug: s.slug, template: s.template,
       status: await statusOf(s.id), customDomain: s.customDomain ?? null, ownerId: s.ownerId,
+      logoUrl: s.logoUrl ?? null, themeColor: s.themeColor ?? null,
     };
   } catch (e) {
     if (e instanceof ServiceCallError && e.status === 404) return null;

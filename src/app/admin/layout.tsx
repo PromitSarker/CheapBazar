@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Icon from "@/components/ui/Icon";
 import { requireRole } from "@/modules/identity/service";
 import { servicesEnabled } from "@/lib/bff/client";
 
@@ -12,8 +13,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside className="dash-nav">
         <div className="dash-nav-header">
           <div className="dash-store-identity">
-            <div className="dash-store-avatar" style={{ background: "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)" }}>
-              🛡️
+            <div className="dash-store-avatar">
+              <Icon name="shield" />
             </div>
             <div className="dash-store-details">
               <span className="dash-store-name">Admin Back-Office</span>
@@ -30,31 +31,31 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="dash-nav-section-title">Admin Controls</div>
           <nav className="dash-nav-list">
             <Link href="/admin" className="dash-nav-item">
-              <span className="dash-nav-icon">📊</span>
+              <span className="dash-nav-icon"><Icon name="chart" size={18} /></span>
               <span>Platform Overview</span>
             </Link>
             <Link href="/admin/stores" className="dash-nav-item">
-              <span className="dash-nav-icon">🏪</span>
+              <span className="dash-nav-icon"><Icon name="store" size={18} /></span>
               <span>Stores & KYC</span>
             </Link>
             <Link href="/admin/ads" className="dash-nav-item">
-              <span className="dash-nav-icon">📢</span>
+              <span className="dash-nav-icon"><Icon name="megaphone" size={18} /></span>
               <span>Ad Moderation</span>
             </Link>
             {servicesEnabled() && (
               <Link href="/admin/topups" className="dash-nav-item">
-                <span className="dash-nav-icon">💳</span>
+                <span className="dash-nav-icon"><Icon name="card" size={18} /></span>
                 <span>Payment Review</span>
               </Link>
             )}
             {servicesEnabled() && (
               <Link href="/admin/billing" className="dash-nav-item">
-                <span className="dash-nav-icon">💰</span>
+                <span className="dash-nav-icon"><Icon name="dollar" size={18} /></span>
                 <span>Pricing & Revenue</span>
               </Link>
             )}
             <Link href="/admin/users" className="dash-nav-item">
-              <span className="dash-nav-icon">👥</span>
+              <span className="dash-nav-icon"><Icon name="users" size={18} /></span>
               <span>Users & Roles</span>
             </Link>
           </nav>

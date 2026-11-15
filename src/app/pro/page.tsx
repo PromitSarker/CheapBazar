@@ -22,16 +22,16 @@ export default async function ProPage({ searchParams }: { searchParams: { error?
       <p className="muted">See wholesale prices, minimum quantities and volume discounts across the marketplace, and order in bulk.</p>
 
       {searchParams.error && <p className="error">{searchParams.error}</p>}
-      {searchParams.sent && <p className="success" style={{ color: "#4ade80" }}>Payment submitted. Buyer Pro starts as soon as an admin confirms it.</p>}
+      {searchParams.sent && <p className="success" style={{ color: "var(--success)" }}>Payment submitted. Buyer Pro starts as soon as an admin confirms it.</p>}
 
       <div className="card" style={{ padding: "1.5rem", margin: "1.25rem 0" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
           <strong>{plan?.name ?? "Buyer Pro"}</strong>
-          {plan && <span style={{ fontSize: "1.4rem", fontWeight: 800, color: "#38bdf8" }}>৳{plan.price.toLocaleString("en-IN")} <small className="muted">/ {plan.periodDays} days</small></span>}
+          {plan && <span style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)" }}>৳{plan.price.toLocaleString("en-IN")} <small className="muted">/ {plan.periodDays} days</small></span>}
         </div>
         <p style={{ margin: "0.75rem 0 0 0" }}>
           Status:{" "}
-          <strong style={{ color: status.active ? "#4ade80" : "#facc15" }}>
+          <strong style={{ color: status.active ? "var(--success)" : "var(--warning)" }}>
             {status.status === "NONE" ? "Not subscribed" : status.status}
           </strong>
           {status.active && status.currentPeriodEnd ? ` — active until ${day(status.currentPeriodEnd)}` : ""}

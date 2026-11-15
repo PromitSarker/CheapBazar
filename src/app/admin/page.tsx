@@ -13,7 +13,7 @@ export default async function AdminOverviewPage() {
           <h1>Platform Administration</h1>
           <p className="muted">System-wide monitoring, compliance, store moderation, and platform health.</p>
         </div>
-        <span className="hero-badge" style={{ margin: 0, borderColor: "rgba(239, 68, 68, 0.4)", color: "#f87171" }}>
+        <span className="hero-badge" style={{ margin: 0, borderColor: "rgba(239, 68, 68, 0.4)", color: "var(--danger)" }}>
           ● Live Production Node
         </span>
       </div>
@@ -24,17 +24,17 @@ export default async function AdminOverviewPage() {
           <span className="muted">Total Registered Stores</span>
         </div>
         <div className="stat-card">
-          <span className="stat-value" style={{ color: "#4ade80" }}>{stats.activeStores}</span>
+          <span className="stat-value" style={{ color: "var(--success)" }}>{stats.activeStores}</span>
           <span className="muted">Active & Operational</span>
         </div>
         <div className="stat-card">
-          <span className="stat-value" style={{ color: stats.suspendedStores > 0 ? "#f87171" : "#a1a1aa" }}>
+          <span className="stat-value" style={{ color: stats.suspendedStores > 0 ? "var(--danger)" : "var(--text-tertiary)" }}>
             {stats.suspendedStores}
           </span>
           <span className="muted">Suspended / Paused Stores</span>
         </div>
         <div className="stat-card">
-          <span className="stat-value" style={{ color: "#38bdf8" }}>{stats.totalProducts}</span>
+          <span className="stat-value" style={{ color: "var(--text-primary)" }}>{stats.totalProducts}</span>
           <span className="muted">Global Catalog Units</span>
         </div>
         <div className="stat-card">
@@ -45,7 +45,6 @@ export default async function AdminOverviewPage() {
 
       <div className="card-grid">
         <div className="card" style={{ padding: "1.5rem" }}>
-          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🏪</div>
           <h3>Store Moderation & KYC</h3>
           <p className="muted" style={{ fontSize: "0.9rem", marginBottom: "1.25rem" }}>
             Inspect store details, review merchant identity proofs, and apply status actions (Active, Warning, Suspended, Banned).
@@ -56,7 +55,6 @@ export default async function AdminOverviewPage() {
         </div>
 
         <div className="card" style={{ padding: "1.5rem" }}>
-          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📢</div>
           <h3>Sponsored Ads Moderation</h3>
           <p className="muted" style={{ fontSize: "0.9rem", marginBottom: "1.25rem" }}>
             Review merchant ad creative submissions, inspect slot collisions, and approve campaigns into the Ads Cache.
@@ -67,7 +65,6 @@ export default async function AdminOverviewPage() {
         </div>
 
         <div className="card" style={{ padding: "1.5rem" }}>
-          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>👥</div>
           <h3>Identity & Role Partitioning</h3>
           <p className="muted" style={{ fontSize: "0.9rem", marginBottom: "1.25rem" }}>
             Manage user accounts, assign Administrator privileges, and inspect buyer/seller subscriptions.
@@ -78,7 +75,6 @@ export default async function AdminOverviewPage() {
         </div>
 
         <div className="card" style={{ padding: "1.5rem" }}>
-          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>💸</div>
           <h3>Disbursements & Payouts</h3>
           <p className="muted" style={{ fontSize: "0.9rem", marginBottom: "1.25rem" }}>
             Review seller withdrawal requests, verify Bank and bKash destinations, and export BEFTN bulk files.

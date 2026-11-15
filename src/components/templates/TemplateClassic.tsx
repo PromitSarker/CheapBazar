@@ -4,79 +4,30 @@ import React from "react";
 import { CartProvider, useCart } from "@/components/cart/CartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { useLanguage } from "@/modules/i18n/LanguageContext";
-import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
-import SponsoredBanner from "@/components/sponsored/SponsoredBanner";
+import { CartButton, SponsoredSlot, StockNote, StoreLogo, themeStyle, type ProductVM, type SponsoredVM, type StoreBrand } from "./StoreBits";
 
-type SponsoredVM = { headline: string; imageUrl: string; targetUrl: string };
-type ProductVM = { id: string; name: string; description: string; price: number; stock: number; image?: string | null };
-
-function ClassicContent({
-  store,
-  products,
-  sponsored,
-}: {
-  store: { name: string; slug: string };
-  products: ProductVM[];
-  /** undefined = legacy placeholder; null = no ad; object = a real paid banner */
-  sponsored?: SponsoredVM | null;
-}) {
-  const { addToCart, openCart, totalCount } = useCart();
-  const { t, formatMoney, toNumerals } = useLanguage();
+/**
+ * Classic: centred, editorial. Logo above the name (fixed), cart top-right,
+ * products as a single quiet list.
+ */
+function ClassicContent({ store, products, sponsored }: { store: StoreBrand; products: ProductVM[]; sponsored?: SponsoredVM | null }) {
+  const { addToCart } = useCart();
+  const { t, formatMoney } = useLanguage();
 
   return (
-    <div className="tpl tpl-classic">
-      <header className="tpl-classic-header" style={{ position: "relative" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
-          <div>
-            <h1>{store.name}</h1>
-            <p className="tpl-tagline">{t.classicTagline}</p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <LanguageSwitcher />
-            <button
-              type="button"
-              onClick={openCart}
-              className="button glow-button"
-              style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 1rem" }}
-            >
-              <span>🛍️ {t.bag}</span>
-              {totalCount > 0 && (
-                <span style={{
-                  background: "white",
-                  color: "#18181b",
-                  borderRadius: "999px",
-                  padding: "0.1rem 0.5rem",
-                  fontSize: "0.8rem",
-                  fontWeight: 700
-                }}>
-                  {toNumerals(totalCount)}
-                </span>
-              )}
-            </button>
-          </div>
+    <div className="tpl tpl-classic" style={themeStyle(store)}>
+      <header className="tpl-classic-head">
+        <div className="tpl-classic-brand">
+          <StoreLogo store={store} size={72} />
+          <h1>{store.name}</h1>
+          <p className="tpl-tagline">{t.classicTagline}</p>
         </div>
-
-        {sponsored === undefined ? (
-        <>
-        <div className="sponsored-banner" style={{
-          marginTop: "1.25rem",
-          padding: "0.75rem 1rem",
-          borderRadius: "8px",
-          background: "linear-gradient(90deg, rgba(234, 88, 12, 0.15) 0%, rgba(249, 115, 22, 0.05) 100%)",
-          border: "1px dashed rgba(249, 115, 22, 0.4)",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          fontSize: "0.85rem"
-        }}>
-          <span>✨ <strong>{t.sponsored}:</strong> {t.featuredNotice}</span>
-          <span style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "#f97316", fontWeight: 600 }}>{t.sponsored}</span>
+        <div className="tpl-classic-cart">
+          <CartButton label={t.bag} />
         </div>
-        </>
-        ) : sponsored ? (
-          <SponsoredBanner ad={sponsored} label={t.sponsored} accent="#f97316" />
-        ) : null}
       </header>
+
+      <SponsoredSlot sponsored={sponsored} notice={t.featuredNotice} />
 
       <main className="tpl-body">
         {products.length === 0 ? (
@@ -84,25 +35,24 @@ function ClassicContent({
         ) : (
           <ul className="tpl-classic-list">
             {products.map((p) => (
-              <li key={p.id} className="tpl-classic-item" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                {p.image && <img src={p.image} alt={p.name} style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} />}
-                <div style={{ flex: 1 }}>
+              <li key={p.id} className="tpl-classic-item">
+                {p.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.image} alt={p.name} className="tpl-classic-thumb" />
+                ) : (
+                  <span className="tpl-classic-thumb tpl-thumb-empty" aria-hidden="true">{p.name.slice(0, 1)}</span>
+                )}
+                <div className="tpl-classic-info">
                   <strong>{p.name}</strong>
                   {p.description && <p className="tpl-desc">{p.description}</p>}
+                  <StockNote stock={p.stock} />
                 </div>
                 <div className="tpl-classic-buy">
                   <span className="tpl-price">{formatMoney(p.price)}</span>
-                  {p.stock > 0 ? (
-                    <button
-                      className="tpl-button"
-                      type="button"
-                      onClick={() => addToCart(p)}
-                      title={t.addToCart}
-                    >
+                  {p.stock > 0 && (
+                    <button className="tpl-button" type="button" onClick={() => addToCart(p)}>
                       {t.addToCart}
                     </button>
-                  ) : (
-                    <span className="tpl-soldout">{t.soldOut}</span>
                   )}
                 </div>
               </li>
@@ -117,11 +67,7 @@ function ClassicContent({
   );
 }
 
-export default function TemplateClassic(props: {
-  store: { name: string; slug: string };
-  products: ProductVM[];
-  sponsored?: SponsoredVM | null;
-}) {
+export default function TemplateClassic(props: { store: StoreBrand; products: ProductVM[]; sponsored?: SponsoredVM | null }) {
   return (
     <CartProvider>
       <ClassicContent {...props} />

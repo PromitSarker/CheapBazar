@@ -37,7 +37,7 @@ export default function WholesaleOrder({
   }
 
   if (!open) return <button type="button" className="button button-small glow-button" onClick={() => setOpen(true)}>Order wholesale</button>;
-  const box = { padding: "0.45rem 0.6rem", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.05)", color: "inherit", width: "100%" } as const;
+  const box = { padding: "0.45rem 0.6rem", borderRadius: 6, border: "1px solid var(--border)", background: "var(--surface-muted)", color: "inherit", width: "100%" } as const;
   return (
     <form onSubmit={submit} style={{ display: "grid", gap: "0.4rem", marginTop: "0.5rem" }} aria-label={`Wholesale order for ${productName}`}>
       <input style={box} name="qty" type="number" min={moq} defaultValue={moq} required aria-label={`Quantity (minimum ${moq})`} />

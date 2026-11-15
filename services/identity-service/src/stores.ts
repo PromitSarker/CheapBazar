@@ -33,8 +33,12 @@ export function normalizeDomain(raw: unknown): string | null {
   return d;
 }
 
+const LOGO_RE = /^\/uploads\/[A-Za-z0-9._-]{1,100}\.(png|jpg|gif|webp)$/;
+const COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+
 const shape = (s: any) => ({
   id: s.id, name: s.name, slug: s.slug, customDomain: s.customDomain, template: s.template,
+  logoUrl: s.logoUrl ?? null, themeColor: s.themeColor ?? null,
   kycVerified: s.kycVerified, ownerId: s.ownerId, createdAt: s.createdAt,
 });
 const eventData = (s: any) => ({
@@ -92,6 +96,17 @@ export async function updateStore(db: Db, storeId: string, b: any) {
         data.template = String(b.template);
       }
       if (b.customDomain !== undefined) data.customDomain = normalizeDomain(b.customDomain);
+      if (b.logoUrl !== undefined) {
+        // null/"" removes the logo; anything else must be one of our own uploaded images
+        const v = b.logoUrl === null || b.logoUrl === "" ? null : String(b.logoUrl);
+        if (v !== null && !LOGO_RE.test(v)) throw new HttpError(400, "The logo must be an uploaded PNG, JPEG, GIF or WebP image.", "VALIDATION");
+        data.logoUrl = v;
+      }
+      if (b.themeColor !== undefined) {
+        const v = b.themeColor === null || b.themeColor === "" ? null : String(b.themeColor).toLowerCase();
+        if (v !== null && !COLOR_RE.test(v)) throw new HttpError(400, "The theme colour must look like #1d4ed8.", "VALIDATION");
+        data.themeColor = v;
+      }
 
       const store = await tx.store.update({ where: { id: storeId }, data });
       await publish(tx as any, "identity", "StoreUpdated", eventData(store), store.id);

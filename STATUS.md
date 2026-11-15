@@ -5,10 +5,10 @@ the step-by-step cutover is `deploy/CUTOVER.md`. Nothing here contains secrets.
 
 ## In one paragraph
 
-CheapBazar is being moved from one Next.js app on the Neon database to 8 small services. **All 8 services are built, run on this
-server (103.228.38.69) and have 131 passing tests. Every screen (buyers, sellers, admin) has a version that talks to the services,
-switched by `USE_SERVICES`.** The flag is **OFF**, so the **live site is still the old app on Neon, unchanged for users**.
-The data migration is written and rehearsed on copies of the live data. **What is left is the cutover itself, which needs you.**
+CheapBazar runs as 8 small services on this server (103.228.38.69), 131 tests. **The cutover was done on 2026-11-11** (backup in
+`~/cutover-backups/20261111-064358`, `USE_SERVICES="true"` in `.env`, data migrated: 13 users, 5 stores, 7 products). The live site now
+runs on the services; the old Neon database is only a read-only fallback. **What is left is in `PLATFORM_REVIEW.md`** (2026-11-14 review):
+HTTPS, rate-limit fix, backups, reboot persistence, firewall first. The cutover steps and open-decision tables below are historical.
 
 ## Changed 2026-11-11: no COD fee, no wallet thresholds, mobile app
 

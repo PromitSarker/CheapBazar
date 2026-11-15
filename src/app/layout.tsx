@@ -6,10 +6,12 @@ import SiteHeader from "@/components/layout/SiteHeader";
 import SiteFooter from "@/components/layout/SiteFooter";
 import { servicesEnabled } from "@/lib/bff/client";
 import { unreadCountViaServices } from "@/lib/bff/notifications";
-import { Outfit } from "next/font/google";
+import { Outfit, Noto_Sans_Bengali } from "next/font/google";
 import "./globals.css";
 
-const outfit = Outfit({ subsets: ["latin"], display: "swap" });
+const outfit = Outfit({ subsets: ["latin"], display: "swap", variable: "--font-latin" });
+// Outfit has no Bengali glyphs; without this the browser falls back to an arbitrary system font.
+const bengali = Noto_Sans_Bengali({ subsets: ["bengali"], display: "swap", variable: "--font-bn" });
 
 export const metadata: Metadata = {
   title: "Cheap-Bazar — Create your own store",
@@ -37,9 +39,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={initialLang}>
-      <body className={outfit.className}>
+      <body className={`${outfit.variable} ${bengali.variable}`}>
         <LanguageProvider initialLang={initialLang}>
-          <div className="bg-gradient-mesh"></div>
           <SiteHeader user={user} marketplace={servicesEnabled()} unread={unread} />
           <main className="site-main">{children}</main>
           <SiteFooter />

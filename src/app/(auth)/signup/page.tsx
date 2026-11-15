@@ -32,14 +32,14 @@ export default function SignupPage({ searchParams }: { searchParams: { error?: s
         <label>
           Account Type
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginTop: "0.25rem" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.75rem", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", cursor: "pointer", background: "rgba(255,255,255,0.03)" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.75rem", border: "1px solid var(--border)", borderRadius: "6px", cursor: "pointer", background: "var(--bg-secondary)" }}>
               <input type="radio" name="role" value="SELLER" defaultChecked style={{ margin: 0 }} />
               <div>
                 <strong style={{ fontSize: "0.85rem", display: "block" }}>Seller</strong>
                 <span className="muted" style={{ fontSize: "0.75rem" }}>Create my store</span>
               </div>
             </label>
-            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.75rem", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", cursor: "pointer", background: "rgba(255,255,255,0.03)" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.75rem", border: "1px solid var(--border)", borderRadius: "6px", cursor: "pointer", background: "var(--bg-secondary)" }}>
               <input type="radio" name="role" value="BUYER" style={{ margin: 0 }} />
               <div>
                 <strong style={{ fontSize: "0.85rem", display: "block" }}>Buyer</strong>

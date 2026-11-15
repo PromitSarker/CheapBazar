@@ -35,7 +35,7 @@ export default async function NotificationsPage() {
       )}
 
       {items.map((n) => (
-        <form key={n.id} action={openNotification} className="card" style={{ padding: "1rem 1.25rem", margin: "0.75rem 0", borderLeft: n.read ? "3px solid transparent" : "3px solid #38bdf8", opacity: n.read ? 0.75 : 1 }}>
+        <form key={n.id} action={openNotification} className="card" style={{ padding: "1rem 1.25rem", margin: "0.75rem 0", borderLeft: n.read ? "3px solid transparent" : "3px solid var(--text-primary)", opacity: n.read ? 0.75 : 1 }}>
           <input type="hidden" name="id" value={n.id} />
           <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem" }}>
             <strong>{n.title}</strong>

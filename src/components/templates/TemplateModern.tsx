@@ -4,79 +4,31 @@ import React from "react";
 import { CartProvider, useCart } from "@/components/cart/CartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { useLanguage } from "@/modules/i18n/LanguageContext";
-import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
-import SponsoredBanner from "@/components/sponsored/SponsoredBanner";
+import { CartButton, SponsoredSlot, StockNote, StoreLogo, themeStyle, type ProductVM, type SponsoredVM, type StoreBrand } from "./StoreBits";
 
-type SponsoredVM = { headline: string; imageUrl: string; targetUrl: string };
-type ProductVM = { id: string; name: string; description: string; price: number; stock: number; image?: string | null };
-
-function ModernContent({
-  store,
-  products,
-  sponsored,
-}: {
-  store: { name: string; slug: string };
-  products: ProductVM[];
-  /** undefined = legacy placeholder; null = no ad; object = a real paid banner */
-  sponsored?: SponsoredVM | null;
-}) {
-  const { addToCart, openCart, totalCount } = useCart();
-  const { t, formatMoney, toNumerals } = useLanguage();
+/**
+ * Modern: left-aligned bar with the logo and name (fixed), cart on the right,
+ * a short intro line, then a product grid.
+ */
+function ModernContent({ store, products, sponsored }: { store: StoreBrand; products: ProductVM[]; sponsored?: SponsoredVM | null }) {
+  const { addToCart } = useCart();
+  const { t, formatMoney } = useLanguage();
 
   return (
-    <div className="tpl tpl-modern">
-      <section className="tpl-modern-hero" style={{ position: "relative" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-          <div>
-            <h1>{store.name}</h1>
-            <p>{t.modernTagline}</p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <LanguageSwitcher />
-            <button
-              type="button"
-              onClick={openCart}
-              className="button glow-button"
-              style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.2rem" }}
-            >
-              <span>🛍️ {t.cart}</span>
-              {totalCount > 0 && (
-                <span style={{
-                  background: "white",
-                  color: "#18181b",
-                  borderRadius: "999px",
-                  padding: "0.1rem 0.5rem",
-                  fontSize: "0.8rem",
-                  fontWeight: 700
-                }}>
-                  {toNumerals(totalCount)}
-                </span>
-              )}
-            </button>
-          </div>
+    <div className="tpl tpl-modern" style={themeStyle(store)}>
+      <header className="tpl-modern-bar">
+        <div className="tpl-modern-brand">
+          <StoreLogo store={store} size={40} />
+          <span className="tpl-modern-name">{store.name}</span>
         </div>
+        <CartButton label={t.cart} />
+      </header>
 
-        {sponsored === undefined ? (
-        <>
-        <div className="sponsored-banner" style={{
-          marginTop: "1.5rem",
-          padding: "0.75rem 1.25rem",
-          borderRadius: "8px",
-          background: "linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.1) 100%)",
-          border: "1px dashed rgba(96, 165, 250, 0.4)",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          fontSize: "0.85rem"
-        }}>
-          <span>⚡ <strong>{t.sponsored}:</strong> {t.flashDealNotice}</span>
-          <span style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "#60a5fa", fontWeight: 600 }}>{t.sponsored}</span>
-        </div>
-        </>
-        ) : sponsored ? (
-          <SponsoredBanner ad={sponsored} label={t.sponsored} accent="#60a5fa" />
-        ) : null}
+      <section className="tpl-modern-intro">
+        <h1>{t.modernTagline}</h1>
       </section>
+
+      <SponsoredSlot sponsored={sponsored} notice={t.flashDealNotice} />
 
       <main className="tpl-body">
         {products.length === 0 ? (
@@ -86,35 +38,23 @@ function ModernContent({
             {products.map((p) => (
               <article key={p.id} className="tpl-modern-card">
                 {p.image ? (
-                  <img src={p.image} alt={p.name} className="tpl-modern-thumb" style={{ objectFit: 'cover', width: '100%' }} />
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.image} alt={p.name} className="tpl-modern-thumb" />
                 ) : (
-                  <div className="tpl-modern-thumb" aria-hidden>
-                    {p.name.slice(0, 1)}
-                  </div>
+                  <div className="tpl-modern-thumb tpl-thumb-empty" aria-hidden="true">{p.name.slice(0, 1)}</div>
                 )}
-                <h3>{p.name}</h3>
-                {p.description && <p className="tpl-desc">{p.description}</p>}
-                <div className="tpl-modern-row">
-                  <span className="tpl-price">{formatMoney(p.price)}</span>
-                  {p.stock === 0 ? (
-                    <span className="tpl-soldout">{t.soldOut}</span>
-                  ) : (
-                    <>
-                      {p.stock < 5 && (
-                        <span className="tpl-low">
-                          {t.onlyLeft.replace("{count}", toNumerals(p.stock))}
-                        </span>
-                      )}
-                      <button
-                        className="tpl-button dark"
-                        type="button"
-                        onClick={() => addToCart(p)}
-                        title={t.addToCart}
-                      >
+                <div className="tpl-modern-body">
+                  <h3>{p.name}</h3>
+                  {p.description && <p className="tpl-desc tpl-clamp">{p.description}</p>}
+                  <StockNote stock={p.stock} />
+                  <div className="tpl-modern-row">
+                    <span className="tpl-price">{formatMoney(p.price)}</span>
+                    {p.stock > 0 && (
+                      <button className="tpl-button solid" type="button" onClick={() => addToCart(p)}>
                         {t.addToCart}
                       </button>
-                    </>
-                  )}
+                    )}
+                  </div>
                 </div>
               </article>
             ))}
@@ -128,11 +68,7 @@ function ModernContent({
   );
 }
 
-export default function TemplateModern(props: {
-  store: { name: string; slug: string };
-  products: ProductVM[];
-  sponsored?: SponsoredVM | null;
-}) {
+export default function TemplateModern(props: { store: StoreBrand; products: ProductVM[]; sponsored?: SponsoredVM | null }) {
   return (
     <CartProvider>
       <ModernContent {...props} />

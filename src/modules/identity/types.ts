@@ -21,4 +21,8 @@ export interface TenantResolution {
   status: StoreStatus;
   customDomain?: string | null;
   ownerId: string;
+  /** /uploads/<file> path of the seller's logo (services path only) */
+  logoUrl?: string | null;
+  /** #rrggbb accent, always one of THEME_PRESETS */
+  themeColor?: string | null;
 }
