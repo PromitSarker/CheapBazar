@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'api/api_client.dart';
 import 'state/cart.dart';
+import 'state/catalog.dart';
 import 'state/l10n.dart';
 import 'state/session.dart';
 import 'ui/screens/shell.dart';
@@ -19,11 +20,13 @@ Future<void> main() async {
 }
 
 class CheapBazarApp extends StatelessWidget {
-  const CheapBazarApp({super.key, required this.api, required this.session, required this.cart, required this.locale});
+  CheapBazarApp({super.key, required this.api, required this.session, required this.cart, required this.locale, CatalogController? catalog})
+      : catalog = catalog ?? CatalogController(api);
   final ApiClient api;
   final SessionController session;
   final CartController cart;
   final LocaleController locale;
+  final CatalogController catalog;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +36,7 @@ class CheapBazarApp extends StatelessWidget {
         ChangeNotifierProvider<SessionController>.value(value: session),
         ChangeNotifierProvider<CartController>.value(value: cart),
         ChangeNotifierProvider<LocaleController>.value(value: locale),
+        ChangeNotifierProvider<CatalogController>.value(value: catalog),
       ],
       child: Consumer<LocaleController>(
         builder: (context, l, _) => MaterialApp(

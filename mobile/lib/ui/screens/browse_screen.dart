@@ -5,17 +5,29 @@ import 'package:provider/provider.dart';
 
 import '../../api/api_client.dart';
 import '../../models/models.dart';
+import '../../state/catalog.dart';
 import '../../state/l10n.dart';
 import '../../state/session.dart';
+import '../theme.dart';
+import '../widgets/cart_bar.dart';
 import '../widgets/common.dart';
 import '../widgets/product_card.dart';
+import '../widgets/skeleton.dart';
 import 'auth_screen.dart';
+import 'cart_screen.dart';
 import 'pro_screen.dart';
 import 'product_page.dart';
 
+/// Product listing: search results, a category / sub-category, deals, or the wholesale tab.
+/// Opened from Home (search box, tiles, shelves) and from the Categories tab.
 class BrowseScreen extends StatefulWidget {
-  const BrowseScreen({super.key, this.initialQuery});
+  const BrowseScreen({super.key, this.initialQuery, this.categoryId, this.title, this.onSale = false, this.autofocus = false, this.initialTab = 'retail'});
   final String? initialQuery;
+  final String? categoryId;
+  final String? title;
+  final bool onSale;
+  final bool autofocus;
+  final String initialTab; // retail | wholesale
 
   @override
   State<BrowseScreen> createState() => BrowseScreenState();
@@ -23,11 +35,14 @@ class BrowseScreen extends StatefulWidget {
 
 class BrowseScreenState extends State<BrowseScreen> {
   final _search = TextEditingController();
+  final _focus = FocusNode();
   final _scroll = ScrollController();
   Timer? _debounce;
 
-  String _tab = 'retail';
+  late String _tab = widget.initialTab;
   String _sort = 'relevance';
+  late String? _categoryId = widget.categoryId;
+  late bool _onSale = widget.onSale;
   final List<Product> _items = [];
   List<AdBanner> _ads = [];
   int _page = 1;
@@ -44,18 +59,25 @@ class BrowseScreenState extends State<BrowseScreen> {
     _scroll.addListener(() {
       if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 400 && !_loading && _page < _pages) _fetch(page: _page + 1);
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fetch());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<CatalogController>().load();
+      _fetch();
+      if (widget.autofocus) _focus.requestFocus();
+    });
   }
 
-  /// Called by the shell when the Home search box is tapped.
+  /// Kept for callers that set the query from outside.
   void focusSearch(String? query) {
     if (query != null) _search.text = query;
+    _focus.requestFocus();
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
     _search.dispose();
+    _focus.dispose();
     _scroll.dispose();
     super.dispose();
   }
@@ -69,6 +91,8 @@ class BrowseScreenState extends State<BrowseScreen> {
       final r = (await context.read<ApiClient>().get('/browse', query: {
         'tab': _tab,
         'q': _search.text.trim(),
+        'category': _categoryId,
+        'sale': _onSale && _tab == 'retail' ? '1' : null,
         'sort': _sort == 'relevance' ? null : _sort,
         'page': '$page',
         'limit': '20',
@@ -101,27 +125,38 @@ class BrowseScreenState extends State<BrowseScreen> {
     _debounce = Timer(const Duration(milliseconds: 450), () => _fetch());
   }
 
+  void _openCart() => Navigator.push(context, MaterialPageRoute(builder: (_) => CartScreen(goToShop: () => Navigator.of(context).pop())));
+
   @override
   Widget build(BuildContext context) {
     final t = context.watch<LocaleController>();
+    final catalog = context.watch<CatalogController>();
     context.watch<SessionController>();
+    final cur = catalog.byId(_categoryId);
+    final top = cur == null ? null : (cur.parentId == null ? cur : catalog.byId(cur.parentId));
+    final bn = t.isBn;
+    final title = widget.title ?? (cur?.name(bn)) ?? t.t('browse');
+
     return Scaffold(
-      appBar: AppBar(title: Text(t.t('browse'))),
+      appBar: AppBar(title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis)),
+      bottomNavigationBar: SafeArea(child: CartBar(onTap: _openCart)),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
           child: TextField(
             controller: _search,
+            focusNode: _focus,
             onChanged: _onQueryChanged,
             onSubmitted: (_) => _fetch(),
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: t.t('search_hint'),
+              hintText: cur != null ? t.t('search_in', {'name': cur.name(bn)}) : t.t('search_hint'),
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _search.text.isEmpty
                   ? null
                   : IconButton(
                       icon: const Icon(Icons.close),
+                      tooltip: t.t('clear'),
                       onPressed: () {
                         _search.clear();
                         _fetch();
@@ -144,7 +179,7 @@ class BrowseScreenState extends State<BrowseScreen> {
                 onSelectionChanged: (s) {
                   setState(() {
                     _tab = s.first;
-                    if (_tab == 'wholesale' && (_sort == 'price_asc' || _sort == 'price_desc')) _sort = 'relevance';
+                    if (_tab == 'wholesale' && (_sort == 'price_asc' || _sort == 'price_desc' || _sort == 'discount')) _sort = 'relevance';
                   });
                   _fetch();
                 },
@@ -160,6 +195,7 @@ class BrowseScreenState extends State<BrowseScreen> {
               },
               itemBuilder: (_) => [
                 PopupMenuItem(value: 'relevance', child: Text(t.t('sort_relevance'))),
+                if (_tab == 'retail') PopupMenuItem(value: 'discount', child: Text(t.t('sort_discount'))),
                 PopupMenuItem(value: 'price_asc', child: Text(t.t('sort_price_asc'))),
                 PopupMenuItem(value: 'price_desc', child: Text(t.t('sort_price_desc'))),
                 PopupMenuItem(value: 'name', child: Text(t.t('sort_name'))),
@@ -167,19 +203,76 @@ class BrowseScreenState extends State<BrowseScreen> {
             ),
           ]),
         ),
+        _chipsRow(t, top, bn),
         Expanded(child: _body(t)),
       ]),
     );
   }
 
+  /// "On sale" + the department's sub-categories, in one scrolling row.
+  Widget _chipsRow(LocaleController t, ShopCategory? top, bool bn) {
+    final kids = top?.children ?? const <ShopCategory>[];
+    if (_tab != 'retail' && kids.isEmpty) return const SizedBox(height: 4);
+    return SizedBox(
+      height: 52,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        children: [
+          if (_tab == 'retail')
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilterChip(
+                label: Text(t.t('on_sale')),
+                avatar: const Icon(Icons.local_offer_outlined, size: 16),
+                selected: _onSale,
+                showCheckmark: false,
+                selectedColor: kActionSoft,
+                onSelected: (v) {
+                  setState(() => _onSale = v);
+                  _fetch();
+                },
+              ),
+            ),
+          if (top != null && kids.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text(t.t('all')),
+                selected: _categoryId == top.id,
+                selectedColor: kActionSoft,
+                onSelected: (_) {
+                  setState(() => _categoryId = top.id);
+                  _fetch();
+                },
+              ),
+            ),
+            for (final k in kids)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text(k.count > 0 ? '${k.name(bn)} (${toBnIf(bn, '${k.count}')})' : k.name(bn)),
+                  selected: _categoryId == k.id,
+                  selectedColor: kActionSoft,
+                  onSelected: (_) {
+                    setState(() => _categoryId = k.id);
+                    _fetch();
+                  },
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _body(LocaleController t) {
     if (_error != null && _items.isEmpty) return ErrorRetry(message: _error!, onRetry: _fetch);
-    if (_loading && _items.isEmpty) return const Center(child: CircularProgressIndicator());
+    if (_loading && _items.isEmpty) return const _GridSkeleton();
     return RefreshIndicator(
       onRefresh: () => _fetch(),
       child: CustomScrollView(controller: _scroll, physics: const AlwaysScrollableScrollPhysics(), slivers: [
-        if (_paywall != null)
-          SliverToBoxAdapter(child: _paywallCard(t)),
+        if (_paywall != null) SliverToBoxAdapter(child: _paywallCard(t)),
         if (_ads.isNotEmpty && _tab == 'retail')
           SliverToBoxAdapter(
             child: Padding(
@@ -206,17 +299,24 @@ class BrowseScreenState extends State<BrowseScreen> {
             ),
           ),
         if (_items.isEmpty)
-          SliverFillRemaining(hasScrollBody: false, child: EmptyState(icon: Icons.search_off, title: t.t('no_orders')))
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: EmptyState(
+              icon: Icons.search_off,
+              title: _categoryId != null || _onSale ? t.t('no_products_here') : t.t('no_results'),
+              subtitle: _categoryId != null || _onSale ? t.t('no_products_here_hint') : null,
+            ),
+          )
         else ...[
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            sliver: SliverToBoxAdapter(child: Text('$_total', style: const TextStyle(color: Color(0xFF71717A)))),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            sliver: SliverToBoxAdapter(child: Text(t.t('products_count', {'n': toBnIf(t.isBn, '$_total')}), style: const TextStyle(color: kMuted))),
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
             sliver: SliverGrid.builder(
               itemCount: _items.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 0.72),
+              gridDelegate: productGridDelegate(context),
               itemBuilder: (_, i) => ProductCard(
                 product: _items[i],
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductPage(product: _items[i], paywallReason: _paywall))),
@@ -235,7 +335,7 @@ class BrowseScreenState extends State<BrowseScreen> {
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       child: Container(
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE4E4E7))),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: kLine)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             const Icon(Icons.lock_outline),
@@ -257,4 +357,16 @@ class BrowseScreenState extends State<BrowseScreen> {
       ),
     );
   }
+}
+
+class _GridSkeleton extends StatelessWidget {
+  const _GridSkeleton();
+  @override
+  Widget build(BuildContext context) => GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        itemCount: 6,
+        gridDelegate: productGridDelegate(context),
+        itemBuilder: (_, _) => const ProductCardSkeleton(),
+      );
 }

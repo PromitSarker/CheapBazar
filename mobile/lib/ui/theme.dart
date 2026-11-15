@@ -3,6 +3,13 @@ import 'package:flutter/material.dart';
 const Color kBrand = Color(0xFF18181B);
 const Color kAccent = Color(0xFF16A34A);
 
+// Catalogue tokens. One action colour (add / cart / prices that matter) and one sale colour.
+const Color kAction = Color(0xFF16A34A);
+const Color kActionSoft = Color(0xFFE8F6EC);
+const Color kSale = Color(0xFFDC2626);
+const Color kMuted = Color(0xFF71717A);
+const Color kLine = Color(0xFFE4E4E7);
+
 ThemeData buildTheme() {
   final scheme = ColorScheme.fromSeed(seedColor: kBrand, brightness: Brightness.light).copyWith(
     primary: kBrand,
