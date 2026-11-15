@@ -17,10 +17,10 @@ It never touches the internal services. The session token is kept in the Keychai
 ```
 flutter pub get
 flutter analyze && flutter test
-flutter run --dart-define=API_BASE_URL=http://103.228.38.77:3000
-dart run tool/live_check.dart http://103.228.38.77:3000      # needs a reachable server; creates and deletes a throwaway buyer
+flutter run --dart-define=API_BASE_URL=https://cheapbazar.org
+dart run tool/live_check.dart https://cheapbazar.org      # needs a reachable server; creates and deletes a throwaway buyer
 ```
-`API_BASE_URL` defaults to `http://103.228.38.77:3000` (see `lib/config.dart`).
+`API_BASE_URL` defaults to `https://cheapbazar.org` (see `lib/config.dart`).
 
 ## Android release (signed APK)
 The signing key lives OUTSIDE the repo: `~/dev/keys/cheapbazar-release.jks` + `key.properties` on the build server.
