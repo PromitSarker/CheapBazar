@@ -7,6 +7,7 @@ import '../../config.dart';
 import '../../state/l10n.dart';
 import '../../state/session.dart';
 import '../widgets/common.dart';
+import '../widgets/update_tile.dart';
 import 'auth_screen.dart';
 import 'notifications_screen.dart';
 import 'pro_screen.dart';
@@ -122,9 +123,11 @@ class AccountScreen extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.info_outline),
               title: Text(t.t('about')),
-              subtitle: Text('${t.t('app_name')} · ${t.t('version')} ${AppConfig.version}'),
+              subtitle: Text('${t.t('app_name')} · ${t.t('version')} ${AppConfig.version} (${AppConfig.build})'),
               onTap: () => launchUrl(Uri.parse(api.baseUrl), mode: LaunchMode.externalApplication),
             ),
+            const Divider(height: 1),
+            const UpdateTile(),
           ]),
         ),
         if (s.loggedIn) ...[

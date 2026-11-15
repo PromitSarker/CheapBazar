@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: mobile } }
     env:
-      API_BASE_URL: http://103.228.38.69:3000
+      API_BASE_URL: http://103.228.38.77:3000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -59,6 +59,6 @@ jobs:
       - uses: subosito/flutter-action@v2
         with: { flutter-version: "3.47.9", channel: stable }
       - run: flutter pub get
-      - run: flutter build ios --release --no-codesign --dart-define=API_BASE_URL=http://103.228.38.69:3000
+      - run: flutter build ios --release --no-codesign --dart-define=API_BASE_URL=http://103.228.38.77:3000
       - uses: actions/upload-artifact@v4
         with: { name: cheapbazar-ios-unsigned, path: mobile/build/ios/iphoneos/Runner.app }

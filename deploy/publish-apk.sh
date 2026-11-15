@@ -13,7 +13,7 @@ mkdir -p downloads
 cp "$APK" "downloads/$FILE"
 SIZE=$(stat -c %s "downloads/$FILE")
 SHA=$(sha256sum "downloads/$FILE" | cut -d' ' -f1)
-printf '{"version":"%s","file":"%s","size":%s,"sha256":"%s","builtAt":"%s"}\n' "$VERSION" "$FILE" "$SIZE" "$SHA" "$(date -u +%FT%TZ)" > downloads/latest.json.tmp
+printf '{"version":"%s","build":%s,"file":"%s","size":%s,"sha256":"%s","builtAt":"%s"}\n' "$VERSION" "$BUILD" "$FILE" "$SIZE" "$SHA" "$(date -u +%FT%TZ)" > downloads/latest.json.tmp
 mv downloads/latest.json.tmp downloads/latest.json
 ls -1t downloads/cheapbazar-*.apk | tail -n +4 | xargs -r rm -f
 echo "published $FILE ($((SIZE/1024/1024)) MB, sha256 $SHA)"
