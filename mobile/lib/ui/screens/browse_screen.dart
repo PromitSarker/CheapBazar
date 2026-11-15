@@ -7,10 +7,12 @@ import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../state/catalog.dart';
 import '../../state/l10n.dart';
+import '../../state/recent_searches.dart';
 import '../../state/session.dart';
 import '../theme.dart';
 import '../widgets/cart_bar.dart';
 import '../widgets/common.dart';
+import '../widgets/filter_sheet.dart';
 import '../widgets/product_card.dart';
 import '../widgets/skeleton.dart';
 import 'auth_screen.dart';
@@ -42,7 +44,13 @@ class BrowseScreenState extends State<BrowseScreen> {
   late String _tab = widget.initialTab;
   String _sort = 'relevance';
   late String? _categoryId = widget.categoryId;
-  late bool _onSale = widget.onSale;
+  late ProductFilters _filters = ProductFilters(onSale: widget.onSale);
+  List<({String brand, int count})> _brands = const [];
+  List<String> _recents = const [];
+  List<String> _suggestions = const [];
+  List<({String id, String nameEn, String nameBn})> _suggestCats = const [];
+  Timer? _suggestDebounce;
+  int _suggestSeq = 0;
   final List<Product> _items = [];
   List<AdBanner> _ads = [];
   int _page = 1;
@@ -56,6 +64,12 @@ class BrowseScreenState extends State<BrowseScreen> {
   void initState() {
     super.initState();
     _search.text = widget.initialQuery ?? '';
+    _focus.addListener(() {
+      if (mounted) setState(() {});
+    });
+    RecentSearches.load().then((r) {
+      if (mounted) setState(() => _recents = r);
+    });
     _scroll.addListener(() {
       if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 400 && !_loading && _page < _pages) _fetch(page: _page + 1);
     });
@@ -76,6 +90,7 @@ class BrowseScreenState extends State<BrowseScreen> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _suggestDebounce?.cancel();
     _search.dispose();
     _focus.dispose();
     _scroll.dispose();
@@ -92,7 +107,11 @@ class BrowseScreenState extends State<BrowseScreen> {
         'tab': _tab,
         'q': _search.text.trim(),
         'category': _categoryId,
-        'sale': _onSale && _tab == 'retail' ? '1' : null,
+        'sale': _filters.onSale && _tab == 'retail' ? '1' : null,
+        'brand': _filters.brand,
+        'min': _filters.min == null ? null : '${_filters.min}',
+        'max': _filters.max == null ? null : '${_filters.max}',
+        'stock': _filters.inStock ? 'true' : null,
         'sort': _sort == 'relevance' ? null : _sort,
         'page': '$page',
         'limit': '20',
@@ -108,6 +127,9 @@ class BrowseScreenState extends State<BrowseScreen> {
         _pages = (r['pages'] as num?)?.toInt() ?? 1;
         _total = (r['total'] as num?)?.toInt() ?? _items.length;
         _paywall = (pw != null && pw['locked'] == true) ? '${pw['reason']}' : null;
+        _brands = (((r['facets'] as Map?)?['brands'] as List?) ?? const [])
+            .map((e) => (brand: '${(e as Map)['brand']}', count: (e['count'] as num?)?.toInt() ?? 0))
+            .toList();
         _ads = ((r['ads'] as List?) ?? const []).map((e) => AdBanner.fromJson((e as Map).cast<String, dynamic>())).toList();
         _loading = false;
       });
@@ -120,9 +142,59 @@ class BrowseScreenState extends State<BrowseScreen> {
     }
   }
 
-  void _onQueryChanged(String _) {
+  void _onQueryChanged(String v) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 450), () => _fetch());
+    _suggestDebounce?.cancel();
+    final term = v.trim();
+    if (term.length < 2) {
+      setState(() {
+        _suggestions = const [];
+        _suggestCats = const [];
+      });
+      return;
+    }
+    _suggestDebounce = Timer(const Duration(milliseconds: 250), () => _loadSuggestions(term));
+  }
+
+  Future<void> _loadSuggestions(String term) async {
+    final seq = ++_suggestSeq;
+    try {
+      final r = (await context.read<ApiClient>().get('/search/suggest', query: {'q': term})) as Map<String, dynamic>;
+      if (!mounted || seq != _suggestSeq) return; // a newer keystroke already replaced this request
+      setState(() {
+        _suggestions = ((r['suggestions'] as List?) ?? const []).map((e) => '$e').toList();
+        _suggestCats = ((r['categories'] as List?) ?? const [])
+            .map((e) => (id: '${(e as Map)['id']}', nameEn: '${e['nameEn']}', nameBn: '${e['nameBn']}'))
+            .toList();
+      });
+    } catch (_) {
+      // suggestions are a nicety; typing and searching still work
+    }
+  }
+
+  /// Run a search for [term] now: remembers it, closes the keyboard and the suggestion panel.
+  Future<void> _submit(String term) async {
+    _search.text = term;
+    _search.selection = TextSelection.collapsed(offset: term.length);
+    _focus.unfocus();
+    _suggestSeq++;
+    final next = await RecentSearches.add(term);
+    if (mounted) setState(() => _recents = next);
+    _fetch();
+  }
+
+  Future<void> _openFilters() async {
+    final r = await showFilterSheet(
+      context,
+      current: _filters,
+      brands: _brands,
+      allowPrice: _tab == 'retail' || _paywall == null,
+      allowSale: _tab == 'retail',
+    );
+    if (r == null || r == _filters) return;
+    setState(() => _filters = r);
+    _fetch();
   }
 
   void _openCart() => Navigator.push(context, MaterialPageRoute(builder: (_) => CartScreen(goToShop: () => Navigator.of(context).pop())));
@@ -147,7 +219,7 @@ class BrowseScreenState extends State<BrowseScreen> {
             controller: _search,
             focusNode: _focus,
             onChanged: _onQueryChanged,
-            onSubmitted: (_) => _fetch(),
+            onSubmitted: (v) => v.trim().isEmpty ? _fetch() : _submit(v.trim()),
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
               hintText: cur != null ? t.t('search_in', {'name': cur.name(bn)}) : t.t('search_hint'),
@@ -185,7 +257,12 @@ class BrowseScreenState extends State<BrowseScreen> {
                 },
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 4),
+            Badge(
+              isLabelVisible: _filters.activeCount > 0,
+              label: Text('${_filters.activeCount}'),
+              child: IconButton(tooltip: t.t('filters'), icon: const Icon(Icons.tune), onPressed: _openFilters),
+            ),
             PopupMenuButton<String>(
               tooltip: t.t('sort'),
               icon: const Icon(Icons.sort),
@@ -204,32 +281,84 @@ class BrowseScreenState extends State<BrowseScreen> {
           ]),
         ),
         _chipsRow(t, top, bn),
-        Expanded(child: _body(t)),
+        Expanded(child: _showPanel ? _suggestionPanel(t, bn) : _body(t)),
       ]),
     );
+  }
+
+  bool get _showPanel {
+    if (!_focus.hasFocus) return false;
+    final typed = _search.text.trim().length >= 2;
+    return typed ? (_suggestions.isNotEmpty || _suggestCats.isNotEmpty) : _recents.isNotEmpty;
+  }
+
+  Widget _suggestionPanel(LocaleController t, bool bn) {
+    final typed = _search.text.trim().length >= 2;
+    return ListView(keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag, children: [
+      if (!typed) ...[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+          child: Row(children: [
+            Expanded(child: Text(t.t('recent_searches'), style: const TextStyle(fontWeight: FontWeight.w700))),
+            TextButton(
+              onPressed: () async {
+                await RecentSearches.clear();
+                if (mounted) setState(() => _recents = const []);
+              },
+              child: Text(t.t('clear_all')),
+            ),
+          ]),
+        ),
+        for (final r in _recents)
+          ListTile(leading: const Icon(Icons.history, color: kMuted), title: Text(r), dense: true, onTap: () => _submit(r)),
+      ] else ...[
+        for (final c in _suggestCats)
+          ListTile(
+            leading: const Icon(Icons.category_outlined, color: kAction),
+            title: Text(_search.text.trim()),
+            subtitle: Text(t.t('in_category', {'name': bn && c.nameBn.isNotEmpty ? c.nameBn : c.nameEn})),
+            dense: true,
+            onTap: () {
+              _search.clear();
+              _focus.unfocus();
+              setState(() => _categoryId = c.id);
+              _fetch();
+            },
+          ),
+        for (final s in _suggestions)
+          ListTile(leading: const Icon(Icons.search, color: kMuted), title: Text(s), dense: true, onTap: () => _submit(s)),
+      ],
+    ]);
   }
 
   /// "On sale" + the department's sub-categories, in one scrolling row.
   Widget _chipsRow(LocaleController t, ShopCategory? top, bool bn) {
     final kids = top?.children ?? const <ShopCategory>[];
-    if (_tab != 'retail' && kids.isEmpty) return const SizedBox(height: 4);
+    if (_tab != 'retail' && kids.isEmpty && _filters.activeCount == 0) return const SizedBox(height: 4);
     return SizedBox(
       height: 52,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         children: [
+          if (_filters.brand != null) _removable(_filters.brand!, () => _filters = _filters.copyWith(brand: null)),
+          if (_filters.min != null || _filters.max != null)
+            _removable(
+              '৳${_filters.min?.round() ?? 0} – ${_filters.max == null ? '∞' : '৳${_filters.max!.round()}'}',
+              () => _filters = _filters.copyWith(min: null, max: null),
+            ),
+          if (_filters.inStock) _removable(t.t('in_stock_only'), () => _filters = _filters.copyWith(inStock: false)),
           if (_tab == 'retail')
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: FilterChip(
                 label: Text(t.t('on_sale')),
                 avatar: const Icon(Icons.local_offer_outlined, size: 16),
-                selected: _onSale,
+                selected: _filters.onSale,
                 showCheckmark: false,
                 selectedColor: kActionSoft,
                 onSelected: (v) {
-                  setState(() => _onSale = v);
+                  setState(() => _filters = _filters.copyWith(onSale: v));
                   _fetch();
                 },
               ),
@@ -265,6 +394,18 @@ class BrowseScreenState extends State<BrowseScreen> {
       ),
     );
   }
+
+  Widget _removable(String label, VoidCallback clear) => Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: InputChip(
+          label: Text(label),
+          backgroundColor: kActionSoft,
+          onDeleted: () {
+            setState(clear);
+            _fetch();
+          },
+        ),
+      );
 
   Widget _body(LocaleController t) {
     if (_error != null && _items.isEmpty) return ErrorRetry(message: _error!, onRetry: _fetch);
@@ -303,8 +444,8 @@ class BrowseScreenState extends State<BrowseScreen> {
             hasScrollBody: false,
             child: EmptyState(
               icon: Icons.search_off,
-              title: _categoryId != null || _onSale ? t.t('no_products_here') : t.t('no_results'),
-              subtitle: _categoryId != null || _onSale ? t.t('no_products_here_hint') : null,
+              title: _categoryId != null || _filters.activeCount > 0 ? t.t('no_products_here') : t.t('no_results'),
+              subtitle: _categoryId != null || _filters.activeCount > 0 ? t.t('no_products_here_hint') : null,
             ),
           )
         else ...[

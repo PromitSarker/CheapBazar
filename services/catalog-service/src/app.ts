@@ -1,7 +1,7 @@
 import { Router, createServer, HttpError, requireFields, envInt } from "../../../packages/service-kit";
 import { HttpTransport, registerEventRoute, startRelay, outboxStats, type Transport } from "../../../packages/event-bus";
 import { createDb, type Db } from "./db";
-import { adjustStock, createProduct, deleteProduct, getProduct, listProducts, updateProduct } from "./products";
+import { adjustStock, adminListProducts, createProduct, deleteProduct, getProduct, listProducts, updateProduct } from "./products";
 import { commit, expireReservations, quote, release, reserve, restock } from "./inventory";
 import { handlers } from "./consumers";
 import { categoryTree, createCategory, deleteCategory, ensureDefaultCategories, updateCategory } from "./categories";
@@ -28,6 +28,7 @@ export function buildRouter(db: Db): Router {
 
   // -------------------------------------------------------------- categories
   r.get("/categories", async () => ({ categories: await categoryTree(db) }));
+  r.get("/admin/products", async ({ query }) => ({ products: await adminListProducts(db, query) }));
   r.get("/admin/categories", async () => ({ categories: await categoryTree(db, { includeInactive: true }) }));
   r.post("/admin/categories", ({ body }) => createCategory(db, body));
   r.patch("/admin/categories/:id", ({ params, body }) => updateCategory(db, params.id, body));

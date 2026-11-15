@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../state/cart.dart';
 import '../../state/l10n.dart';
@@ -8,7 +9,7 @@ import '../../state/session.dart';
 import '../../state/catalog.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
-import '../widgets/product_card.dart' show toBnIf;
+import '../widgets/product_card.dart';
 import 'browse_screen.dart';
 import 'auth_screen.dart';
 import 'pro_screen.dart';
@@ -27,10 +28,39 @@ class ProductPage extends StatefulWidget {
 
 class _ProductPageState extends State<ProductPage> {
   late int qty = widget.product.wholesale ? widget.product.moq : 1;
+  Product? _fresh; // the listing as the server sees it right now (price, stock, paywall)
+  String? _freshPaywall;
+  List<Product> _similar = const [];
+
+  Product get _p => _fresh ?? widget.product;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+  }
+
+  /// The list the shopper tapped may be minutes old; fetch the live listing and similar products.
+  /// Failure is silent: the page already shows what the list had.
+  Future<void> _refresh() async {
+    try {
+      final r = (await context.read<ApiClient>().get('/products/${Uri.encodeComponent(widget.product.id)}')) as Map<String, dynamic>;
+      if (!mounted) return;
+      final wholesale = r['tab'] == 'wholesale';
+      final fresh = Product.fromBrowse((r['item'] as Map).cast<String, dynamic>(), wholesale: wholesale);
+      final pw = r['paywall'] as Map?;
+      setState(() {
+        _fresh = fresh;
+        _freshPaywall = (pw != null && pw['locked'] == true) ? '${pw['reason']}' : null;
+        _similar = ((r['similar'] as List?) ?? const []).map((e) => Product.fromBrowse((e as Map).cast<String, dynamic>())).toList();
+        if (qty > fresh.stock && fresh.stock > 0) qty = fresh.stock;
+      });
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
-    final p = widget.product;
+    final p = _p;
     final t = context.watch<LocaleController>();
     final max = p.stock > 0 ? p.stock : 9999;
     final min = p.wholesale ? p.moq : 1;
@@ -75,6 +105,26 @@ class _ProductPageState extends State<ProductPage> {
             ],
           ]),
         ),
+        if (_similar.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: Text(t.t('similar_products'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          ),
+          SizedBox(
+            height: shelfHeight(context, 150),
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: _similar.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 10),
+              itemBuilder: (_, i) => SizedBox(
+                width: 150,
+                child: ProductCard(product: _similar[i], onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductPage(product: _similar[i])))),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
       ]),
       bottomNavigationBar: canBuy
           ? SafeArea(
@@ -144,7 +194,8 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Widget _lockedBox(BuildContext context, LocaleController t) {
-    final needLogin = widget.paywallReason == 'LOGIN_REQUIRED' || !context.read<SessionController>().loggedIn;
+    final reason = _freshPaywall ?? widget.paywallReason;
+    final needLogin = reason == 'LOGIN_REQUIRED' || !context.read<SessionController>().loggedIn;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: const Color(0xFFF4F4F5), borderRadius: BorderRadius.circular(12)),

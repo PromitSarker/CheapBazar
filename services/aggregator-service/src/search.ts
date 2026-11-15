@@ -10,6 +10,8 @@ export type Tab = "retail" | "wholesale";
 export interface SearchParams {
   q?: string;
   storeId?: string;
+  /** Exactly one listing (product page); still subject to store visibility and the wholesale paywall. */
+  productId?: string;
   /** Top-level OR sub-category id (a top-level id also matches everything beneath it). */
   categoryId?: string;
   brand?: string;
@@ -55,6 +57,7 @@ export async function search(db: Runner, ent: Entitlements, tab: Tab, p: SearchP
     where.push(`(l."searchText" LIKE ${ph} ESCAPE '\\' OR lower(s."name") LIKE ${ph} ESCAPE '\\')`);
   }
   if (p.inStock === "true") where.push(`l."stock" > 0`);
+  if (p.productId) where.push(`l."productId" = ${arg(String(p.productId).slice(0, 64))}`);
   if (p.onSale === "true" && !wholesale) where.push(`l."compareAtPrice" IS NOT NULL AND l."compareAtPrice" > l."price"`);
 
   // Price filters/sorts would let a locked viewer infer hidden wholesale prices.
@@ -186,4 +189,28 @@ export async function storeDirectory(db: Runner, q: { q?: string; limit?: string
     ...args
   );
   return rows.map((r) => ({ storeId: r.storeId, slug: r.slug, name: r.name, template: r.template, customDomain: r.customDomain, productCount: Number(r.n) }));
+}
+
+/**
+ * Type-ahead for the search box: up to `limit` distinct product names (prefix matches first) from visible
+ * retail listings. Names only, never prices, so it cannot leak anything behind the wholesale paywall.
+ */
+export async function suggest(db: Runner, q: { q?: string; limit?: string }) {
+  const term = (q.q ?? "").toLowerCase().trim().slice(0, 60);
+  if (term.length < 2) return { suggestions: [] as string[] };
+  const limit = Math.min(Math.max(Number(q.limit) || 6, 1), 10);
+  const like = `%${escapeLike(term)}%`;
+  const prefix = `${escapeLike(term)}%`;
+  const rows = await db.$queryRawUnsafe<{ name: string }[]>(
+    `SELECT name FROM (
+       SELECT DISTINCT ON (lower(l."name")) l."name" AS name,
+              (CASE WHEN lower(l."name") LIKE $2 ESCAPE '\\' THEN 0 ELSE 1 END) AS rank
+         FROM "ListingIndex" l JOIN "StoreProjection" s ON s."storeId" = l."storeId"
+        WHERE l."deleted" = false AND l."name" <> '' AND s."slug" <> '' AND s."status" NOT IN ${HIDDEN_STATUSES}
+          AND l."channel" IN ('RETAIL','BOTH') AND l."searchText" LIKE $1 ESCAPE '\\'
+        ORDER BY lower(l."name")
+     ) t ORDER BY rank, name LIMIT ${limit}`,
+    like, prefix
+  );
+  return { suggestions: rows.map((r) => r.name) };
 }
