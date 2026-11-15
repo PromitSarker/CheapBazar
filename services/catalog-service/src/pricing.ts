@@ -29,6 +29,11 @@ export interface ProductInput {
   price: number;
   stock: number;
   image: string | null;
+  images: string[];
+  categoryId: string | null;
+  brand: string | null;
+  unit: string | null;
+  compareAtPrice: number | null;
   channel: "RETAIL" | "WHOLESALE" | "BOTH";
   moq: number;
   wholesalePrice: number | null;
@@ -43,9 +48,34 @@ export function parseProduct(b: any, cur?: Partial<ProductInput>): ProductInput 
   const price = money(b.price ?? cur?.price, "price");
   const stock = int(b.stock ?? cur?.stock ?? 0, "stock", 0, 10_000_000);
 
+  const validImage = (v: unknown): string => {
+    const u = String(v ?? "");
+    if (!u || u.length > 500 || !(u.startsWith("/uploads/") || /^https:\/\//.test(u))) {
+      throw new HttpError(400, "Images must be uploaded files or https URLs.", "VALIDATION");
+    }
+    return u;
+  };
   let image: string | null = b.image === undefined ? cur?.image ?? null : b.image || null;
-  if (image && !(image.startsWith("/uploads/") || /^https:\/\//.test(image)) || (image && image.length > 500)) {
-    throw new HttpError(400, "Image must be an uploaded file or an https URL.", "VALIDATION");
+  if (image) image = validImage(image);
+  let images: string[] = cur?.images ?? (image ? [image] : []);
+  if (b.images !== undefined) {
+    if (!Array.isArray(b.images) || b.images.length > 8) throw new HttpError(400, "images must be a list of at most 8 pictures.", "VALIDATION");
+    images = [...new Set<string>((b.images as unknown[]).map(validImage))];
+    if (images.length) image = images[0]; // the gallery decides the cover
+    else image = b.image === undefined ? null : image;
+  } else if (b.image !== undefined) {
+    // legacy single-image callers: the cover replaces slot 0
+    images = image ? [image, ...images.filter((i) => i !== image)].slice(0, 8) : [];
+  }
+  if (image && !images.includes(image)) images = [image, ...images].slice(0, 8);
+
+  const brand = b.brand === undefined ? cur?.brand ?? null : String(b.brand ?? "").trim().slice(0, 60) || null;
+  const unit = b.unit === undefined ? cur?.unit ?? null : String(b.unit ?? "").trim().slice(0, 30) || null;
+  const categoryId = b.categoryId === undefined ? cur?.categoryId ?? null : String(b.categoryId ?? "").trim() || null;
+  let compareAtPrice: number | null = cur?.compareAtPrice ?? null;
+  if (b.compareAtPrice !== undefined) compareAtPrice = b.compareAtPrice === null || b.compareAtPrice === "" || Number(b.compareAtPrice) === 0 ? null : money(b.compareAtPrice, "compareAtPrice");
+  if (compareAtPrice !== null && compareAtPrice <= price) {
+    throw new HttpError(400, "The original (crossed-out) price must be higher than the selling price.", "VALIDATION");
   }
 
   const channel = String(b.channel ?? cur?.channel ?? "RETAIL").toUpperCase() as ProductInput["channel"];
@@ -70,5 +100,5 @@ export function parseProduct(b: any, cur?: Partial<ProductInput>): ProductInput 
       if (tiers[i].unitPrice >= prev) throw new HttpError(400, "Volume tiers must get cheaper as quantity grows.", "VALIDATION");
     }
   }
-  return { name, description, price, stock, image, channel, moq, wholesalePrice, tiers };
+  return { name, description, price, stock, image, images, categoryId, brand, unit, compareAtPrice, channel, moq, wholesalePrice, tiers };
 }

@@ -9,23 +9,28 @@ import type { Runner } from "./db";
  */
 
 const ts = (env: EventEnvelope) => new Date(env.timestamp);
-const searchText = (name: string, description: string) => `${name} ${description}`.toLowerCase().slice(0, 6000);
+const searchText = (name: string, description: string, brand?: string | null) => `${name} ${brand ?? ""} ${description}`.toLowerCase().slice(0, 6000);
 
 async function upsertListing(tx: Runner, env: EventEnvelope) {
   const d = env.data;
   await tx.$executeRawUnsafe(
     `INSERT INTO "ListingIndex"
-       ("productId","storeId","name","description","image","price","stock","channel","moq","wholesalePrice","tiers","searchText","productCreatedAt","deleted","sourceTs","updatedAt")
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12,$13,false,$14,now())
+       ("productId","storeId","name","description","image","price","stock","channel","moq","wholesalePrice","tiers","searchText","productCreatedAt","deleted","sourceTs","updatedAt",
+        "images","categoryId","parentCategoryId","brand","unit","compareAtPrice")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12,$13,false,$14,now(),$15::jsonb,$16,$17,$18,$19,$20)
      ON CONFLICT ("productId") DO UPDATE SET
        "storeId"=EXCLUDED."storeId","name"=EXCLUDED."name","description"=EXCLUDED."description","image"=EXCLUDED."image",
        "price"=EXCLUDED."price","stock"=EXCLUDED."stock","channel"=EXCLUDED."channel","moq"=EXCLUDED."moq",
        "wholesalePrice"=EXCLUDED."wholesalePrice","tiers"=EXCLUDED."tiers","searchText"=EXCLUDED."searchText",
-       "productCreatedAt"=EXCLUDED."productCreatedAt","deleted"=false,"sourceTs"=EXCLUDED."sourceTs","updatedAt"=now()
+       "productCreatedAt"=EXCLUDED."productCreatedAt","deleted"=false,"sourceTs"=EXCLUDED."sourceTs","updatedAt"=now(),
+       "images"=EXCLUDED."images","categoryId"=EXCLUDED."categoryId","parentCategoryId"=EXCLUDED."parentCategoryId",
+       "brand"=EXCLUDED."brand","unit"=EXCLUDED."unit","compareAtPrice"=EXCLUDED."compareAtPrice"
      WHERE "ListingIndex"."sourceTs" <= EXCLUDED."sourceTs" AND "ListingIndex"."deleted" = false`,
     d.productId, d.storeId, d.name ?? "", d.description ?? "", d.image ?? null, d.price ?? 0, d.stock ?? 0,
     d.channel ?? "RETAIL", d.moq ?? 1, d.wholesalePrice ?? null, JSON.stringify(d.tiers ?? []),
-    searchText(d.name ?? "", d.description ?? ""), d.createdAt ? new Date(d.createdAt) : new Date(), ts(env)
+    searchText(d.name ?? "", d.description ?? "", d.brand), d.createdAt ? new Date(d.createdAt) : new Date(), ts(env),
+    JSON.stringify(Array.isArray(d.images) ? d.images : []), d.categoryId ?? null, d.parentCategoryId ?? null,
+    d.brand ?? null, d.unit ?? null, d.compareAtPrice ?? null
   );
 }
 

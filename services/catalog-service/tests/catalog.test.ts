@@ -230,3 +230,112 @@ test("event consumer: OrderCancelled / OrderRefused restock exactly once, duplic
   const bogus = await api.post("/internal/events", ev("OrderCancelled", "ORD-NOPE", "x-1"));
   assert.equal(bogus.ok, true, "unknown orders are a no-op, not an error");
 });
+
+// ------------------------------------------------------------------ categories
+const flat = (tree: any[]): any[] => tree.flatMap((c) => [c, ...flat(c.children)]);
+const topNamed = async (nameEn: string) => (await api.get("/categories")).categories.find((c: any) => c.nameEn === nameEn);
+
+test("starter category tree is seeded: two levels, bilingual, icons, ordered", async () => {
+  const { categories } = await api.get("/categories");
+  assert.ok(categories.length >= 8, "has the main departments");
+  const grocery = categories.find((c: any) => c.slug === "grocery-food");
+  assert.ok(grocery && grocery.children.length >= 5 && grocery.nameBn && grocery.icon);
+  assert.ok(grocery.children.every((c: any) => c.nameBn && c.parentId === grocery.id && c.children.length === 0));
+  const orders = categories.map((c: any) => c.sortOrder);
+  assert.deepEqual(orders, [...orders].sort((a: number, b: number) => a - b), "sorted by sortOrder");
+  const slugs = flat(categories).map((c: any) => c.slug);
+  assert.equal(new Set(slugs).size, slugs.length, "slugs are unique");
+});
+
+test("admin category CRUD: two levels only, no moving, hiding, delete only when empty", async () => {
+  const top = await api.post("/admin/categories", { nameEn: "Pet Supplies", nameBn: "পোষা প্রাণী", icon: "pets", sortOrder: 500 });
+  assert.equal(top.slug, "pet-supplies");
+  assert.equal(top.parentId, null);
+  const sub = await api.post("/admin/categories", { nameEn: "Dog Food", parentId: top.id });
+  assert.equal(sub.parentId, top.id);
+  await expectErr(api.post("/admin/categories", { nameEn: "Puppy", parentId: sub.id }), "VALIDATION", 400); // 3rd level
+  await expectErr(api.post("/admin/categories", { nameEn: "" }), "VALIDATION", 400);
+  await expectErr(api.post("/admin/categories", { nameEn: "X", icon: "Not An Icon!" }), "VALIDATION", 400);
+  await expectErr(api.post("/admin/categories", { nameEn: "Orphan", parentId: "nope" }), "VALIDATION", 400);
+  await expectErr(api.post("/admin/categories", { nameEn: "Other Pets", slug: "pet-supplies" }), "CONFLICT", 409);
+  const dup = await api.post("/admin/categories", { nameEn: "Pet Supplies" }); // same name -> auto-suffixed slug
+  assert.equal(dup.slug, "pet-supplies-2");
+
+  const renamed = await api.patch(`/admin/categories/${top.id}`, { nameEn: "Pets", nameBn: "পোষা" });
+  assert.equal(renamed.nameEn, "Pets");
+  await expectErr(api.patch(`/admin/categories/${sub.id}`, { parentId: dup.id }), "VALIDATION", 400); // cannot move
+  assert.equal((await api.patch(`/admin/categories/${sub.id}`, { parentId: top.id })).parentId, top.id, "same parent is a no-op");
+
+  // hiding a parent hides its children from the public tree, but not from the admin tree
+  await api.patch(`/admin/categories/${top.id}`, { active: false });
+  assert.ok(!flat((await api.get("/categories")).categories).some((c: any) => c.id === sub.id));
+  assert.ok(flat((await api.get("/admin/categories")).categories).some((c: any) => c.id === sub.id));
+  await api.patch(`/admin/categories/${top.id}`, { active: true });
+
+  await expectErr(api.delete(`/admin/categories/${top.id}`), "IN_USE", 409); // has a child
+  await api.delete(`/admin/categories/${sub.id}`);
+  await api.delete(`/admin/categories/${dup.id}`);
+  await api.delete(`/admin/categories/${top.id}`);
+  await expectErr(api.delete(`/admin/categories/${top.id}`), "NOT_FOUND", 404);
+});
+
+test("products: category, brand, unit, was-price and gallery are validated and published", async () => {
+  const s = store();
+  const grocery = await topNamed("Grocery & Food");
+  const sub = grocery.children[0];
+
+  const p = await mk(s, { categoryId: sub.id, brand: "  Aarong  ", unit: "500 g", price: 80, compareAtPrice: 100, images: ["/uploads/a.png", "https://x.test/b.jpg", "/uploads/a.png"] });
+  assert.equal(p.categoryId, sub.id);
+  assert.equal(p.parentCategoryId, grocery.id, "denormalised top-level id");
+  assert.equal(p.brand, "Aarong");
+  assert.equal(p.unit, "500 g");
+  assert.equal(p.compareAtPrice, 100);
+  assert.deepEqual(p.images, ["/uploads/a.png", "https://x.test/b.jpg"], "de-duplicated, order kept");
+  assert.equal(p.image, "/uploads/a.png", "cover = first gallery image");
+
+  await expectErr(mk(s, { categoryId: "does-not-exist" }), "VALIDATION", 400);
+  await expectErr(mk(s, { price: 100, compareAtPrice: 100 }), "VALIDATION", 400); // must be strictly higher
+  await expectErr(mk(s, { price: 100, compareAtPrice: 50 }), "VALIDATION", 400);
+  await expectErr(mk(s, { images: ["javascript:alert(1)"] }), "VALIDATION", 400);
+  await expectErr(mk(s, { images: Array.from({ length: 9 }, (_, i) => `/uploads/${i}.png`) }), "VALIDATION", 400);
+
+  // PATCH keeps what is not mentioned, and re-validates the was-price against the NEW selling price
+  const kept = await api.patch(`/products/${p.productId}`, { storeId: s, stock: 3 });
+  assert.equal(kept.categoryId, sub.id);
+  assert.equal(kept.compareAtPrice, 100);
+  await expectErr(api.patch(`/products/${p.productId}`, { storeId: s, price: 120 }), "VALIDATION", 400);
+  const sale = await api.patch(`/products/${p.productId}`, { storeId: s, price: 120, compareAtPrice: null });
+  assert.equal(sale.compareAtPrice, null);
+
+  // legacy clients that only know the single `image` field keep working
+  const legacy = await api.patch(`/products/${p.productId}`, { storeId: s, image: "/uploads/new.png" });
+  assert.equal(legacy.image, "/uploads/new.png");
+  assert.equal(legacy.images[0], "/uploads/new.png");
+
+  // changing / clearing category
+  const other = grocery.children[1];
+  assert.equal((await api.patch(`/products/${p.productId}`, { storeId: s, categoryId: other.id })).categoryId, other.id);
+  const cleared = await api.patch(`/products/${p.productId}`, { storeId: s, categoryId: "" });
+  assert.equal(cleared.categoryId, null);
+  assert.equal(cleared.parentCategoryId, null);
+
+  // events carry the new fields to the aggregator
+  const [ev] = await svc.db.$queryRawUnsafe<{ d: any }[]>(
+    `SELECT "envelope"->'data' AS d FROM "OutboxMessage" WHERE "eventType"='ProductCreated' AND "consumer"='aggregator' AND "envelope"->'data'->>'productId' = $1`, p.productId);
+  assert.equal(ev.d.categoryId, sub.id);
+  assert.equal(ev.d.parentCategoryId, grocery.id);
+  assert.equal(ev.d.compareAtPrice, 100);
+  assert.equal(ev.d.brand, "Aarong");
+});
+
+test("a hidden category cannot be newly assigned, but an already-assigned product can still be edited", async () => {
+  const s = store();
+  const top = await api.post("/admin/categories", { nameEn: "Seasonal" });
+  const p = await mk(s, { categoryId: top.id });
+  await api.patch(`/admin/categories/${top.id}`, { active: false });
+  await expectErr(mk(s, { categoryId: top.id }), "VALIDATION", 400);
+  const edited = await api.patch(`/products/${p.productId}`, { storeId: s, stock: 9, categoryId: top.id });
+  assert.equal(edited.stock, 9);
+  assert.equal(edited.categoryId, top.id);
+  await expectErr(api.delete(`/admin/categories/${top.id}`), "IN_USE", 409); // products still use it
+});

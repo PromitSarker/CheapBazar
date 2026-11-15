@@ -2,6 +2,7 @@ import { HttpError } from "../../../packages/service-kit";
 import { publish } from "../../../packages/event-bus";
 import { num, withTx, type Db, type Runner } from "./db";
 import { parseProduct } from "./pricing";
+import { resolveCategory } from "./categories";
 
 export const snapshot = (p: any) => ({
   productId: p.id,
@@ -9,6 +10,12 @@ export const snapshot = (p: any) => ({
   name: p.name,
   description: p.description,
   image: p.image,
+  images: p.images ?? [],
+  categoryId: p.categoryId ?? null,
+  parentCategoryId: p.parentCategoryId ?? null,
+  brand: p.brand ?? null,
+  unit: p.unit ?? null,
+  compareAtPrice: p.compareAtPrice == null ? null : num(p.compareAtPrice),
   price: num(p.price),
   stock: p.stock,
   channel: p.channel,
@@ -45,9 +52,11 @@ export async function listProducts(db: Runner, storeId: string, q: { channel?: s
 export async function createProduct(db: Db, storeId: string, body: any) {
   const input = parseProduct(body);
   return withTx(db, async (tx) => {
+    const cat = input.categoryId ? await resolveCategory(tx as any, input.categoryId) : { categoryId: null, parentCategoryId: null };
     const p = await tx.product.create({
       data: {
         storeId, name: input.name, description: input.description, price: input.price, stock: input.stock, image: input.image,
+        images: input.images, brand: input.brand, unit: input.unit, compareAtPrice: input.compareAtPrice, ...cat,
         channel: input.channel, moq: input.moq, wholesalePrice: input.wholesalePrice,
         tiers: { create: input.tiers },
       },
@@ -65,14 +74,21 @@ export async function updateProduct(db: Db, id: string, body: any) {
     if (!cur) throw new HttpError(404, "Product not found", "NOT_FOUND");
     const input = parseProduct(body, {
       name: cur.name, description: cur.description, price: num(cur.price), stock: cur.stock, image: cur.image,
+      images: cur.images, categoryId: cur.categoryId, brand: cur.brand, unit: cur.unit,
+      compareAtPrice: cur.compareAtPrice == null ? null : num(cur.compareAtPrice),
       channel: cur.channel, moq: cur.moq, wholesalePrice: cur.wholesalePrice == null ? null : num(cur.wholesalePrice),
       tiers: cur.tiers.map((t) => ({ minQty: t.minQty, unitPrice: num(t.unitPrice) })),
     });
     await tx.priceTier.deleteMany({ where: { productId: id } });
+    // Only re-validate the category when it changed (an already-assigned category that was hidden later must not block edits).
+    const cat = input.categoryId === cur.categoryId
+      ? { categoryId: cur.categoryId, parentCategoryId: cur.parentCategoryId }
+      : input.categoryId ? await resolveCategory(tx as any, input.categoryId) : { categoryId: null, parentCategoryId: null };
     const p = await tx.product.update({
       where: { id },
       data: {
         name: input.name, description: input.description, price: input.price, stock: input.stock, image: input.image,
+        images: input.images, brand: input.brand, unit: input.unit, compareAtPrice: input.compareAtPrice, ...cat,
         channel: input.channel, moq: input.moq, wholesalePrice: input.wholesalePrice,
         tiers: { create: input.tiers },
       },

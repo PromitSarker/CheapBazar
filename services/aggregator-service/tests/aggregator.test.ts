@@ -206,3 +206,74 @@ test("store directory lists visible stores with product counts; admin stats", as
   const st = await A.get("/admin/stats");
   assert.ok(st.listings > 5 && st.retailVisible > 0 && st.stores >= 5);
 });
+
+// ------------------------------------------------------------------ categories / brand / sale
+test("category, brand and sale filters, discount sort, richer items and facets", async () => {
+  const a = await mkStore({ name: "Fresh Mart" });
+  const b = await mkStore({ name: "Style House" });
+  const q = `zq${Math.random().toString(36).slice(2, 6)}`; // unique search token isolates this test's rows
+  const food = `cat_food_${q}`, fruit = `cat_fruit_${q}`, veg = `cat_veg_${q}`, fashion = `cat_fashion_${q}`;
+  const mk = (s: any, name: string, price: number, o: any = {}) => prod(s.id, { name: `${q} ${name}`, price, stock: 5, ...o });
+  const apple = await mk(a, "Apple", 80, { categoryId: fruit, parentCategoryId: food, brand: "Orchard", unit: "1 kg", compareAtPrice: 100, images: ["/uploads/a1.png", "/uploads/a2.png"], image: "/uploads/a1.png" });
+  const mango = await mk(a, "Mango", 90, { categoryId: fruit, parentCategoryId: food, brand: "orchard", compareAtPrice: 90 /* not a real discount */ });
+  const carrot = await mk(a, "Carrot", 30, { categoryId: veg, parentCategoryId: food, brand: "Farmly", compareAtPrice: 60 });
+  const shirt = await mk(b, "Shirt", 500, { categoryId: fashion, parentCategoryId: null, brand: "Aarong" });
+  const loose = await mk(b, "Loose Thing", 10); // uncategorised
+
+  // a top-level id matches everything beneath it; a sub-category id matches only itself
+  assert.deepEqual(ids(await retail({ q, categoryId: food, sort: "price_asc" })), [carrot.productId, apple.productId, mango.productId]);
+  assert.deepEqual(ids(await retail({ q, categoryId: fruit, sort: "price_asc" })), [apple.productId, mango.productId]);
+  assert.deepEqual(ids(await retail({ q, categoryId: fashion })), [shirt.productId]);
+  assert.deepEqual(ids(await retail({ q, categoryId: "nope" })), []);
+
+  // brand: case-insensitive; combines with category
+  assert.deepEqual(ids(await retail({ q, brand: "ORCHARD", sort: "price_asc" })), [apple.productId, mango.productId]);
+  assert.deepEqual(ids(await retail({ q, brand: "orchard", categoryId: veg })), []);
+  assert.ok(ids(await retail({ q: `${q} aarong` })).includes(shirt.productId), "brand is searchable text");
+
+  // on sale: only real discounts (was-price strictly above price)
+  assert.deepEqual(ids(await retail({ q, onSale: "true", sort: "discount" })), [carrot.productId, apple.productId]); // 50% then 20%
+
+  // items expose discount, gallery and category info; no fake discount when was <= price
+  const items = (await retail({ q, categoryId: food })).items;
+  const ap = items.find((i: any) => i.productId === apple.productId);
+  assert.equal(ap.compareAtPrice, 100);
+  assert.equal(ap.discountPct, 20);
+  assert.deepEqual(ap.images, ["/uploads/a1.png", "/uploads/a2.png"]);
+  assert.equal(ap.categoryId, fruit);
+  assert.equal(ap.parentCategoryId, food);
+  assert.equal(ap.unit, "1 kg");
+  const mg = items.find((i: any) => i.productId === mango.productId);
+  assert.equal(mg.compareAtPrice, null);
+  assert.equal(mg.discountPct, 0);
+
+  // facets: each ignores its own filter but respects the others
+  const all = (await retail({ q })).facets;
+  assert.deepEqual(all.categories.filter((c: any) => c.parentCategoryId === food).map((c: any) => [c.categoryId, c.count]).sort(), [[fruit, 2], [veg, 1]].sort());
+  assert.equal(all.brands.find((x: any) => x.brand.toLowerCase() === "orchard").count, 2, "brand counts are case-insensitive");
+  const fruitOnly = (await retail({ q, categoryId: fruit })).facets;
+  assert.ok(fruitOnly.stores.every((x: any) => x.id !== b.id && x.storeId !== b.id), "store facet respects the category filter");
+  assert.equal(fruitOnly.categories.length, all.categories.length, "category facet ignores the category filter");
+  const brandFiltered = (await retail({ q, brand: "Farmly" })).facets;
+  assert.equal(brandFiltered.brands.length, all.brands.length, "brand facet ignores the brand filter");
+  assert.deepEqual(brandFiltered.categories.map((c: any) => c.categoryId), [veg], "category facet respects the brand filter");
+  const storeFiltered = (await retail({ q, storeId: b.id })).facets;
+  assert.deepEqual(storeFiltered.categories.map((c: any) => c.categoryId), [fashion], "category facet respects the store filter");
+  assert.ok(loose && storeFiltered.stores.length >= 1);
+});
+
+test("wholesale tab keeps the paywall: no sale price, filters work without leaking prices", async () => {
+  const s = await mkStore({ name: "Bulk House" });
+  const q = `wq${Math.random().toString(36).slice(2, 6)}`;
+  const cat = `cat_w_${q}`;
+  const p = await prod(s.id, { name: `${q} Rice Sack`, channel: "WHOLESALE", price: 0, wholesalePrice: 900, moq: 10, categoryId: cat, parentCategoryId: null, brand: "Gold", compareAtPrice: 1200, stock: 50 });
+  const locked = await wholesale({ q, categoryId: cat });
+  assert.deepEqual(ids(locked), [p.productId]);
+  const it = locked.items[0];
+  assert.equal(it.locked, true);
+  for (const k of ["wholesalePrice", "price", "compareAtPrice", "discountPct", "tiers", "moq"]) assert.ok(!(k in it), `${k} must not leak`);
+  assert.equal(it.brand, "Gold");
+  assert.equal(it.categoryId, cat);
+  const noSale = await wholesale({ q, onSale: "true" });
+  assert.equal(noSale.total, 1, "onSale is ignored on the wholesale tab (never filters or reveals)");
+});

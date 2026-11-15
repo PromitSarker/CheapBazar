@@ -20,6 +20,12 @@ model ListingIndex {
   name             String   @default("")
   description      String   @default("")
   image            String?
+  images           Json     @default("[]")
+  categoryId       String?
+  parentCategoryId String?
+  brand            String?
+  unit             String?
+  compareAtPrice   Decimal? @db.Decimal(10, 2)
   price            Decimal  @default(0) @db.Decimal(10, 2)
   stock            Int      @default(0)
   channel          String   @default("RETAIL") // RETAIL | WHOLESALE | BOTH
@@ -34,6 +40,8 @@ model ListingIndex {
 
   @@index([storeId])
   @@index([deleted, channel, productCreatedAt(sort: Desc)])
+  @@index([categoryId])
+  @@index([parentCategoryId])
 }
 
 // Store facts the index needs. Three independent versions (info / status / plan) so
