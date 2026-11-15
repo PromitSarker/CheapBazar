@@ -4,6 +4,7 @@ import { createDb, type Db } from "./db";
 import { adjustStock, createProduct, deleteProduct, getProduct, listProducts, updateProduct } from "./products";
 import { commit, expireReservations, quote, release, reserve, restock } from "./inventory";
 import { handlers } from "./consumers";
+import { categoryTree, createCategory, deleteCategory, ensureDefaultCategories, updateCategory } from "./categories";
 
 export function buildRouter(db: Db): Router {
   const r = new Router();
@@ -24,6 +25,13 @@ export function buildRouter(db: Db): Router {
     requireFields(body, ["storeId", "delta"]);
     return adjustStock(db, params.id, String(body.storeId), Number(body.delta));
   });
+
+  // -------------------------------------------------------------- categories
+  r.get("/categories", async () => ({ categories: await categoryTree(db) }));
+  r.get("/admin/categories", async () => ({ categories: await categoryTree(db, { includeInactive: true }) }));
+  r.post("/admin/categories", ({ body }) => createCategory(db, body));
+  r.patch("/admin/categories/:id", ({ params, body }) => updateCategory(db, params.id, body));
+  r.delete("/admin/categories/:id", ({ params }) => deleteCategory(db, params.id));
 
   // ------------------------------------------------------- inventory (saga)
   r.post("/pricing/quote", ({ body }) => {
@@ -71,11 +79,14 @@ export interface CatalogServiceOptions {
   databaseUrl?: string;
   relay?: boolean;
   janitor?: boolean;
+  /** Seed the starter category tree when the table is empty (default true). */
+  seedCategories?: boolean;
   transport?: Transport;
 }
 
 export async function startCatalogService(opts: CatalogServiceOptions) {
   const db = createDb(opts.databaseUrl);
+  if (opts.seedCategories !== false) await ensureDefaultCategories(db);
   const router = buildRouter(db);
   registerEventRoute(router, db as any, handlers);
 

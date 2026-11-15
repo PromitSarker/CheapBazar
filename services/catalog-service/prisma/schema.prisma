@@ -31,6 +31,15 @@ model Product {
   // Units available to sell RIGHT NOW (on-hand minus reservations).
   stock          Int            @default(0)
   image          String?
+  // Extra gallery images (image stays the cover = images[0] when both are set).
+  images         String[]       @default([])
+  // Admin-managed taxonomy. parentCategoryId is denormalised (a category's parent never changes).
+  categoryId     String?
+  category       Category?      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  parentCategoryId String?
+  brand          String?
+  unit           String?        // pack size / unit, e.g. "500 g", "Size M"
+  compareAtPrice Decimal?       @db.Decimal(10, 2) // "was" price; must be above price
   channel        ProductChannel @default(RETAIL)
   moq            Int            @default(1)
   wholesalePrice Decimal?       @db.Decimal(10, 2)
@@ -41,6 +50,27 @@ model Product {
 
   @@index([storeId, createdAt])
   @@index([channel])
+  @@index([categoryId])
+  @@index([parentCategoryId])
+}
+
+// Two-level, admin-only category tree (top-level + sub-category). Sellers can only pick from it.
+model Category {
+  id         String     @id @default(cuid())
+  parentId   String?
+  parent     Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children   Category[] @relation("CategoryTree")
+  slug       String     @unique
+  nameEn     String
+  nameBn     String     @default("")
+  icon       String     @default("category") // Material icon key resolved by the apps
+  sortOrder  Int        @default(0)
+  active     Boolean    @default(true)
+  products   Product[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([parentId, sortOrder])
 }
 
 // Volume discount: from minQty units the unit price is unitPrice.
