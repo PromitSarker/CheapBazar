@@ -9,7 +9,7 @@
 import { callService } from "@/lib/bff/client";
 import { RateLimiter } from "@/lib/security/ratelimit";
 import { getStorefrontViaServices } from "@/lib/bff/storefront";
-import { searchViaServices, storeDirectoryViaServices, marketplaceAds, buyerProPlan, buyerProStatus, myProPayments, submitProPayment, type Tab } from "@/lib/bff/browse";
+import { productViaServices, suggestViaServices, searchViaServices, storeDirectoryViaServices, marketplaceAds, buyerProPlan, buyerProStatus, myProPayments, submitProPayment, type Tab } from "@/lib/bff/browse";
 import { categoriesWithCounts, homeShelves } from "@/lib/bff/catalog";
 import { myOrdersViaServices, cancelMyOrderViaServices } from "@/lib/bff/orders";
 import { inboxViaServices, markReadViaServices, unreadCountViaServices } from "@/lib/bff/notifications";
@@ -23,6 +23,7 @@ const registerLimit = new RateLimiter(6, 10 * 60_000);
 const orderByIp = new RateLimiter(10, 10 * 60_000);
 const orderByPhone = new RateLimiter(5, 10 * 60_000);
 const lookupLimit = new RateLimiter(30, 10 * 60_000);
+const suggestLimit = new RateLimiter(90, 60_000);
 
 const MIN_APP_VERSION = process.env.MOBILE_MIN_APP_VERSION || "1.0.0";
 const digits = (s: string) => s.replace(/\D/g, "");
@@ -155,6 +156,40 @@ router.get("/browse", async (ctx) => {
     marketplaceAds("BROWSE_TOP"),
   ]);
   return { ...res, ads };
+});
+
+/** Type-ahead: matching product names plus matching categories (so "fruit" offers the Fruits aisle). */
+router.get("/search/suggest", async (ctx) => {
+  const term = str(ctx.query.get("q"), 60).toLowerCase();
+  if (term.length < 2) return { suggestions: [], categories: [] };
+  if (!suggestLimit.allow(ctx.ip)) throw new ApiError(429, "Too many searches. Please slow down.", "RATE_LIMITED");
+  const [names, cats] = await Promise.allSettled([suggestViaServices(term), categoriesWithCounts()]);
+  const matches: { id: string; nameEn: string; nameBn: string }[] = [];
+  if (cats.status === "fulfilled") {
+    for (const top of cats.value) {
+      for (const c of [top, ...top.children]) {
+        if (c.nameEn.toLowerCase().includes(term) || c.nameBn.toLowerCase().includes(term)) matches.push({ id: c.id, nameEn: c.nameEn, nameBn: c.nameBn });
+      }
+    }
+  }
+  return { suggestions: names.status === "fulfilled" ? names.value : [], categories: matches.slice(0, 3) };
+});
+
+/** Product page: the listing (fresh price/stock, paywall applied) plus similar products. */
+router.get("/products/:id", async (ctx) => {
+  const user = await ctx.user().catch(() => null);
+  const id = str(ctx.params.id, 64);
+  const r = await productViaServices(id, user?.id);
+  let similar: unknown[] = [];
+  if (r.tab === "retail") {
+    // same category first; otherwise more from the same shop
+    const filter = r.item.categoryId ? { categoryId: r.item.categoryId } : { storeId: r.item.store.id };
+    try {
+      const s = await searchViaServices("retail", { ...filter, limit: "10" }, user?.id);
+      similar = s.items.filter((i) => i.productId !== id).slice(0, 8);
+    } catch { /* the page works without the extra row */ }
+  }
+  return { tab: r.tab, item: r.item, paywall: r.paywall, similar };
 });
 
 router.get("/stores/:slug", async (ctx) => {

@@ -3,13 +3,24 @@ import { HttpTransport, registerEventRoute, startRelay, outboxStats, type Transp
 import { createDb, type Db } from "./db";
 import { httpEntitlements, type Entitlements } from "./entitlements";
 import { handlers } from "./projection";
-import { search, storeDirectory } from "./search";
+import { HttpError } from "../../../packages/service-kit";
+import { search, storeDirectory, suggest } from "./search";
 
 export function buildRouter(db: Db, ent: Entitlements): Router {
   const r = new Router();
   r.get("/aggregator/retail/search", ({ query }) => search(db, ent, "retail", query));
   // `viewerId` is supplied by the web tier AFTER it verified the session with identity-service.
   r.get("/aggregator/wholesale/search", ({ query }) => search(db, ent, "wholesale", query));
+  r.get("/aggregator/suggest", ({ query }) => suggest(db, query));
+  // One product for its detail page: retail view when it is sold retail, else the wholesale view
+  // (locked for anyone who may not see wholesale prices). Hidden/suspended stores are a plain 404.
+  r.get("/aggregator/products/:id", async ({ params, query }) => {
+    for (const tab of ["retail", "wholesale"] as const) {
+      const res = await search(db, ent, tab, { productId: params.id, viewerId: query.viewerId, limit: "1" });
+      if (res.items.length) return { tab, item: res.items[0], paywall: res.paywall };
+    }
+    throw new HttpError(404, "Product not found", "NOT_FOUND");
+  });
   r.get("/aggregator/stores", async ({ query }) => ({ stores: await storeDirectory(db, query) }));
 
   r.get("/admin/stats", async () => {

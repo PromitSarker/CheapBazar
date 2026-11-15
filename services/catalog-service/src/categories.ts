@@ -17,6 +17,8 @@ export interface CategoryNode {
   icon: string;
   sortOrder: number;
   active: boolean;
+  /** Admin tree only: products filed directly here (sub-category) or anywhere beneath (department). */
+  productCount?: number;
   children: CategoryNode[];
 }
 
@@ -40,7 +42,20 @@ export async function categoryTree(db: Runner, opts: { includeInactive?: boolean
     if (parent) parent.children.push(c);
     else if (!c.parentId) roots.push(c);
   }
-  if (opts.includeInactive) return roots;
+  if (opts.includeInactive) {
+    // The admin screen shows how many products each category holds (and so whether it can be deleted).
+    const rows = await db.product.groupBy({ by: ["categoryId"], where: { categoryId: { not: null } }, _count: { _all: true } });
+    const direct = new Map(rows.map((r) => [r.categoryId as string, r._count._all]));
+    for (const top of roots) {
+      let sum = direct.get(top.id) ?? 0;
+      for (const sub of top.children) {
+        sub.productCount = direct.get(sub.id) ?? 0;
+        sum += sub.productCount;
+      }
+      top.productCount = sum;
+    }
+    return roots;
+  }
   return roots.filter((r) => r.active).map((r) => ({ ...r, children: r.children.filter((c) => c.active) }));
 }
 

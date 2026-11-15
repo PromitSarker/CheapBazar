@@ -62,24 +62,26 @@ export async function createStoreViaServices(ownerId: string, name: string, slug
 
 // ---------------------------------------------------------------- products
 
-export interface PortalProduct { id: string; name: string; description: string; price: number; stock: number; image: string | null }
+export interface PortalProduct { id: string; name: string; description: string; price: number; stock: number; image: string | null; categoryId?: string | null; brand?: string | null; compareAtPrice?: number | null }
 
 export async function listProductsViaServices(storeId: string): Promise<PortalProduct[]> {
   const r = await callService<{ products: any[] }>("catalog", "GET", `/stores/${q(storeId)}/products`);
   return (r.products ?? []).map((p) => ({
     id: p.productId, name: p.name, description: p.description ?? "", price: Number(p.price), stock: p.stock, image: p.image ?? null,
+    categoryId: p.categoryId ?? null, brand: p.brand ?? null, compareAtPrice: p.compareAtPrice == null ? null : Number(p.compareAtPrice),
   }));
 }
 
 export async function createProductViaServices(
   storeId: string,
-  p: { name: string; description: string; price: number; stock: number; image: string | null; channel?: string; moq?: number; wholesalePrice?: number; tiers?: { minQty: number; unitPrice: number }[] }
-): Promise<{ ok: boolean }> {
+  p: Record<string, unknown>
+): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     await callService("catalog", "POST", `/stores/${q(storeId)}/products`, p);
     return { ok: true };
   } catch (e) {
-    if (e instanceof ServiceCallError && e.status === 400) return { ok: false };
+    // 4xx messages from the catalog are written for sellers ("price must be a positive amount").
+    if (e instanceof ServiceCallError && e.status >= 400 && e.status < 500) return { ok: false, error: e.message };
     throw e;
   }
 }

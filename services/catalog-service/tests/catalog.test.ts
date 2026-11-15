@@ -339,3 +339,32 @@ test("a hidden category cannot be newly assigned, but an already-assigned produc
   assert.equal(edited.categoryId, top.id);
   await expectErr(api.delete(`/admin/categories/${top.id}`), "IN_USE", 409); // products still use it
 });
+
+// -------------------------------------------------------- admin work-list + counts
+test("admin: uncategorised work-list, name search, and per-category product counts", async () => {
+  const s = store();
+  const tag = `unc${Math.random().toString(36).slice(2, 6)}`;
+  const grocery = await topNamed("Grocery & Food");
+  const sub = grocery.children[0];
+  const a = await mk(s, { name: `${tag} Plain` });
+  const b = await mk(s, { name: `${tag} Filed`, categoryId: sub.id });
+
+  const open = (await api.get(`/admin/products?uncategorized=true&q=${tag}`)).products;
+  assert.deepEqual(open.map((p: any) => p.productId), [a.productId], "only the uncategorised one");
+  const all = (await api.get(`/admin/products?q=${tag}`)).products;
+  assert.equal(all.length, 2);
+  assert.ok(all.every((p: any) => p.storeId === s), "carries the store id the admin needs to file it");
+  assert.equal((await api.get(`/admin/products?limit=1`)).products.length, 1);
+
+  // the admin files it (PATCH needs the owning storeId, which the list provided)
+  await api.patch(`/products/${a.productId}`, { storeId: s, categoryId: sub.id });
+  assert.equal((await api.get(`/admin/products?uncategorized=true&q=${tag}`)).products.length, 0);
+
+  const tree = (await api.get("/admin/categories")).categories;
+  const g = tree.find((c: any) => c.id === grocery.id);
+  const sc = g.children.find((c: any) => c.id === sub.id);
+  assert.ok(sc.productCount >= 2, "sub-category counts its own products");
+  assert.ok(g.productCount >= sc.productCount, "department counts everything beneath it");
+  assert.equal((await api.get("/categories")).categories[0].productCount, undefined, "public tree has no counts");
+  assert.ok(b);
+});

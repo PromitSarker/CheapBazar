@@ -277,3 +277,52 @@ test("wholesale tab keeps the paywall: no sale price, filters work without leaki
   const noSale = await wholesale({ q, onSale: "true" });
   assert.equal(noSale.total, 1, "onSale is ignored on the wholesale tab (never filters or reveals)");
 });
+
+// ------------------------------------------------- product detail + type-ahead
+test("single product lookup honours store visibility and the wholesale paywall", async () => {
+  const s = await mkStore({ name: "Detail Shop" });
+  const retailP = await prod(s.id, { name: "Detail Retail Thing", price: 99, categoryId: "c1", brand: "Acme" });
+  const wsP = await prod(s.id, { name: "Detail Bulk Thing", channel: "WHOLESALE", price: 0, wholesalePrice: 700, moq: 5 });
+
+  const r = await A.get(`/aggregator/products/${retailP.productId}`);
+  assert.equal(r.tab, "retail");
+  assert.equal(r.item.productId, retailP.productId);
+  assert.equal(r.item.price, 99);
+  assert.equal(r.item.brand, "Acme");
+
+  const locked = await A.get(`/aggregator/products/${wsP.productId}`);
+  assert.equal(locked.tab, "wholesale");
+  assert.equal(locked.item.locked, true);
+  assert.ok(!("wholesalePrice" in locked.item), "no price for an anonymous viewer");
+
+  proUsers.add("pro-1");
+  const open = await A.get(`/aggregator/products/${wsP.productId}?viewerId=pro-1`);
+  assert.equal(open.item.locked, false);
+  assert.equal(open.item.wholesalePrice, 700);
+  proUsers.delete("pro-1");
+
+  await assert.rejects(A.get("/aggregator/products/does-not-exist"), (e: any) => e.status === 404);
+  await send("StoreStatusChanged", { storeId: s.id, from: "ACTIVE", to: "SUSPENDED" });
+  await assert.rejects(A.get(`/aggregator/products/${retailP.productId}`), (e: any) => e.status === 404, "suspended store: product is gone");
+});
+
+test("search suggestions: prefix first, distinct, retail-visible only, wildcards literal, short input empty", async () => {
+  const tag = `sg${Math.random().toString(36).slice(2, 5)}`;
+  const s = await mkStore({ name: "Suggest Shop" });
+  const hidden = await mkStore({ name: "Hidden Shop", status: "BANNED" });
+  await prod(s.id, { name: `${tag} Mango Juice` });
+  await prod(s.id, { name: `Fresh ${tag} Mango` });
+  await prod(s.id, { name: `${tag} mango juice` }); // same name, different case: one suggestion
+  await prod(s.id, { name: `${tag} Bulk Mango`, channel: "WHOLESALE", price: 0, wholesalePrice: 5, moq: 2 });
+  await prod(hidden.id, { name: `${tag} Banned Mango` });
+  await prod(s.id, { name: `${tag} 100% Cotton` });
+
+  const r = await A.get(`/aggregator/suggest?q=${encodeURIComponent(tag + " mango")}`);
+  assert.deepEqual(r.suggestions.map((n: string) => n.toLowerCase()), [`${tag} mango juice`, `fresh ${tag} mango`], "prefix match first, then contains; case-insensitively distinct; no wholesale-only, no banned store");
+  const wide = await A.get(`/aggregator/suggest?q=${encodeURIComponent("mango")}&limit=10`);
+  const names = wide.suggestions.filter((n: string) => n.toLowerCase().includes(tag));
+  assert.ok(names.includes(`Fresh ${tag} Mango`) && !names.some((n: string) => n.includes("Bulk") || n.includes("Banned")));
+  assert.deepEqual((await A.get("/aggregator/suggest?q=m")).suggestions, [], "one character is not enough");
+  assert.deepEqual((await A.get(`/aggregator/suggest?q=${encodeURIComponent("%")}`)).suggestions.filter((n: string) => !n.includes("%")), [], "% is literal");
+  assert.ok((await A.get(`/aggregator/suggest?q=${encodeURIComponent(tag + " 100%")}`)).suggestions.includes(`${tag} 100% Cotton`));
+});

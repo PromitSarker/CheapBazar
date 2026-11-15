@@ -1,7 +1,10 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React from "react";
+import Link from "next/link";
 import { useLanguage } from "@/modules/i18n/LanguageContext";
+import type { CategoryChoice } from "@/lib/catalogue/import";
+import ProductFormFields from "./ProductFormFields";
 
 interface ProductItem {
   id: string;
@@ -10,11 +13,27 @@ interface ProductItem {
   price: number;
   stock: number;
   image: string | null;
+  categoryId?: string | null;
+  compareAtPrice?: number | null;
+}
+
+function categoryLabel(tree: CategoryChoice[], id: string | null | undefined, bn: boolean): string {
+  if (!id) return "";
+  const n = (c: CategoryChoice) => (bn && c.nameBn ? c.nameBn : c.nameEn);
+  for (const d of tree) {
+    if (d.id === id) return n(d);
+    const s = d.children.find((c) => c.id === id);
+    if (s) return `${n(d)} › ${n(s)}`;
+  }
+  return "";
 }
 
 export default function ProductsInventoryView({
   products,
   error,
+  message,
+  saved,
+  categories = [],
   addProductAction,
   adjustStockAction,
   deleteProductAction,
@@ -23,445 +42,139 @@ export default function ProductsInventoryView({
   wholesale?: boolean;
   products: ProductItem[];
   error?: string;
+  message?: string;
+  saved?: boolean;
+  categories?: CategoryChoice[];
   addProductAction: (formData: FormData) => Promise<void>;
   adjustStockAction: (formData: FormData) => Promise<void>;
   deleteProductAction: (formData: FormData) => Promise<void>;
 }) {
   const { t, formatMoney, toNumerals, language } = useLanguage();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const bn = language === "bn";
+  const services = categories.length > 0 || wholesale; // the services platform has categories, editing and import
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
-  const [selectedFileSize, setSelectedFileSize] = useState<string | null>(null);
+  const errorText = (e: string) =>
+    e === "custom" && message
+      ? message
+      : e === "wholesale"
+      ? bn ? "পাইকারি তথ্য ঠিক করুন: দাম, ন্যূনতম পরিমাণ এবং ডিসকাউন্ট সঙ্গতিপূর্ণ হতে হবে।" : "Please check the wholesale details: the discount must be cheaper than the wholesale price and start above the minimum order."
+      : e === "in-use"
+      ? bn ? "এই পণ্যটি বিদ্যমান অর্ডারের অংশ, তাই মোছা যাবে না। এর স্টক ০ করে দিন।" : "This product is part of existing orders and cannot be deleted. Set its stock to 0 instead."
+      : e === "image"
+      ? bn ? "ছবিটি গ্রহণযোগ্য নয়। ৫ MB এর কম PNG, JPEG, GIF বা WebP ছবি দিন।" : "That image was not accepted. Use a PNG, JPEG, GIF or WebP file under 5 MB."
+      : bn ? "অনুগ্রহ করে পণ্যের সঠিক নাম এবং বৈধ মূল্য প্রদান করুন।" : "Please provide a valid name and price.";
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setPreviewUrl(URL.createObjectURL(file));
-      setSelectedFileName(file.name);
-      const sizeKb = (file.size / 1024).toFixed(0);
-      setSelectedFileSize(
-        file.size > 1024 * 1024
-          ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-          : `${sizeKb} KB`
-      );
-    } else {
-      clearFile();
-    }
-  };
-
-  const clearFile = () => {
-    setPreviewUrl(null);
-    setSelectedFileName(null);
-    setSelectedFileSize(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
+  const th: React.CSSProperties = { padding: "1rem 1.25rem", color: "#71717a", fontWeight: 600, fontSize: "0.8rem", textTransform: "uppercase" };
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", gap: "1rem", flexWrap: "wrap" }}>
         <div>
           <h1>{t.inventory}</h1>
           <p className="muted">
-            {language === "bn"
-              ? "আপনার পণ্যের ক্যাটালগ, মূল্য (টাকায়) এবং ইনভেন্টরি স্টক নিয়ন্ত্রণ করুন।"
-              : "Manage your storefront products, Taka pricing, and active stock levels."}
+            {bn ? "আপনার পণ্যের ক্যাটালগ, মূল্য (টাকায়) এবং ইনভেন্টরি স্টক নিয়ন্ত্রণ করুন।" : "Manage your storefront products, Taka pricing, and active stock levels."}
           </p>
         </div>
+        {services && (
+          <Link href="/dashboard/products/import" className="button" style={{ background: "#fff", color: "#09090b", border: "1px solid rgba(0,0,0,0.15)" }}>
+            {bn ? "CSV থেকে আমদানি" : "Import from CSV"}
+          </Link>
+        )}
       </div>
 
-      {error && (
-        <p className="error" style={{ marginBottom: "1rem" }}>
-          {error === "wholesale"
-            ? language === "bn"
-              ? "পাইকারি তথ্য ঠিক করুন: দাম, ন্যূনতম পরিমাণ এবং ডিসকাউন্ট সঙ্গতিপূর্ণ হতে হবে।"
-              : "Please check the wholesale details: the discount must be cheaper than the wholesale price and start above the minimum order."
-            : error === "in-use"
-            ? language === "bn"
-              ? "এই পণ্যটি বিদ্যমান অর্ডারের অংশ, তাই মোছা যাবে না। এর স্টক ০ করে দিন।"
-              : "This product is part of existing orders and cannot be deleted. Set its stock to 0 instead."
-            : error === "image"
-            ? language === "bn"
-              ? "ছবিটি গ্রহণযোগ্য নয়। ৫ MB এর কম PNG, JPEG, GIF বা WebP ছবি দিন।"
-              : "That image was not accepted. Use a PNG, JPEG, GIF or WebP file under 5 MB."
-            : language === "bn"
-              ? "অনুগ্রহ করে পণ্যের সঠিক নাম এবং বৈধ মূল্য প্রদান করুন।"
-              : "Please provide a valid name and price."}
-        </p>
-      )}
+      {saved && <p style={{ color: "#16a34a", marginBottom: "1rem" }}>{bn ? "পণ্য সংরক্ষিত হয়েছে।" : "Product saved."}</p>}
+      {error && <p className="error" style={{ marginBottom: "1rem" }}>{errorText(error)}</p>}
 
-      {/* Modern Product Creation Card */}
       <div
         className="card"
-        style={{
-          marginBottom: "2.5rem",
-          padding: "1.75rem",
-          background: "var(--surface-muted)",
-          border: "1px solid rgba(0, 0, 0, 0.08)",
-          borderRadius: "20px",
-          boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.04)",
-        }}
+        style={{ marginBottom: "2.5rem", padding: "1.75rem", background: "var(--surface-muted)", border: "1px solid rgba(0, 0, 0, 0.08)", borderRadius: "20px", boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.04)" }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.25rem" }}>
-          <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "#09090b" }}>
-            {t.addProduct}
-          </h3>
-        </div>
-
+        <h3 style={{ margin: "0 0 1.25rem 0", fontSize: "1.1rem", fontWeight: 700, color: "#09090b" }}>{t.addProduct}</h3>
         <form action={addProductAction} className="stack" style={{ margin: 0, gap: "1.25rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
-            {/* Product Name */}
-            <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#27272a" }}>
-                {t.productName} <span style={{ color: "#ef4444" }}>*</span>
-              </span>
-              <input
-                name="name"
-                placeholder={language === "bn" ? "যেমন: বাটার ক্রোয়েসাঁ" : "e.g., Artisan Butter Croissant"}
-                required
-                style={{
-                  padding: "0.75rem 1rem",
-                  background: "#ffffff",
-                  border: "1px solid rgba(0, 0, 0, 0.12)",
-                  borderRadius: "10px",
-                  color: "#09090b",
-                  fontSize: "0.95rem",
-                }}
-              />
-            </label>
-
-            {/* Price (Taka) */}
-            <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#27272a" }}>
-                {t.priceTaka} <span style={{ color: "#ef4444" }}>*</span>
-              </span>
-              <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-                <span
-                  style={{
-                    position: "absolute",
-                    left: "1rem",
-                    color: "#71717a",
-                    fontWeight: 600,
-                    fontSize: "0.95rem",
-                    pointerEvents: "none",
-                  }}
-                >
-                  ৳
-                </span>
-                <input
-                  name="price"
-                  type="number"
-                  step="1"
-                  min="0"
-                  placeholder={language === "bn" ? "২২০" : "220"}
-                  required
-                  style={{
-                    padding: "0.75rem 1rem 0.75rem 2.2rem",
-                    background: "#ffffff",
-                    border: "1px solid rgba(0, 0, 0, 0.12)",
-                    borderRadius: "10px",
-                    color: "#09090b",
-                    fontSize: "0.95rem",
-                    width: "100%",
-                  }}
-                />
-              </div>
-            </label>
-
-            {/* Stock Quantity */}
-            <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#27272a" }}>
-                {t.stockQty} <span style={{ color: "#ef4444" }}>*</span>
-              </span>
-              <input
-                name="stock"
-                type="number"
-                min="0"
-                step="1"
-                placeholder="20"
-                defaultValue={10}
-                style={{
-                  padding: "0.75rem 1rem",
-                  background: "#ffffff",
-                  border: "1px solid rgba(0, 0, 0, 0.12)",
-                  borderRadius: "10px",
-                  color: "#09090b",
-                  fontSize: "0.95rem",
-                }}
-              />
-            </label>
-
-            {/* Custom Image Upload Field */}
-            <div className="custom-file-upload">
-              <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#27272a" }}>
-                {language === "bn" ? "পণ্যের ছবি" : "Product Image"}
-              </span>
-
-              {/* Hidden Native File Input */}
-              <input
-                ref={fileInputRef}
-                name="image"
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                style={{ display: "none" }}
-              />
-
-              {/* Custom Uploader Trigger or Preview */}
-              {!previewUrl ? (
-                <div
-                  className="file-dropzone"
-                  onClick={() => fileInputRef.current?.click()}
-                  title={language === "bn" ? "ছবি আপলোড করতে ক্লিক করুন" : "Click to upload an image"}
-                >
-                  <div className="file-dropzone-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                      <circle cx="9" cy="9" r="2" />
-                      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                    </svg>
-                  </div>
-                  <div>
-                    <span className="file-dropzone-text">
-                      {language === "bn" ? "ছবি নির্বাচন করুন" : "Upload Image"}
-                    </span>
-                    <span className="file-dropzone-sub" style={{ display: "block" }}>
-                      {language === "bn" ? "পিএনজি, জেপিজি বা ওয়েবপি" : "PNG, JPG, or WebP"}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="file-preview-card">
-                  <img src={previewUrl} alt="Preview" className="file-preview-img" />
-                  <div className="file-preview-meta">
-                    <span className="file-preview-name">{selectedFileName}</span>
-                    <span className="file-preview-size">{selectedFileSize}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={clearFile}
-                    className="file-remove-btn"
-                    title={language === "bn" ? "ছবি বাতিল করুন" : "Remove Image"}
-                  >
-                    {language === "bn" ? "মুছুন" : "Remove"}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Description */}
-            <label style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#27272a" }}>
-                {t.productDesc}
-              </span>
-              <input
-                name="description"
-                placeholder={
-                  language === "bn"
-                    ? "যেমন: খাঁটি ফ্রেঞ্চ বাটার দিয়ে তৈরি ক্রিস্পি ও সুস্বাদু ক্রোয়েসাঁ।"
-                    : "e.g., Laminated for 72 hours with European cultured butter."
-                }
-                style={{
-                  padding: "0.75rem 1rem",
-                  background: "#ffffff",
-                  border: "1px solid rgba(0, 0, 0, 0.12)",
-                  borderRadius: "10px",
-                  color: "#09090b",
-                  fontSize: "0.95rem",
-                }}
-              />
-            </label>
-
-            {wholesale && (
-              <fieldset style={{ gridColumn: "1 / -1", border: "1px solid rgba(0,0,0,0.12)", borderRadius: 10, padding: "0.9rem 1rem", display: "grid", gap: "0.75rem", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
-                <legend style={{ fontSize: "0.85rem", fontWeight: 600, color: "#27272a", padding: "0 0.4rem" }}>
-                  {language === "bn" ? "পাইকারি (Buyer Pro ক্রেতাদের জন্য)" : "Wholesale (for Buyer Pro members)"}
-                </legend>
-                <label style={{ display: "flex", flexDirection: "column", gap: "0.3rem", fontSize: "0.85rem", color: "#27272a" }}>
-                  {language === "bn" ? "বিক্রয় চ্যানেল" : "Sold as"}
-                  <select name="channel" defaultValue="RETAIL" style={{ padding: "0.6rem", borderRadius: 8 }}>
-                    <option value="RETAIL">{language === "bn" ? "শুধু খুচরা" : "Retail only"}</option>
-                    <option value="BOTH">{language === "bn" ? "খুচরা ও পাইকারি" : "Retail and wholesale"}</option>
-                    <option value="WHOLESALE">{language === "bn" ? "শুধু পাইকারি" : "Wholesale only"}</option>
-                  </select>
-                </label>
-                <label style={{ display: "flex", flexDirection: "column", gap: "0.3rem", fontSize: "0.85rem", color: "#27272a" }}>
-                  {language === "bn" ? "পাইকারি দাম (প্রতি একক)" : "Wholesale price (each)"}
-                  <input name="wholesalePrice" type="number" min="0" step="0.01" style={{ padding: "0.6rem", borderRadius: 8 }} />
-                </label>
-                <label style={{ display: "flex", flexDirection: "column", gap: "0.3rem", fontSize: "0.85rem", color: "#27272a" }}>
-                  {language === "bn" ? "সর্বনিম্ন অর্ডার (MOQ)" : "Minimum order (MOQ)"}
-                  <input name="moq" type="number" min="1" defaultValue="1" style={{ padding: "0.6rem", borderRadius: 8 }} />
-                </label>
-                <label style={{ display: "flex", flexDirection: "column", gap: "0.3rem", fontSize: "0.85rem", color: "#27272a" }}>
-                  {language === "bn" ? "ডিসকাউন্ট: কমপক্ষে (ঐচ্ছিক)" : "Volume discount from qty (optional)"}
-                  <input name="tierQty" type="number" min="2" style={{ padding: "0.6rem", borderRadius: 8 }} />
-                </label>
-                <label style={{ display: "flex", flexDirection: "column", gap: "0.3rem", fontSize: "0.85rem", color: "#27272a" }}>
-                  {language === "bn" ? "ডিসকাউন্ট দাম (প্রতি একক)" : "Discounted price (each)"}
-                  <input name="tierPrice" type="number" min="0" step="0.01" style={{ padding: "0.6rem", borderRadius: 8 }} />
-                </label>
-              </fieldset>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            className="button glow-button"
-            style={{
-              alignSelf: "flex-start",
-              padding: "0.75rem 1.75rem",
-              fontSize: "0.95rem",
-              borderRadius: "10px",
-              marginTop: "0.5rem",
-            }}
-          >
+          <ProductFormFields categories={categories} wholesale={wholesale} />
+          <button type="submit" className="button glow-button" style={{ alignSelf: "flex-start", padding: "0.75rem 1.75rem", fontSize: "0.95rem", borderRadius: "10px", marginTop: "0.5rem" }}>
             + {t.addProduct}
           </button>
         </form>
       </div>
 
-      {/* Products Table */}
       {products.length === 0 ? (
-        <div
-          className="card"
-          style={{
-            padding: "3rem 1.5rem",
-            textAlign: "center",
-            background: "var(--surface-muted)",
-            borderRadius: "20px",
-          }}
-        >
-          <h3 style={{ margin: "0 0 0.5rem 0", color: "#09090b" }}>
-            {language === "bn" ? "এখনও কোনো পণ্য নেই" : "No products in inventory"}
-          </h3>
+        <div className="card" style={{ padding: "3rem 1.5rem", textAlign: "center", background: "var(--surface-muted)", borderRadius: "20px" }}>
+          <h3 style={{ margin: "0 0 0.5rem 0", color: "#09090b" }}>{bn ? "এখনও কোনো পণ্য নেই" : "No products in inventory"}</h3>
           <p className="muted" style={{ margin: 0 }}>
-            {language === "bn"
-              ? "উপরের ফর্মটি পূরণ করে আপনার স্টোরে প্রথম পণ্য যোগ করুন।"
-              : "Use the form above to list your first product in Bangladeshi Taka."}
+            {bn ? "উপরের ফর্মটি পূরণ করে প্রথম পণ্য যোগ করুন, অথবা CSV থেকে একসাথে অনেক পণ্য আমদানি করুন।" : "Use the form above to list your first product, or import many at once from a CSV file."}
           </p>
         </div>
       ) : (
-        <div
-          className="card"
-          style={{
-            padding: 0,
-            overflow: "hidden",
-            background: "#ffffff",
-            borderRadius: "20px",
-            boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.04)",
-            border: "1px solid rgba(0, 0, 0, 0.08)",
-          }}
-        >
+        <div className="card" style={{ padding: 0, overflow: "auto", background: "#ffffff", borderRadius: "20px", boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.04)", border: "1px solid rgba(0, 0, 0, 0.08)" }}>
           <table className="data-table" style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(0, 0, 0, 0.08)", background: "#fafafa" }}>
-                <th style={{ padding: "1rem 1.25rem", color: "#71717a", fontWeight: 600, fontSize: "0.8rem", textTransform: "uppercase" }}>
-                  {t.productName}
-                </th>
-                <th style={{ padding: "1rem 1.25rem", color: "#71717a", fontWeight: 600, fontSize: "0.8rem", textTransform: "uppercase" }}>
-                  {t.priceTaka}
-                </th>
-                <th style={{ padding: "1rem 1.25rem", color: "#71717a", fontWeight: 600, fontSize: "0.8rem", textTransform: "uppercase" }}>
-                  {t.stockQty}
-                </th>
-                <th style={{ padding: "1rem 1.25rem", textAlign: "right", color: "#71717a", fontWeight: 600, fontSize: "0.8rem", textTransform: "uppercase" }}>
-                  {t.actions}
-                </th>
+                <th style={th}>{t.productName}</th>
+                {services && <th style={th}>{bn ? "ক্যাটাগরি" : "Category"}</th>}
+                <th style={th}>{t.priceTaka}</th>
+                <th style={th}>{t.stockQty}</th>
+                <th style={{ ...th, textAlign: "right" }}>{t.actions}</th>
               </tr>
             </thead>
             <tbody>
-              {products.map((p) => (
-                <tr key={p.id} style={{ borderBottom: "1px solid rgba(0, 0, 0, 0.05)" }}>
-                  <td style={{ padding: "1rem 1.25rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                      {p.image ? (
-                        <img
-                          src={p.image}
-                          alt={p.name}
-                          style={{
-                            width: "48px",
-                            height: "48px",
-                            objectFit: "cover",
-                            borderRadius: "10px",
-                            border: "1px solid rgba(0, 0, 0, 0.08)",
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: "48px",
-                            height: "48px",
-                            backgroundColor: "#f4f4f5",
-                            borderRadius: "10px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "#71717a",
-                            fontSize: "1.3rem",
-                          }}
-                        >
+              {products.map((p) => {
+                const cat = categoryLabel(categories, p.categoryId, bn);
+                return (
+                  <tr key={p.id} style={{ borderBottom: "1px solid rgba(0, 0, 0, 0.05)" }}>
+                    <td style={{ padding: "1rem 1.25rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                        {p.image ? (
+                          <img src={p.image} alt={p.name} style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 10, border: "1px solid rgba(0, 0, 0, 0.08)" }} />
+                        ) : (
+                          <div style={{ width: 48, height: 48, backgroundColor: "#f4f4f5", borderRadius: 10 }} />
+                        )}
+                        <div>
+                          <strong style={{ display: "block", color: "#09090b", fontSize: "0.95rem" }}>{p.name}</strong>
+                          {p.description && <div className="muted small" style={{ fontSize: "0.8rem", marginTop: "0.15rem" }}>{p.description}</div>}
                         </div>
-                      )}
-                      <div>
-                        <strong style={{ display: "block", color: "#09090b", fontSize: "0.95rem" }}>{p.name}</strong>
-                        {p.description && <div className="muted small" style={{ fontSize: "0.8rem", marginTop: "0.15rem" }}>{p.description}</div>}
                       </div>
-                    </div>
-                  </td>
-                  <td style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "#09090b", fontSize: "0.95rem" }}>
-                    {formatMoney(p.price)}
-                  </td>
-                  <td style={{ padding: "1rem 1.25rem" }}>
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
-                      <span
-                        className={
-                          p.stock === 0 ? "stock-badge out" : p.stock < 5 ? "stock-badge low" : "stock-badge ok"
-                        }
-                      >
-                        {toNumerals(p.stock)}
-                      </span>
-                      <form action={adjustStockAction} style={{ display: "inline" }}>
+                    </td>
+                    {services && (
+                      <td style={{ padding: "1rem 1.25rem", fontSize: "0.85rem" }}>
+                        {cat || <span style={{ color: "#b45309", background: "#fef3c7", padding: "0.15rem 0.5rem", borderRadius: 6, fontSize: "0.78rem" }}>{bn ? "ক্যাটাগরি নেই" : "No category"}</span>}
+                      </td>
+                    )}
+                    <td style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "#09090b", fontSize: "0.95rem" }}>
+                      {formatMoney(p.price)}
+                      {p.compareAtPrice ? <div className="muted" style={{ fontWeight: 400, fontSize: "0.78rem", textDecoration: "line-through" }}>{formatMoney(p.compareAtPrice)}</div> : null}
+                    </td>
+                    <td style={{ padding: "1rem 1.25rem" }}>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+                        <span className={p.stock === 0 ? "stock-badge out" : p.stock < 5 ? "stock-badge low" : "stock-badge ok"}>{toNumerals(p.stock)}</span>
+                        <form action={adjustStockAction} style={{ display: "inline" }}>
+                          <input type="hidden" name="id" value={p.id} />
+                          <input type="hidden" name="delta" value={-1} />
+                          <button type="submit" className="mini-button" aria-label="decrease stock">−</button>
+                        </form>
+                        <form action={adjustStockAction} style={{ display: "inline" }}>
+                          <input type="hidden" name="id" value={p.id} />
+                          <input type="hidden" name="delta" value={1} />
+                          <button type="submit" className="mini-button" aria-label="increase stock">+</button>
+                        </form>
+                      </div>
+                    </td>
+                    <td style={{ padding: "1rem 1.25rem", textAlign: "right", whiteSpace: "nowrap" }}>
+                      {services && (
+                        <Link href={`/dashboard/products/${encodeURIComponent(p.id)}`} style={{ fontSize: "0.85rem", padding: "0.4rem 0.8rem", borderRadius: 6, background: "rgba(0,0,0,0.05)", color: "#09090b", textDecoration: "none", marginRight: "0.5rem", fontWeight: 500 }}>
+                          {bn ? "সম্পাদনা" : "Edit"}
+                        </Link>
+                      )}
+                      <form action={deleteProductAction} style={{ display: "inline" }}>
                         <input type="hidden" name="id" value={p.id} />
-                        <input type="hidden" name="delta" value={-1} />
-                        <button type="submit" className="mini-button" aria-label="decrease stock">
-                          −
+                        <button type="submit" className="link-button danger" style={{ fontSize: "0.85rem", padding: "0.4rem 0.8rem", borderRadius: 6, backgroundColor: "rgba(239, 68, 68, 0.08)", color: "#dc2626", border: "none", fontWeight: 500, cursor: "pointer" }}>
+                          {bn ? "মুছে ফেলুন" : "Delete"}
                         </button>
                       </form>
-                      <form action={adjustStockAction} style={{ display: "inline" }}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <input type="hidden" name="delta" value={1} />
-                        <button type="submit" className="mini-button" aria-label="increase stock">
-                          +
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                  <td style={{ padding: "1rem 1.25rem", textAlign: "right" }}>
-                    <form action={deleteProductAction} style={{ display: "inline" }}>
-                      <input type="hidden" name="id" value={p.id} />
-                      <button
-                        type="submit"
-                        className="link-button danger"
-                        style={{
-                          fontSize: "0.85rem",
-                          padding: "0.4rem 0.8rem",
-                          borderRadius: "6px",
-                          backgroundColor: "rgba(239, 68, 68, 0.08)",
-                          color: "#dc2626",
-                          border: "none",
-                          fontWeight: 500,
-                          cursor: "pointer",
-                        }}
-                      >
-                        {language === "bn" ? "মুছে ফেলুন" : "Delete"}
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

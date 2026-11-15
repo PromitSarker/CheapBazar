@@ -128,3 +128,18 @@ export async function adjustStock(db: Db, id: string, storeId: string, delta: nu
     return snapshot(p);
   });
 }
+
+/** Admin work-list: products with no category yet (or a name search), newest first. */
+export async function adminListProducts(db: Runner, q: { uncategorized?: string; q?: string; limit?: string }) {
+  const limit = Math.min(Math.max(Number(q.limit) || 100, 1), 200);
+  const rows = await db.product.findMany({
+    where: {
+      categoryId: q.uncategorized === "true" ? null : undefined,
+      name: q.q ? { contains: String(q.q).slice(0, 100), mode: "insensitive" } : undefined,
+    },
+    include,
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+  return rows.map(snapshot);
+}

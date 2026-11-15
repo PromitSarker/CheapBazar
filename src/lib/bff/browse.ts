@@ -36,6 +36,18 @@ export async function searchViaServices(tab: Tab, params: Record<string, string 
   return callService<BrowseResult>("aggregator", "GET", `/aggregator/${tab}/search${qs ? `?${qs}` : ""}`);
 }
 
+/** One listing for a product page (retail view, or the paywalled wholesale view). 404 when hidden/missing. */
+export async function productViaServices(id: string, viewerId?: string) {
+  const qs = viewerId ? `?viewerId=${q(viewerId)}` : "";
+  return callService<{ tab: Tab; item: BrowseItem; paywall: BrowseResult["paywall"] }>("aggregator", "GET", `/aggregator/products/${q(id)}${qs}`);
+}
+
+/** Type-ahead product names (never prices). */
+export async function suggestViaServices(term: string): Promise<string[]> {
+  const r = await callService<{ suggestions: string[] }>("aggregator", "GET", `/aggregator/suggest?q=${q(term)}&limit=6`, undefined, { timeoutMs: 2000 });
+  return r.suggestions;
+}
+
 export async function storeDirectoryViaServices(limit = 8) {
   const r = await callService<{ stores: { storeId: string; slug: string; name: string; template: string; customDomain: string | null; productCount: number }[] }>(
     "aggregator", "GET", `/aggregator/stores?limit=${limit}`
