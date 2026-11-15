@@ -5,17 +5,32 @@ the step-by-step cutover is `deploy/CUTOVER.md`. Nothing here contains secrets.
 
 ## In one paragraph
 
-CheapBazar runs as 8 small services on this server (103.228.38.69), 131 tests. **The cutover was done on 2026-11-11** (backup in
+CheapBazar runs as 8 small services on this server (103.228.38.77), 131 tests. **The cutover was done on 2026-11-11** (backup in
 `~/cutover-backups/20261111-064358`, `USE_SERVICES="true"` in `.env`, data migrated: 13 users, 5 stores, 7 products). The live site now
 runs on the services; the old Neon database is only a read-only fallback. **What is left is in `PLATFORM_REVIEW.md`** (2026-11-14 review):
 HTTPS, rate-limit fix, backups, reboot persistence, firewall first. The cutover steps and open-decision tables below are historical.
+
+## Moved 2026-11-15: new server 103.228.38.77
+
+Everything (web app, 8 services, the 8 databases, uploads, secrets, release signing key copy) moved from 103.228.38.69 to **103.228.38.77**
+(`ssh cheapbazar-vps`). pm2 and Docker restart on boot there. On the old server the CheapBazar pm2 apps are **stopped, not deleted**
+(`pm2 start cheapbazar cb-identity cb-catalog cb-order cb-payment cb-ledger cb-ad cb-aggregator cb-notification` to roll back, after
+`pm2 stop all` here, because two copies must not run at once). The old server's repo and Postgres volume are still there; delete them once you
+are happy. `den-api` / `den-web` on the old server are unrelated.
+
+- The Flutter + Android SDK toolchain is still only on the old server (`~/dev`). Build the APK there, or build from GitHub anywhere with
+  `--dart-define=API_BASE_URL=http://103.228.38.77:3000` (this is also the new default in `mobile/lib/config.dart`).
+- **Publishing an APK** (so /app and the in-app "Check for updates" see it): bump `version:` in `mobile/pubspec.yaml` and `AppConfig.version/build`
+  in `mobile/lib/config.dart` (a test checks they match), build, copy the APK to `mobile/build/app/outputs/flutter-apk/app-release.apk` on this
+  server, run `./deploy/publish-apk.sh`. Always sign with the same key (`~/dev/keys`), otherwise phones refuse the update.
+- Database backups: `./deploy/backup.sh` (DBs, uploads, .env files; keeps 7 in `~/backups/cheapbazar`). **No cron job is installed yet**; add one with `crontab -e`: `30 2 * * * $HOME/E-Bazar-Unified/deploy/backup.sh >> $HOME/backups/cheapbazar.log 2>&1`. The backups sit on the same server, so copy them elsewhere too.
 
 ## Changed 2026-11-11: no COD fee, no wallet thresholds, mobile app
 
 The 5% COD platform fee, the wallet soft/hard thresholds, the pause/delist timers and the ৳500 reserve bond are **removed** (services and the live site; deployed, ledger schema cleaned, migration rehearsal re-run OK). A store's status is admin-only (ACTIVE / SUSPENDED / BANNED). The earlier installable web app (PWA) was **replaced by a native Flutter buyer app** (`mobile/`, 12 screens, English + Bangla). `/app` on the site is now its APK download page (`/downloads/`, published by `deploy/publish-apk.sh`). The app talks to a new mobile API at `/api/m/v1/*` and buyers can delete their own account (needed for the app stores). Details in `WORK_LOG.md`.
 
 ### Mobile app: what is left
-- Android APK: build with `~/dev/capped.sh ~/E-Bazar-Unified/mobile "flutter build apk --release --target-platform android-arm,android-arm64 --dart-define=API_BASE_URL=http://103.228.38.69:3000"`, then `deploy/publish-apk.sh` (see the 2026-11-14 entry in `WORK_LOG.md` for whether it is published).
+- Android APK: build with `~/dev/capped.sh ~/E-Bazar-Unified/mobile "flutter build apk --release --target-platform android-arm,android-arm64 --dart-define=API_BASE_URL=http://103.228.38.77:3000"`, then `deploy/publish-apk.sh` (see the 2026-11-14 entry in `WORK_LOG.md` for whether it is published).
 - **Back up `~/dev/keys/` (release signing key).** If it is lost, phones refuse updates to the installed app.
 - iPhone: needs a Mac and an Apple developer account. `.github/workflows/mobile.yml` builds it but has never been run.
 - Before any Play Store / App Store submission: HTTPS on the site, then turn off the app's plain-http allowance.
@@ -84,6 +99,6 @@ All commits are authored by `Claude <noreply@anthropic.com>`.
 
 ## Where things are
 
-- Server: `ssh ebazar-vps`, repo `~/E-Bazar-Unified`. The live site is pm2 `cheapbazar` on port 3000; services are pm2 `cb-*` on ports 4001 to 4008 (internal only).
+- Server: `ssh cheapbazar-vps` (103.228.38.77), repo `~/E-Bazar-Unified`. The live site is pm2 `cheapbazar` on port 3000; services are pm2 `cb-*` on ports 4001 to 4008 (internal only).
 - The old machine (103.228.39.38) does not run the app; `~/CheapBazar` there is a stale copy kept only to push to GitHub.
 - Backups made by the cutover script go to `~/cutover-backups/<time>/` on the server.

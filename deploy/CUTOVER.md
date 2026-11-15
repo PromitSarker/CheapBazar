@@ -3,7 +3,7 @@
 **Fast path: `deploy/cutover.sh --check`, then `deploy/cutover.sh`** (in your own terminal; it asks for the admin email/password and `TOPUP_INSTRUCTIONS`, backs everything up, rehearses on a fresh copy, migrates, verifies, switches the web app, smoke-tests, and puts the old setup back automatically if anything fails before the end). `deploy/rollback.sh` goes back afterwards. Defaults: `WALLETS=carry SEED_ACCOUNTS=lock`; override with env vars. The manual steps below are what the script automates.
 
 Do NOT set `USE_SERVICES=true` before running this. Until then the live site keeps using Neon.
-Plan for roughly 15 minutes of downtime. Everything below runs on 103.228.38.69 in `~/E-Bazar-Unified`.
+Plan for roughly 15 minutes of downtime. Everything below runs in `~/E-Bazar-Unified` (written for 103.228.38.69; the app has since moved to 103.228.38.77, see STATUS.md).
 
 ## Decisions to make first (the migration needs them)
 
