@@ -97,6 +97,29 @@ class CartController extends ChangeNotifier {
   int get count => _lines.fold(0, (a, l) => a + l.quantity);
   bool get isEmpty => _lines.isEmpty;
 
+  /// Everything in the bag across shops (what the sticky bar shows).
+  double get total => _lines.fold(0.0, (a, l) => a + l.lineTotal);
+
+  CartLine? lineFor(String productId, {String type = 'RETAIL'}) {
+    for (final l in _lines) {
+      if (l.productId == productId && l.orderType == type) return l;
+    }
+    return null;
+  }
+
+  int quantityOf(String productId, {String type = 'RETAIL'}) => lineFor(productId, type: type)?.quantity ?? 0;
+
+  /// One less; removes the line at zero (the "-" on a product card).
+  void decrement(String productId, {String type = 'RETAIL'}) {
+    final l = lineFor(productId, type: type);
+    if (l == null) return;
+    if (l.quantity <= 1) {
+      remove(l);
+    } else {
+      setQuantity(l, l.quantity - 1);
+    }
+  }
+
   List<CartGroup> get groups {
     final map = <String, CartGroup>{};
     for (final l in _lines) {

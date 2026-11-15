@@ -241,3 +241,10 @@ Built the first part of the web-tier ("BFF") layer. Nothing here switches the li
 - aggregator-service: ListingIndex columns + indexes; search takes categoryId (top-level matches its children), brand, onSale, sort=discount; items return images/discountPct/compareAtPrice/category; facets: stores, categories, brands (each ignores its own filter). Wholesale paywall unchanged (no sale price, no leaks).
 - Live DBs updated by hand with ADDITIVE SQL only. Do NOT run prisma db push on search_db: it would DROP the manual trigram index listing_search_trgm (not in the Prisma schema). Existing 7 products have no category yet (admin/seller must assign).
 - 134 services tests pass. Next (Phase 2): mobile Home, category grid, ProductCard v2, sticky cart bar; BFF endpoints /categories and category/brand params on /browse.
+
+## 2026-11-15: categories phase 2 - the app (v1.1.0+2) + mobile API
+- Mobile API (additive; old apps keep working): GET /api/m/v1/categories (admin tree + live counts, 60 s cache, serves last good copy on outage); /home now also returns categories + shelves (deals, new, 3 busiest departments; empty shelves dropped; old items/stores/ads keys kept); /browse takes category, brand, sale=1, sort=discount and returns category + brand facets. src/lib/bff/catalog.ts.
+- Flutter app 1.1.0+2: new Home (search, banner dots, category grid, shelves, skeletons), Categories tab (department rail + sub-category grid), Browse as a pushed screen (category chips, On sale, Biggest discount, sticky bag bar), ProductCard with discount badge / was-price / ADD -> stepper (retail only; wholesale + out-of-stock have no ADD), product page gallery + you-save + breadcrumb, en+bn. Bottom nav: Home, Categories, Bag, Orders, Account (Shop tab became a screen).
+- Tests: 14 web (3 new), 31 Flutter (14 new) run on ebazar-vps (~/mobile-dev; flutter test + analyze clean).
+- Needs a NEW APK (build on ebazar-vps from GitHub, then deploy/publish-apk.sh). Installed 1.0.0 apps keep working unchanged.
+- Data: the 7 existing products have no category yet, so every department count is 0 and Home shows only the New shelf until sellers/admin assign categories (Phase 4 UI).

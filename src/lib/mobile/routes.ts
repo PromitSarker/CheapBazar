@@ -10,6 +10,7 @@ import { callService } from "@/lib/bff/client";
 import { RateLimiter } from "@/lib/security/ratelimit";
 import { getStorefrontViaServices } from "@/lib/bff/storefront";
 import { searchViaServices, storeDirectoryViaServices, marketplaceAds, buyerProPlan, buyerProStatus, myProPayments, submitProPayment, type Tab } from "@/lib/bff/browse";
+import { categoriesWithCounts, homeShelves } from "@/lib/bff/catalog";
 import { myOrdersViaServices, cancelMyOrderViaServices } from "@/lib/bff/orders";
 import { inboxViaServices, markReadViaServices, unreadCountViaServices } from "@/lib/bff/notifications";
 import { sponsoredForStorefront } from "@/lib/bff/ads";
@@ -112,17 +113,26 @@ router.post("/me/delete", async (ctx) => {
 
 // ---------------------------------------------------------- discovery
 
+/** Public category tree (admin-managed) with live product counts. */
+router.get("/categories", async () => ({ categories: await categoriesWithCounts() }));
+
 router.get("/home", async (ctx) => {
   const user = await ctx.user().catch(() => null);
-  const [ads, stores, items] = await Promise.allSettled([
+  const cats = categoriesWithCounts();
+  const [ads, stores, items, categories, shelves] = await Promise.allSettled([
     marketplaceAds("HOME_HERO"),
     storeDirectoryViaServices(10),
     searchViaServices("retail", { limit: "12" }, user?.id),
+    cats,
+    cats.then((c) => homeShelves(c, user?.id)),
   ]);
+  // `items` stays for apps released before categories existed; newer apps read `shelves` + `categories`.
   return {
     ads: ads.status === "fulfilled" ? ads.value : [],
     stores: stores.status === "fulfilled" ? stores.value : [],
     items: items.status === "fulfilled" ? items.value.items : [],
+    categories: categories.status === "fulfilled" ? categories.value : [],
+    shelves: shelves.status === "fulfilled" ? shelves.value : [],
   };
 });
 
@@ -137,6 +147,8 @@ router.get("/browse", async (ctx) => {
         q: str(q.get("q"), 100) || undefined, storeId: str(q.get("store"), 64) || undefined, sort: str(q.get("sort"), 20) || undefined,
         page: str(q.get("page"), 5) || undefined, limit: str(q.get("limit"), 3) || "20",
         minPrice: str(q.get("min"), 10) || undefined, maxPrice: str(q.get("max"), 10) || undefined, inStock: str(q.get("stock"), 5) || undefined,
+        categoryId: str(q.get("category"), 64) || undefined, brand: str(q.get("brand"), 60) || undefined,
+        onSale: q.get("sale") === "1" || q.get("sale") === "true" ? "true" : undefined,
       },
       user?.id
     ),

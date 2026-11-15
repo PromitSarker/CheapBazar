@@ -26,6 +26,12 @@ class Product {
     this.moq = 1,
     this.tiers = const [],
     this.wholesale = false,
+    this.images = const [],
+    this.categoryId,
+    this.brand,
+    this.unit,
+    this.compareAtPrice,
+    this.discountPct = 0,
   });
 
   final String id;
@@ -42,6 +48,21 @@ class Product {
   final int moq;
   final List<PriceTier> tiers;
   final bool wholesale;
+  final List<String> images; // gallery; [image] is the cover
+  final String? categoryId;
+  final String? brand;
+  final String? unit; // pack size, e.g. "500 g"
+  final double? compareAtPrice; // crossed-out "was" price (retail only)
+  final int discountPct;
+
+  /// A real retail discount: never shown for wholesale/locked items or when the "was" price is not higher.
+  bool get onSale => !wholesale && !locked && compareAtPrice != null && compareAtPrice! > price;
+
+  /// Cover first, then the rest; falls back to the single [image].
+  List<String> get gallery => images.isNotEmpty ? images : (image != null && image!.isNotEmpty ? [image!] : const []);
+
+  /// "Brand · 500 g" (either part may be missing).
+  String get subtitle => [if ((brand ?? '').isNotEmpty) brand!, if ((unit ?? '').isNotEmpty) unit!].join(' · ');
 
   double get unitPrice => wholesale ? (wholesalePrice ?? price) : price;
 
@@ -73,6 +94,12 @@ class Product {
       moq: j['moq'] == null ? 1 : _i(j['moq']).clamp(1, 1000000),
       tiers: ((j['tiers'] as List?) ?? const []).map((e) => PriceTier.fromJson((e as Map).cast<String, dynamic>())).toList(),
       wholesale: wholesale,
+      images: ((j['images'] as List?) ?? const []).map((e) => _s(e)).where((e) => e.isNotEmpty).toList(),
+      categoryId: j['categoryId'] as String?,
+      brand: j['brand'] as String?,
+      unit: j['unit'] as String?,
+      compareAtPrice: j['compareAtPrice'] == null ? null : _d(j['compareAtPrice']),
+      discountPct: _i(j['discountPct']),
     );
   }
 
@@ -88,6 +115,55 @@ class Product {
       price: _d(j['price']),
       stock: stock,
       inStock: stock > 0,
+    );
+  }
+}
+
+/// A department or sub-category (admin-managed). [count] = products currently listed in it.
+class ShopCategory {
+  ShopCategory({required this.id, required this.parentId, required this.nameEn, required this.nameBn, required this.icon, required this.count, this.children = const []});
+  final String id;
+  final String? parentId;
+  final String nameEn;
+  final String nameBn;
+  final String icon; // Material icon key, see category_icons.dart
+  final int count;
+  final List<ShopCategory> children;
+
+  String name(bool bn) => bn && nameBn.isNotEmpty ? nameBn : nameEn;
+
+  factory ShopCategory.fromJson(Map<String, dynamic> j) => ShopCategory(
+        id: _s(j['id']),
+        parentId: j['parentId'] as String?,
+        nameEn: _s(j['nameEn']),
+        nameBn: _s(j['nameBn']),
+        icon: _s(j['icon']),
+        count: _i(j['count']),
+        children: ((j['children'] as List?) ?? const []).map((e) => ShopCategory.fromJson((e as Map).cast<String, dynamic>())).toList(),
+      );
+}
+
+/// A horizontal product row on Home ("Deals & offers", "New arrivals", a busy department...).
+class Shelf {
+  Shelf({required this.key, required this.titleEn, required this.titleBn, required this.categoryId, required this.onSale, required this.items});
+  final String key;
+  final String titleEn;
+  final String titleBn;
+  final String? categoryId;
+  final bool onSale;
+  final List<Product> items;
+
+  String title(bool bn) => bn && titleBn.isNotEmpty ? titleBn : titleEn;
+
+  factory Shelf.fromJson(Map<String, dynamic> j) {
+    final t = (j['title'] as Map?)?.cast<String, dynamic>() ?? const {};
+    return Shelf(
+      key: _s(j['key']),
+      titleEn: _s(t['en']),
+      titleBn: _s(t['bn']),
+      categoryId: j['categoryId'] as String?,
+      onSale: j['onSale'] == true,
+      items: ((j['items'] as List?) ?? const []).map((e) => Product.fromBrowse((e as Map).cast<String, dynamic>())).toList(),
     );
   }
 }

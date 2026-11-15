@@ -13,13 +13,19 @@ export type Tab = "retail" | "wholesale";
 export interface BrowseItem {
   productId: string; name: string; description: string; image: string | null;
   store: { id: string; slug: string; name: string }; inStock: boolean;
+  images?: string[]; categoryId?: string | null; parentCategoryId?: string | null; brand?: string | null; unit?: string | null;
+  compareAtPrice?: number | null; discountPct?: number;
   price?: number; stock?: number; channel?: string;
   locked?: boolean; wholesalePrice?: number; moq?: number; tiers?: { minQty: number; unitPrice: number }[];
 }
 export interface BrowseResult {
   tab: Tab; items: BrowseItem[]; total: number; page: number; pages: number; limit: number;
   paywall: { locked: boolean; reason: "LOGIN_REQUIRED" | "BUYER_PRO_REQUIRED" | null } | null;
-  facets: { stores: { storeId: string; slug: string; name: string; count: number }[] };
+  facets: {
+    stores: { storeId: string; slug: string; name: string; count: number }[];
+    categories?: { categoryId: string; parentCategoryId: string | null; count: number }[];
+    brands?: { brand: string; count: number }[];
+  };
 }
 
 export async function searchViaServices(tab: Tab, params: Record<string, string | undefined>, viewerId?: string): Promise<BrowseResult> {
