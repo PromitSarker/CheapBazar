@@ -229,3 +229,9 @@ Built the first part of the web-tier ("BFF") layer. Nothing here switches the li
 - Mobile: default API base URL is now the new server; Settings > About > "Check for updates" (reads /downloads/latest.json, opens the APK
   download); `publish-apk.sh` writes `build` into latest.json. `flutter analyze` clean, 17 tests pass.
 - Added `deploy/backup.sh` (manual; cron not installed).
+
+## 2026-11-15: domain + HTTPS
+- cheapbazar.org (Cloudflare DNS, DNS-only for now) -> 103.228.38.77. nginx site /etc/nginx/sites-available/cheapbazar proxies to :3000. Let's Encrypt cert for cheapbazar.org (apex only; add www: create DNS record, then certbot --expand), auto-renews via certbot.timer. HSTS + security headers + gzip + Cloudflare real-IP (so the rate limiter sees visitors if the proxy is turned on).
+- APP_DOMAIN=cheapbazar.org in .env (middleware treats it as the platform host; it is read at BUILD time, so rebuild after changing it). COOKIE_INSECURE removed (session cookies are Secure now). deploy/.env APP_URL=https://cheapbazar.org.
+- Mobile default base URL, live_check, README, CI workflow now https://cheapbazar.org. Installed APKs still call http://103.228.38.77:3000, so port 3000 stays open until a new APK has shipped through the in-app update.
+- Locked the seed/throwaway logins (admin@/demo@/buyer@storeforge.dev, test-shop@example.test): random bcrypt password, sessions deleted. Nightly backup cron 03:15; offsite pull to the old machine 04:30.

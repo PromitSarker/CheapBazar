@@ -1,7 +1,7 @@
 /// Build-time configuration. Override with:
 ///   flutter build apk --dart-define=API_BASE_URL=https://shop.example.com
 class AppConfig {
-  static const String baseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://103.228.38.77:3000');
+  static const String baseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://cheapbazar.org');
   static const String apiPrefix = '/api/m/v1';
   // Keep both in sync with `version:` in pubspec.yaml (test/app_update_test.dart fails if they drift).
   static const String version = '1.0.0';
