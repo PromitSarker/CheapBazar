@@ -1,11 +1,11 @@
 // Contract check against a REAL server (read-only except sign-up/login of a throwaway buyer).
-//   dart run tool/live_check.dart http://103.228.38.69:3000
+//   dart run tool/live_check.dart http://103.228.38.77:3000
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
 Future<void> main(List<String> args) async {
-  final base = (args.isNotEmpty ? args.first : 'http://103.228.38.69:3000').replaceAll(RegExp(r'/+$'), '');
+  final base = (args.isNotEmpty ? args.first : 'http://103.228.38.77:3000').replaceAll(RegExp(r'/+$'), '');
   final http = HttpClient();
   var failures = 0;
   void check(bool ok, String what) {

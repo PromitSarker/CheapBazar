@@ -220,3 +220,12 @@ Built the first part of the web-tier ("BFF") layer. Nothing here switches the li
 - Committed the mobile work (commit `eab9c87`): Flutter app in `mobile/`, mobile API `src/lib/mobile` + `src/app/api/m/v1/*`, buyer account deletion in identity-service (10 identity tests), `/app` APK download page and `/downloads` route, `deploy/publish-apk.sh`, `.github/workflows/mobile.yml`. The PWA files were removed.
 - Signing key and `key.properties` live outside git (`~/dev/keys/`, ignored). Checked the staged diff for secrets before committing.
 - Release APK build restarted under `~/dev/capped.sh` (CPU/memory capped); log `/tmp/apk-build.log`. The first attempt was killed when the session was stopped.
+
+## 2026-11-15: moved to 103.228.38.77, in-app update check
+
+- Moved the whole stack from 103.228.38.69 to 103.228.38.77: repo (with unpushed commits), secrets, uploads, 8 databases (pg_dump/pg_restore,
+  row counts compared before and after a final sync with the old app stopped), Docker + Node 22 + pm2 installed, pm2/Docker start on boot.
+  Old server: CheapBazar pm2 apps stopped, data kept.
+- Mobile: default API base URL is now the new server; Settings > About > "Check for updates" (reads /downloads/latest.json, opens the APK
+  download); `publish-apk.sh` writes `build` into latest.json. `flutter analyze` clean, 17 tests pass.
+- Added `deploy/backup.sh` (manual; cron not installed).
