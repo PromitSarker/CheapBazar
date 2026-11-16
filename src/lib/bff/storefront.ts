@@ -14,6 +14,8 @@ export interface StoreVM {
   customDomain?: string | null;
   logoUrl?: string | null;
   themeColor?: string | null;
+  /** Owner's user id (services path): lets the shop's own seller and admins through the location gate. */
+  ownerId?: string;
 }
 export interface ProductVM {
   id: string;
@@ -51,6 +53,7 @@ export async function getStorefrontViaServices(identifier: string): Promise<{ st
     customDomain: tenant.customDomain ?? null,
     logoUrl: tenant.logoUrl ?? null,
     themeColor: tenant.themeColor ?? null,
+    ownerId: tenant.ownerId,
   };
 
   // Suspended/banned shops do not need a catalog (the page shows a notice instead).

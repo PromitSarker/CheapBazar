@@ -44,9 +44,9 @@ const run = Date.now().toString(36);
 console.log("seeding a seller and store in the services…");
 const reg = await svc("identity", "POST", "/auth/register", { email: `wallet-${run}@example.test`, name: "Wallet Seller", password: "wallet-pass-1", role: "SELLER", ip: `198.51.100.${Math.floor(Math.random() * 250) + 1}` });
 cookie = `sf_session=${reg.token}`;
-const store = await svc("identity", "POST", "/stores", { ownerId: reg.user.id, name: `Wallet Shop ${run}`, slug: `wallet-${run}`, template: "classic" });
+const store = await svc("identity", "POST", "/stores", { latitude: 23.78, longitude: 90.41, ownerId: reg.user.id, name: `Wallet Shop ${run}`, slug: `wallet-${run}`, template: "classic" });
 const other = await svc("identity", "POST", "/auth/register", { email: `wallet2-${run}@example.test`, name: "Other", password: "wallet-pass-2", role: "SELLER", ip: `198.51.100.${Math.floor(Math.random() * 250) + 1}` });
-await svc("identity", "POST", "/stores", { ownerId: other.user.id, name: `Other Shop ${run}`, slug: `other-${run}`, template: "classic" });
+await svc("identity", "POST", "/stores", { latitude: 23.78, longitude: 90.41, ownerId: other.user.id, name: `Other Shop ${run}`, slug: `other-${run}`, template: "classic" });
 for (let i = 0; i < 40; i++) { if ((await svc("ledger", "GET", `/wallets/${store.id}/status`)).exists) break; await sleep(500); }
 await svc("catalog", "POST", `/stores/${store.id}/products`, { name: `Low ${run}`, price: 10, stock: 3 });
 await svc("catalog", "POST", `/stores/${store.id}/products`, { name: `Plenty ${run}`, price: 10, stock: 20 });

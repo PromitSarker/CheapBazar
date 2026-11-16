@@ -5,6 +5,7 @@ import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../state/l10n.dart';
 import '../widgets/common.dart';
+import '../widgets/location_ui.dart';
 import '../widgets/product_card.dart';
 import 'product_page.dart';
 
@@ -32,6 +33,10 @@ class _StorePageState extends State<StorePage> {
         future: _future,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
+          final err = snap.error;
+          if (err is ApiException && (err.code == 'OUT_OF_RANGE' || err.code == 'LOCATION_REQUIRED' || err.code == 'SHOP_HAS_NO_LOCATION')) {
+            return LocationPrompt(message: err.message); // the shop is outside the buyer's range, or their location is unknown
+          }
           if (snap.hasError) return ErrorRetry(message: errorText(snap.error!), onRetry: () => setState(() => _future = _load()));
           final d = snap.data!;
           final store = (d['store'] as Map).cast<String, dynamic>();

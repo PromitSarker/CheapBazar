@@ -30,6 +30,11 @@ class ApiClient {
   final String baseUrl;
   String? token;
 
+  /// The buyer's position (rounded). Sent with every request that browses shops, so the admin's range limit can be applied.
+  ({double lat, double lng})? location;
+
+  static const _locationPaths = ['/home', '/browse', '/search/suggest', '/products', '/stores', '/categories'];
+
   /// Called when the server says the session is no longer valid.
   void Function()? onUnauthorized;
 
@@ -57,10 +62,22 @@ class ApiClient {
         ...?extra,
       };
 
-  Future<dynamic> get(String path, {Map<String, String?>? query}) => _send('GET', path, query: query);
+  Future<dynamic> get(String path, {Map<String, String?>? query}) {
+    final loc = location;
+    if (loc != null && _locationPaths.any(path.startsWith)) {
+      query = {...?query, 'lat': '${loc.lat}', 'lng': '${loc.lng}'};
+    }
+    return _send('GET', path, query: query);
+  }
 
-  Future<dynamic> post(String path, [Object? body, Map<String, String>? headers]) =>
-      _send('POST', path, body: body ?? const <String, dynamic>{}, headers: headers);
+  Future<dynamic> post(String path, [Object? body, Map<String, String>? headers]) {
+    final loc = location;
+    // an order carries the buyer's position so the server can re-check the shop is in range
+    if (loc != null && path == '/orders' && body is Map<String, dynamic> && !body.containsKey('location')) {
+      body = {...body, 'location': {'lat': loc.lat, 'lng': loc.lng}};
+    }
+    return _send('POST', path, body: body ?? const <String, dynamic>{}, headers: headers);
+  }
 
   Future<dynamic> _send(String method, String path,
       {Map<String, String?>? query, Object? body, Map<String, String>? headers}) async {

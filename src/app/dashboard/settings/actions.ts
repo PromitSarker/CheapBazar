@@ -7,6 +7,8 @@ import { TEMPLATES, TemplateId } from "@/lib/constants";
 import { servicesEnabled } from "@/lib/bff/client";
 import { getCurrentStore } from "@/lib/tenant";
 import { updateStoreViaServices } from "@/lib/bff/wallet";
+import { saveStoreLocationViaServices } from "@/lib/bff/portal";
+import { parseCoords } from "../../../../packages/geo";
 import { presetHex } from "@/lib/storefront-theme";
 import { validateImage, UploadError } from "@/lib/security/uploads";
 import { promises as fs } from "fs";
@@ -81,4 +83,20 @@ export async function updateStore(formData: FormData) {
   
   redirect("/dashboard/settings?success=1");
 
+}
+
+/** Shop location form (services path): a pin inside Bangladesh, a district and a street/area line. */
+export async function saveLocation(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (!servicesEnabled()) redirect("/dashboard/settings");
+  const mine = await getCurrentStore();
+  if (!mine) redirect("/onboarding");
+  const location = {
+    latitude: formData.get("latitude"), longitude: formData.get("longitude"),
+    district: String(formData.get("district") || ""), address: String(formData.get("address") || ""),
+  };
+  if (!parseCoords(location.latitude, location.longitude)) redirect("/dashboard/settings?error=location#location");
+  const r = await saveStoreLocationViaServices(mine.id, user.id, location);
+  redirect(r === "ok" ? "/dashboard/settings?success=location#location" : `/dashboard/settings?error=${r === "location" ? "location" : "invalid"}#location`);
 }

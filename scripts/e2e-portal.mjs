@@ -73,7 +73,7 @@ assert.match(cookie, /sf_session=/); ok("signup creates the account and starts a
 res = await submit("/signup", ["email", "name", "password"], { email, name: "Dup", password: "portal-pass-1", role: "SELLER" });
 assert.ok(loc(res).includes("error=taken")); ok("duplicate email is refused");
 
-res = await submit("/onboarding", ["name", "slug"], { name: `Portal Shop ${run}`, slug, template: "modern" });
+res = await submit("/onboarding", ["name", "slug"], { name: `Portal Shop ${run}`, slug, template: "modern", latitude: "23.78", longitude: "90.41", district: "dhaka", address: "Road 1" });
 assert.ok(loc(res).includes("/dashboard"), `onboarding -> ${res.status} ${loc(res)}`); ok("onboarding creates the store");
 
 let page = await get("/dashboard");

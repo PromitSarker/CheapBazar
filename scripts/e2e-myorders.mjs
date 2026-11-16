@@ -39,7 +39,7 @@ const place = (token, qty, extra = {}) => fetch(`${WEB}/api/orders/create`, {
 }).then(async (r) => ({ status: r.status, ...(await r.json()) }));
 
 const seller = await reg("mo-seller");
-const store = await svc("identity", "POST", "/stores", { ownerId: seller.user.id, name: `MO Shop ${run}`, slug: `mo-${run}`, template: "classic" });
+const store = await svc("identity", "POST", "/stores", { latitude: 23.78, longitude: 90.41, ownerId: seller.user.id, name: `MO Shop ${run}`, slug: `mo-${run}`, template: "classic" });
 const slug = store.slug;
 for (let i = 0; i < 40; i++) { if ((await svc("ledger", "GET", `/wallets/${store.id}/status`)).exists) break; await sleep(500); }
 await svc("ledger", "POST", `/wallets/${store.id}/topup`, { amount: 5000, reference: `mo-${run}`, method: "CASH" });

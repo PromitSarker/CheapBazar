@@ -25,6 +25,7 @@ export async function storeForOwner(ownerId: string): Promise<TenantResolution |
       id: s.id, name: s.name, slug: s.slug, template: s.template,
       status: await statusOf(s.id), customDomain: s.customDomain ?? null, ownerId: s.ownerId,
       logoUrl: s.logoUrl ?? null, themeColor: s.themeColor ?? null,
+      latitude: s.latitude ?? null, longitude: s.longitude ?? null, address: s.address ?? null, district: s.district ?? null, hasLocation: !!s.hasLocation,
     };
   } catch (e) {
     if (e instanceof ServiceCallError && e.status === 404) return null;
@@ -46,14 +47,17 @@ export async function tenantBySlugOrDomain(identifier: string): Promise<TenantRe
 }
 
 /** "ok" or a short error code the onboarding page already understands. */
-export async function createStoreViaServices(ownerId: string, name: string, slug: string, template: string): Promise<"ok" | "slug-taken" | "invalid" | "exists"> {
+export interface ShopLocationInput { latitude: unknown; longitude: unknown; district?: string; address?: string }
+
+export async function createStoreViaServices(ownerId: string, name: string, slug: string, template: string, location: ShopLocationInput): Promise<"ok" | "slug-taken" | "invalid" | "exists" | "location"> {
   try {
-    await callService("identity", "POST", "/stores", { ownerId, name, slug, template });
+    await callService("identity", "POST", "/stores", { ownerId, name, slug, template, ...location });
     return "ok";
   } catch (e) {
     if (e instanceof ServiceCallError) {
       if (e.code === "SLUG_TAKEN") return "slug-taken";
       if (e.code === "STORE_EXISTS") return "exists";
+      if (e.code === "LOCATION_REQUIRED" || e.code === "LOCATION_INVALID") return "location";
       if (e.status === 400 || e.status === 403) return "invalid";
     }
     throw e;
@@ -144,6 +148,20 @@ export async function updateOrderStatusViaServices(
     if (e instanceof ServiceCallError) {
       if (e.status >= 500) return { status: 503, body: { error: "Could not update the order right now. Please try again." } };
       return { status: e.status, body: { error: e.message } };
+    }
+    throw e;
+  }
+}
+
+/** Saves the shop's pin / district / street line. "location" = the pin was missing or outside Bangladesh. */
+export async function saveStoreLocationViaServices(storeId: string, actorId: string, location: ShopLocationInput): Promise<"ok" | "location" | "invalid"> {
+  try {
+    await callService("identity", "PATCH", `/stores/${q(storeId)}`, { ...location, actorId });
+    return "ok";
+  } catch (e) {
+    if (e instanceof ServiceCallError) {
+      if (e.code === "LOCATION_REQUIRED" || e.code === "LOCATION_INVALID") return "location";
+      if (e.status === 400 || e.status === 403 || e.status === 404) return "invalid";
     }
     throw e;
   }

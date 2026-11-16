@@ -1,8 +1,11 @@
 import { createStore } from "./actions";
+import ShopLocationField from "@/components/location/ShopLocationField";
+import { servicesEnabled } from "@/lib/bff/client";
 
 const ERRORS: Record<string, string> = {
   invalid: "Please enter a store name, a valid URL slug, and pick a template.",
   "slug-taken": "That store URL is taken. Try another one.",
+  location: "Pin your shop on the map (inside Bangladesh) before opening your store. Your store was not created.",
 };
 
 export default function OnboardingPage({ searchParams }: { searchParams: { error?: string } }) {
@@ -10,7 +13,7 @@ export default function OnboardingPage({ searchParams }: { searchParams: { error
   return (
     <div className="auth-box wide">
       <h1>Name your store</h1>
-      <p className="muted">Pick one of our two templates. That&rsquo;s the whole design process.</p>
+      <p className="muted">Pick one of our two templates and tell buyers where your shop is.</p>
       {error && <p className="error">{error}</p>}
 
       <form action={createStore} className="stack">
@@ -25,6 +28,8 @@ export default function OnboardingPage({ searchParams }: { searchParams: { error
             <input name="slug" required placeholder="golden-grain" pattern="[a-zA-Z0-9-]+" />
           </span>
         </label>
+
+        {servicesEnabled() && <ShopLocationField />}
 
         {/* Hidden fallback ensures Safari always sends a template value even if
             the defaultChecked radio isn't serialized into FormData */}

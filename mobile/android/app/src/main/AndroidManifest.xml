@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Approximate location only: shops are matched by kilometres, so the app never asks for precise location. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove"/>
     <!-- Lets the in-app updater hand the downloaded APK to Android's installer (Android asks the user to allow it). -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <!-- open_filex declares media/storage reads we never use (the APK lives in app-private storage): drop them. -->

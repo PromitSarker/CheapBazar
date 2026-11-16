@@ -5,8 +5,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../api/api_client.dart';
 import '../../config.dart';
 import '../../state/l10n.dart';
+import '../../state/location.dart';
 import '../../state/session.dart';
 import '../widgets/common.dart';
+import '../widgets/location_ui.dart';
 import '../widgets/update_tile.dart';
 import 'auth_screen.dart';
 import 'notifications_screen.dart';
@@ -105,6 +107,22 @@ class AccountScreen extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 10),
+        Builder(builder: (context) {
+          final loc = context.watch<LocationController>();
+          if (!loc.enabled) return const SizedBox.shrink(); // only while the admin limits shops by distance
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Card(
+              child: ListTile(
+                leading: const Icon(Icons.place_outlined),
+                title: Text(t.t('loc_your_location')),
+                subtitle: Text(loc.shortLabel(t.isBn, nearMe: t.t('loc_near_me'), notSet: t.t('loc_set'))),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => showLocationSheet(context),
+              ),
+            ),
+          );
+        }),
         Card(
           child: ListTile(
             leading: const Icon(Icons.language),

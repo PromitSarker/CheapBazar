@@ -25,4 +25,10 @@ export interface TenantResolution {
   logoUrl?: string | null;
   /** #rrggbb accent, always one of THEME_PRESETS */
   themeColor?: string | null;
+  /** Where the shop is (services path). Shops opened before locations existed have none until the owner sets it. */
+  latitude?: number | null;
+  longitude?: number | null;
+  address?: string | null;
+  district?: string | null;
+  hasLocation?: boolean;
 }

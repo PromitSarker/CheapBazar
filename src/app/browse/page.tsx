@@ -5,6 +5,9 @@ import { servicesEnabled } from "@/lib/bff/client";
 import { searchViaServices, marketplaceAds, type BrowseItem, type Tab } from "@/lib/bff/browse";
 import SponsoredBanner from "@/components/sponsored/SponsoredBanner";
 import WholesaleOrder from "@/components/browse/WholesaleOrder";
+import LocationGate from "@/components/location/LocationGate";
+import { getBuyerLocation, locQuery } from "@/lib/location";
+import { districtById } from "../../../packages/geo";
 
 export const dynamic = "force-dynamic";
 
@@ -14,8 +17,9 @@ export default async function BrowsePage({ searchParams }: { searchParams: Recor
   if (!servicesEnabled()) notFound(); // the marketplace is part of the new platform
   const tab: Tab = searchParams.tab === "wholesale" ? "wholesale" : "retail";
   const user = await getCurrentUser();
+  const loc = getBuyerLocation();
   const [res, top, side] = await Promise.all([
-    searchViaServices(tab, { q: searchParams.q, storeId: searchParams.store, sort: searchParams.sort, page: searchParams.page, minPrice: searchParams.min, maxPrice: searchParams.max, inStock: searchParams.stock }, user?.id),
+    searchViaServices(tab, { q: searchParams.q, storeId: searchParams.store, sort: searchParams.sort, page: searchParams.page, minPrice: searchParams.min, maxPrice: searchParams.max, inStock: searchParams.stock, ...locQuery(loc) }, user?.id),
     marketplaceAds("BROWSE_TOP"),
     marketplaceAds("BROWSE_SIDEBAR"),
   ]);
@@ -27,11 +31,17 @@ export default async function BrowsePage({ searchParams }: { searchParams: Recor
     return `/browse?${p.toString()}`;
   };
   const locked = res.paywall?.locked;
+  // The admin's range limit is on and this buyer has not said where they are: ask instead of showing an empty marketplace.
+  if (res.location?.required) return <LocationGate radiusKm={res.location.radiusKm} />;
+  const nearLabel = loc ? (loc.label === "gps" ? "you" : districtById(loc.label)?.en ?? "you") : null;
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "1.5rem 1rem" }}>
       <h1 style={{ fontSize: "2rem" }}>Marketplace</h1>
-      <p className="muted">Shop across every store. Wholesale prices are for Buyer Pro members.</p>
+      <p className="muted">
+        Shop across every store. Wholesale prices are for Buyer Pro members.
+        {res.location?.applied && res.location.radiusKm ? ` Showing shops within ${res.location.radiusKm} km of ${nearLabel}.` : ""}
+      </p>
 
       <nav style={{ display: "flex", gap: "0.5rem", margin: "1rem 0" }} aria-label="Marketplace tabs">
         <Link href={href({ tab: "retail", store: undefined, page: undefined })} className={`button button-small ${tab === "retail" ? "glow-button" : "button-outline"}`}>Retail</Link>
@@ -75,7 +85,10 @@ export default async function BrowsePage({ searchParams }: { searchParams: Recor
               <article key={it.productId} className="card" style={{ padding: "1rem" }}>
                 {it.image && /* eslint-disable-next-line @next/next/no-img-element */ <img src={it.image} alt="" style={{ width: "100%", height: 140, objectFit: "cover", borderRadius: 6, marginBottom: 8 }} />}
                 <strong>{it.name}</strong>
-                <div className="muted" style={{ fontSize: "0.85rem" }}>by <Link href={`/store/${it.store.slug}`}>{it.store.name}</Link></div>
+                <div className="muted" style={{ fontSize: "0.85rem" }}>
+                  by <Link href={`/store/${it.store.slug}`}>{it.store.name}</Link>
+                  {it.store.distanceKm != null ? ` · ${it.store.distanceKm} km away` : it.store.district ? ` · ${districtById(it.store.district)?.en ?? ""}` : ""}
+                </div>
                 {tab === "retail" ? (
                   <>
                     <div style={{ margin: "0.4rem 0", fontWeight: 700, color: "var(--text-primary)" }}>{taka(it.price ?? 0)}</div>

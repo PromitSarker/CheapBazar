@@ -9,11 +9,13 @@
 import { callService } from "@/lib/bff/client";
 import { RateLimiter } from "@/lib/security/ratelimit";
 import { getStorefrontViaServices } from "@/lib/bff/storefront";
-import { productViaServices, suggestViaServices, searchViaServices, storeDirectoryViaServices, marketplaceAds, buyerProPlan, buyerProStatus, myProPayments, submitProPayment, type Tab } from "@/lib/bff/browse";
+import { productViaServices, suggestViaServices, searchViaServices, storeDirectoryWithLocation, marketplaceAds, buyerProPlan, buyerProStatus, myProPayments, submitProPayment, type Tab } from "@/lib/bff/browse";
 import { categoriesWithCounts, homeShelves } from "@/lib/bff/catalog";
 import { myOrdersViaServices, cancelMyOrderViaServices } from "@/lib/bff/orders";
 import { inboxViaServices, markReadViaServices, unreadCountViaServices } from "@/lib/bff/notifications";
 import { sponsoredForStorefront } from "@/lib/bff/ads";
+import { locationPolicy, storeVisibility, visibilityMessage } from "@/lib/bff/location";
+import { DISTRICTS, parseCoords, type Coords } from "../../../packages/geo";
 import { ApiError, MobileRouter, needUser, str, type Ctx } from "./core";
 
 export const router = new MobileRouter();
@@ -24,6 +26,18 @@ const orderByIp = new RateLimiter(10, 10 * 60_000);
 const orderByPhone = new RateLimiter(5, 10 * 60_000);
 const lookupLimit = new RateLimiter(30, 10 * 60_000);
 const suggestLimit = new RateLimiter(90, 60_000);
+
+/** The buyer's position from `?lat=&lng=` (null when missing or not a point in Bangladesh). Never stored. */
+const locOf = (ctx: Ctx): Coords | null => parseCoords(ctx.query.get("lat"), ctx.query.get("lng"));
+
+/**
+ * A shop reached directly (store page, checkout) must be visible to this buyer under the admin's range limit.
+ * Only a definite "no" blocks; if the aggregator cannot answer, the page still works (discovery is what the limit controls).
+ */
+async function assertShopVisible(slug: string, loc: Coords | null) {
+  const v = await storeVisibility(slug, loc).catch(() => null);
+  if (v && v.found && !v.visible) throw new ApiError(403, visibilityMessage(v), v.reason ?? "OUT_OF_RANGE");
+}
 
 const MIN_APP_VERSION = process.env.MOBILE_MIN_APP_VERSION || "1.0.0";
 const digits = (s: string) => s.replace(/\D/g, "");
@@ -57,6 +71,16 @@ function mapOrder(o: any, canCancelOverride?: boolean) {
 }
 
 // ------------------------------------------------------------------ meta
+
+/** Range limit (admin setting) and the district list the app offers when GPS is off. Public. */
+router.get("/location/config", async () => {
+  const p = await locationPolicy();
+  return {
+    enabled: p.enabled,
+    radiusKm: p.enabled ? p.radiusKm : null,
+    districts: DISTRICTS.map((d) => ({ id: d.id, nameEn: d.en, nameBn: d.bn, lat: d.lat, lng: d.lng })),
+  };
+});
 
 router.get("/config", () => ({
   appName: "Cheap-Bazar",
@@ -115,22 +139,26 @@ router.post("/me/delete", async (ctx) => {
 // ---------------------------------------------------------- discovery
 
 /** Public category tree (admin-managed) with live product counts. */
-router.get("/categories", async () => ({ categories: await categoriesWithCounts() }));
+router.get("/categories", async (ctx) => ({ categories: await categoriesWithCounts(locOf(ctx)) }));
 
 router.get("/home", async (ctx) => {
   const user = await ctx.user().catch(() => null);
-  const cats = categoriesWithCounts();
+  const loc = locOf(ctx);
+  const geo = loc ? { lat: String(loc.lat), lng: String(loc.lng) } : {};
+  const cats = categoriesWithCounts(loc);
   const [ads, stores, items, categories, shelves] = await Promise.allSettled([
     marketplaceAds("HOME_HERO"),
-    storeDirectoryViaServices(10),
-    searchViaServices("retail", { limit: "12" }, user?.id),
+    storeDirectoryWithLocation(10, loc),
+    searchViaServices("retail", { limit: "12", ...geo }, user?.id),
     cats,
-    cats.then((c) => homeShelves(c, user?.id)),
+    cats.then((c) => homeShelves(c, user?.id, loc)),
   ]);
   // `items` stays for apps released before categories existed; newer apps read `shelves` + `categories`.
   return {
     ads: ads.status === "fulfilled" ? ads.value : [],
-    stores: stores.status === "fulfilled" ? stores.value : [],
+    stores: stores.status === "fulfilled" ? stores.value.stores : [],
+    // what the admin's range limit did to this request: the app prompts for a location when `required`
+    location: stores.status === "fulfilled" ? stores.value.location : { enabled: false, radiusKm: null, required: false, applied: false },
     items: items.status === "fulfilled" ? items.value.items : [],
     categories: categories.status === "fulfilled" ? categories.value : [],
     shelves: shelves.status === "fulfilled" ? shelves.value : [],
@@ -141,10 +169,12 @@ router.get("/browse", async (ctx) => {
   const user = await ctx.user().catch(() => null);
   const q = ctx.query;
   const tab: Tab = q.get("tab") === "wholesale" ? "wholesale" : "retail";
+  const loc = locOf(ctx);
   const [res, ads] = await Promise.all([
     searchViaServices(
       tab,
       {
+        ...(loc ? { lat: String(loc.lat), lng: String(loc.lng) } : {}),
         q: str(q.get("q"), 100) || undefined, storeId: str(q.get("store"), 64) || undefined, sort: str(q.get("sort"), 20) || undefined,
         page: str(q.get("page"), 5) || undefined, limit: str(q.get("limit"), 3) || "20",
         minPrice: str(q.get("min"), 10) || undefined, maxPrice: str(q.get("max"), 10) || undefined, inStock: str(q.get("stock"), 5) || undefined,
@@ -163,7 +193,8 @@ router.get("/search/suggest", async (ctx) => {
   const term = str(ctx.query.get("q"), 60).toLowerCase();
   if (term.length < 2) return { suggestions: [], categories: [] };
   if (!suggestLimit.allow(ctx.ip)) throw new ApiError(429, "Too many searches. Please slow down.", "RATE_LIMITED");
-  const [names, cats] = await Promise.allSettled([suggestViaServices(term), categoriesWithCounts()]);
+  const loc = locOf(ctx);
+  const [names, cats] = await Promise.allSettled([suggestViaServices(term, loc), categoriesWithCounts(loc)]);
   const matches: { id: string; nameEn: string; nameBn: string }[] = [];
   if (cats.status === "fulfilled") {
     for (const top of cats.value) {
@@ -179,13 +210,14 @@ router.get("/search/suggest", async (ctx) => {
 router.get("/products/:id", async (ctx) => {
   const user = await ctx.user().catch(() => null);
   const id = str(ctx.params.id, 64);
-  const r = await productViaServices(id, user?.id);
+  const loc = locOf(ctx);
+  const r = await productViaServices(id, user?.id, loc);
   let similar: unknown[] = [];
   if (r.tab === "retail") {
     // same category first; otherwise more from the same shop
     const filter = r.item.categoryId ? { categoryId: r.item.categoryId } : { storeId: r.item.store.id };
     try {
-      const s = await searchViaServices("retail", { ...filter, limit: "10" }, user?.id);
+      const s = await searchViaServices("retail", { ...filter, limit: "10", ...(loc ? { lat: String(loc.lat), lng: String(loc.lng) } : {}) }, user?.id);
       similar = s.items.filter((i) => i.productId !== id).slice(0, 8);
     } catch { /* the page works without the extra row */ }
   }
@@ -195,6 +227,7 @@ router.get("/products/:id", async (ctx) => {
 router.get("/stores/:slug", async (ctx) => {
   const r = await getStorefrontViaServices(ctx.params.slug.toLowerCase());
   if (!r) throw new ApiError(404, "Store not found.", "NOT_FOUND");
+  await assertShopVisible(r.store.slug, locOf(ctx)); // 403 when the shop is outside the admin's range limit
   const banner = r.store.status === "ACTIVE" ? await sponsoredForStorefront(r.store.id) : null;
   return {
     store: { id: r.store.id, name: r.store.name, slug: r.store.slug, status: r.store.status, acceptsOrders: r.store.status === "ACTIVE" },
@@ -223,6 +256,8 @@ router.post("/orders", async (ctx: Ctx) => {
     throw new ApiError(400, "Invalid quantity in your bag.", "VALIDATION");
   }
   if (orderType === "WHOLESALE" && !user) throw new ApiError(401, "Log in with a Buyer Pro account to place a wholesale order.", "LOGIN_REQUIRED");
+  // The buyer's position rides along with the order (`location: {lat, lng}`); a shop they cannot see cannot be ordered from.
+  await assertShopVisible(slug, parseCoords(b.location?.lat, b.location?.lng));
   if (!orderByIp.allow(ctx.ip) || !orderByPhone.allow(digits(phone))) {
     throw new ApiError(429, "Too many orders from this phone or network. Please wait a few minutes.", "RATE_LIMITED");
   }

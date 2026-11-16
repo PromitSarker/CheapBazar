@@ -10,5 +10,5 @@ export FLUTTER_SUPPRESS_ANALYTICS=true CI=true
 cd "$(dirname "$0")/../mobile"
 [ -f android/key.properties ] || { echo "ABORT: mobile/android/key.properties missing: the APK would not be signed with the release key and could not update the installed app."; exit 1; }
 flutter pub get
-exec systemd-run --user --scope --quiet -p MemoryMax=2700M -p MemorySwapMax=1500M -p CPUQuota=180% -p IOWeight=20 \\
+exec systemd-run --user --scope --quiet -p MemoryMax=2700M -p MemorySwapMax=1500M -p CPUQuota=180% -p IOWeight=20 \
   nice -n 12 flutter build apk --release --target-platform android-arm,android-arm64 --dart-define=API_BASE_URL=https://cheapbazar.org

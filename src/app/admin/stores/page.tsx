@@ -1,4 +1,5 @@
 import { getAllStoresForAdmin } from "@/modules/admin/service";
+import { districtById } from "../../../../packages/geo";
 import { changeStoreStatus, toggleStoreKYC } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,7 @@ export default async function AdminStoresPage({ searchParams }: { searchParams?:
               <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Store</th>
               <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Owner</th>
               <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Custom Domain</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Location</th>
               <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Catalog</th>
               <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>KYC Status</th>
               <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Lifecycle Status</th>
@@ -48,6 +50,22 @@ export default async function AdminStoresPage({ searchParams }: { searchParams?:
                 </td>
                 <td style={{ padding: "0.9rem 1.1rem", fontSize: "0.85rem", color: s.customDomain ? "#0284c7" : "#94a3b8" }}>
                   {s.customDomain || "None"}
+                </td>
+                <td style={{ padding: "0.9rem 1.1rem", fontSize: "0.85rem" }}>
+                  {"hasLocation" in s ? (
+                    s.hasLocation ? (
+                      <>
+                        <strong style={{ color: "#0f172a" }}>{districtById(s.district)?.en ?? "Pinned"}</strong>
+                        <a href={`https://www.openstreetmap.org/?mlat=${s.latitude}&mlon=${s.longitude}#map=15/${s.latitude}/${s.longitude}`} target="_blank" rel="noreferrer" style={{ display: "block", fontSize: "0.78rem", color: "#0284c7" }}>
+                          {Number(s.latitude).toFixed(4)}, {Number(s.longitude).toFixed(4)} ↗
+                        </a>
+                      </>
+                    ) : (
+                      <span style={{ color: "#b45309", fontWeight: 600 }}>No location</span>
+                    )
+                  ) : (
+                    <span style={{ color: "#94a3b8" }}>n/a</span>
+                  )}
                 </td>
                 <td style={{ padding: "0.9rem 1.1rem", color: "#334155" }}>
                   {s._count.products} products ({s.template})

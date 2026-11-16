@@ -34,22 +34,28 @@ export function withCounts(tree: CategoryNode[], facets: CategoryFacet[]): Categ
 }
 
 const TTL_MS = 60_000;
-let cache: { at: number; value: CategoryOut[] } | null = null;
-export function resetCategoryCache() { cache = null; }
+// Counts depend on where the buyer is once the range limit is on, so the cache is per ~1 km square ("" = no position).
+const cache = new Map<string, { at: number; value: CategoryOut[] }>();
+export function resetCategoryCache() { cache.clear(); }
+type Loc = { lat: number; lng: number } | null | undefined;
+const locKey = (l: Loc) => (l ? `${l.lat.toFixed(2)},${l.lng.toFixed(2)}` : "");
 
 /** Public category tree with counts. Cached for a minute; serves the last good copy if the services are down. */
-export async function categoriesWithCounts(): Promise<CategoryOut[]> {
-  if (cache && Date.now() - cache.at < TTL_MS) return cache.value;
+export async function categoriesWithCounts(loc?: Loc): Promise<CategoryOut[]> {
+  const key = locKey(loc);
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.at < TTL_MS) return hit.value;
   try {
     const [tree, search] = await Promise.all([
       callService<{ categories: CategoryNode[] }>("catalog", "GET", "/categories", undefined, { timeoutMs: 2500 }),
-      searchViaServices("retail", { limit: "1" }).catch(() => null),
+      searchViaServices("retail", { limit: "1", ...(loc ? { lat: String(loc.lat), lng: String(loc.lng) } : {}) }).catch(() => null),
     ]);
     const value = withCounts(tree.categories, (search?.facets as any)?.categories ?? []);
-    cache = { at: Date.now(), value };
+    cache.set(key, { at: Date.now(), value });
+    if (cache.size > 200) cache.delete(cache.keys().next().value as string);
     return value;
   } catch {
-    return cache?.value ?? [];
+    return hit?.value ?? [];
   }
 }
 
@@ -64,17 +70,18 @@ export interface Shelf {
 const SHELF_SIZE = "10";
 
 /** Home shelves: deals, new arrivals and the busiest departments. Empty shelves are dropped. */
-export async function homeShelves(cats: CategoryOut[], viewerId?: string): Promise<Shelf[]> {
+export async function homeShelves(cats: CategoryOut[], viewerId?: string, loc?: Loc): Promise<Shelf[]> {
+  const geo = loc ? { lat: String(loc.lat), lng: String(loc.lng) } : {};
   const busiest = cats.filter((c) => c.count > 0).sort((a, b) => b.count - a.count).slice(0, 3);
   const jobs: Array<Promise<Shelf>> = [
-    searchViaServices("retail", { onSale: "true", sort: "discount", limit: SHELF_SIZE }, viewerId).then((r) => ({
+    searchViaServices("retail", { onSale: "true", sort: "discount", limit: SHELF_SIZE, ...geo }, viewerId).then((r) => ({
       key: "deals", title: { en: "Deals & offers", bn: "অফার ও ডিল" }, onSale: true, items: r.items,
     })),
-    searchViaServices("retail", { limit: SHELF_SIZE }, viewerId).then((r) => ({
+    searchViaServices("retail", { limit: SHELF_SIZE, ...geo }, viewerId).then((r) => ({
       key: "new", title: { en: "New arrivals", bn: "নতুন পণ্য" }, items: r.items,
     })),
     ...busiest.map((c) =>
-      searchViaServices("retail", { categoryId: c.id, limit: SHELF_SIZE }, viewerId).then((r) => ({
+      searchViaServices("retail", { categoryId: c.id, limit: SHELF_SIZE, ...geo }, viewerId).then((r) => ({
         key: `cat:${c.id}`, title: { en: c.nameEn, bn: c.nameBn || c.nameEn }, categoryId: c.id, items: r.items,
       }))
     ),

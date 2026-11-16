@@ -32,6 +32,7 @@ class Product {
     this.unit,
     this.compareAtPrice,
     this.discountPct = 0,
+    this.distanceKm,
   });
 
   final String id;
@@ -50,6 +51,8 @@ class Product {
   final bool wholesale;
   final List<String> images; // gallery; [image] is the cover
   final String? categoryId;
+  /// How far the shop is from the buyer (km), when the buyer's position is known.
+  final double? distanceKm;
   final String? brand;
   final String? unit; // pack size, e.g. "500 g"
   final double? compareAtPrice; // crossed-out "was" price (retail only)
@@ -100,6 +103,7 @@ class Product {
       unit: j['unit'] as String?,
       compareAtPrice: j['compareAtPrice'] == null ? null : _d(j['compareAtPrice']),
       discountPct: _i(j['discountPct']),
+      distanceKm: (store['distanceKm'] as num?)?.toDouble(),
     );
   }
 
@@ -169,7 +173,8 @@ class Shelf {
 }
 
 class StoreCardData {
-  StoreCardData({required this.slug, required this.name, required this.productCount, required this.samples});
+  StoreCardData({required this.slug, required this.name, required this.productCount, required this.samples, this.distanceKm});
+  final double? distanceKm;
   final String slug;
   final String name;
   final int productCount;
@@ -179,6 +184,7 @@ class StoreCardData {
         name: _s(j['name']),
         productCount: _i(j['productCount']),
         samples: ((j['sampleProducts'] as List?) ?? const []).map((e) => _s((e as Map)['name'])).toList(),
+        distanceKm: (j['distanceKm'] as num?)?.toDouble(),
       );
 }
 

@@ -5,6 +5,7 @@ import 'api/api_client.dart';
 import 'state/cart.dart';
 import 'state/catalog.dart';
 import 'state/l10n.dart';
+import 'state/location.dart';
 import 'state/session.dart';
 import 'ui/screens/shell.dart';
 import 'ui/theme.dart';
@@ -15,18 +16,21 @@ Future<void> main() async {
   final session = SessionController(api);
   final cart = CartController();
   final locale = LocaleController();
-  await Future.wait([cart.load(), locale.load()]);
-  runApp(CheapBazarApp(api: api, session: session, cart: cart, locale: locale));
+  final location = LocationController(api);
+  await Future.wait([cart.load(), locale.load(), location.load()]);
+  runApp(CheapBazarApp(api: api, session: session, cart: cart, locale: locale, location: location));
 }
 
 class CheapBazarApp extends StatelessWidget {
-  CheapBazarApp({super.key, required this.api, required this.session, required this.cart, required this.locale, CatalogController? catalog})
-      : catalog = catalog ?? CatalogController(api);
+  CheapBazarApp({super.key, required this.api, required this.session, required this.cart, required this.locale, CatalogController? catalog, LocationController? location})
+      : catalog = catalog ?? CatalogController(api),
+        location = location ?? LocationController(api);
   final ApiClient api;
   final SessionController session;
   final CartController cart;
   final LocaleController locale;
   final CatalogController catalog;
+  final LocationController location;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +41,7 @@ class CheapBazarApp extends StatelessWidget {
         ChangeNotifierProvider<CartController>.value(value: cart),
         ChangeNotifierProvider<LocaleController>.value(value: locale),
         ChangeNotifierProvider<CatalogController>.value(value: catalog),
+        ChangeNotifierProvider<LocationController>.value(value: location),
       ],
       child: Consumer<LocaleController>(
         builder: (context, l, _) => MaterialApp(

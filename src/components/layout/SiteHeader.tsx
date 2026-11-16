@@ -6,8 +6,13 @@ import { useLanguage } from "@/modules/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { logout } from "@/app/(auth)/actions";
 import type { UserSession } from "@/modules/identity/types";
+import BuyerLocation from "@/components/location/BuyerLocation";
 
-export default function SiteHeader({ user, marketplace = false, unread = 0 }: { user: UserSession | null; marketplace?: boolean; unread?: number }) {
+export default function SiteHeader({ user, marketplace = false, unread = 0, locationUi = null }: {
+  user: UserSession | null; marketplace?: boolean; unread?: number;
+  /** Present while the admin's range limit is on: shows the "where are you" chip. */
+  locationUi?: { radiusKm: number; current: { lat: number; lng: number; label: string } | null } | null;
+}) {
   const { t, language } = useLanguage();
 
   return (
@@ -19,6 +24,7 @@ export default function SiteHeader({ user, marketplace = false, unread = 0 }: { 
         <div className="header-actions">
           <LanguageSwitcher />
           <nav>
+            {marketplace && locationUi && <BuyerLocation current={locationUi.current} radiusKm={locationUi.radiusKm} />}
             {marketplace && (
               <Link href="/browse" className="nav-link">{language === "bn" ? "মার্কেটপ্লেস" : "Marketplace"}</Link>
             )}

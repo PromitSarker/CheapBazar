@@ -5,10 +5,12 @@ import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../state/catalog.dart';
 import '../../state/l10n.dart';
+import '../../state/location.dart';
 import '../../state/session.dart';
 import '../theme.dart';
 import '../widgets/category_tile.dart';
 import '../widgets/common.dart';
+import '../widgets/location_ui.dart';
 import '../widgets/product_card.dart';
 import '../widgets/skeleton.dart';
 import 'auth_screen.dart';
@@ -28,7 +30,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeData {
-  _HomeData(this.ads, this.stores, this.items, this.categories, this.shelves);
+  _HomeData(this.ads, this.stores, this.items, this.categories, this.shelves, {this.locationRequired = false, this.radiusKm});
+  /// The admin limits shops by distance and the server does not know where this buyer is.
+  final bool locationRequired;
+  final double? radiusKm;
   final List<AdBanner> ads;
   final List<StoreCardData> stores;
   final List<Product> items; // flat list from servers that predate shelves
@@ -40,6 +45,16 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<_HomeData> _future = _load();
   final _page = PageController(viewportFraction: 0.92);
   int _adIndex = 0;
+  int _locVersion = -1;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // the buyer moved or the admin changed the range: show what is now in reach
+    final v = context.watch<LocationController>().version;
+    if (_locVersion != -1 && v != _locVersion) _future = _load();
+    _locVersion = v;
+  }
 
   List<T> _list<T>(dynamic v, T Function(Map<String, dynamic>) f) =>
       ((v as List?) ?? const []).map((e) => f((e as Map).cast<String, dynamic>())).toList();
@@ -54,6 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _list(d['items'], (m) => Product.fromBrowse(m)),
       _list(d['categories'], ShopCategory.fromJson),
       _list(d['shelves'], Shelf.fromJson),
+      locationRequired: (d['location'] as Map?)?['required'] == true,
+      radiusKm: ((d['location'] as Map?)?['radiusKm'] as num?)?.toDouble(),
     );
     catalog.setFromHome(data.categories);
     return data;
@@ -132,7 +149,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _content(BuildContext context, _HomeData d, LocaleController t) {
     final bn = t.isBn;
     final hasShelves = d.shelves.isNotEmpty;
+    if (d.locationRequired) {
+      // keep it scrollable so pull-to-refresh still works
+      return ListView(children: [SizedBox(height: 480, child: LocationPrompt(radiusKm: d.radiusKm))]);
+    }
     return ListView(padding: const EdgeInsets.only(bottom: 24), children: [
+      const LocationBar(),
       _SearchBox(hint: t.t('search_hint'), onTap: () => _openBrowse(focusSearch: true)),
       if (d.ads.isNotEmpty) ...[
         SizedBox(
