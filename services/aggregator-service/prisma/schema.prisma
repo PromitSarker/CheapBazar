@@ -53,10 +53,21 @@ model StoreProjection {
   ownerId          String?
   template         String   @default("classic")
   customDomain     String?
+  latitude         Float?
+  longitude        Float?
+  district         String?
   status           String   @default("ACTIVE")
   infoTs           DateTime @default(dbgenerated("'1970-01-01 00:00:00'::timestamp"))
   statusTs         DateTime @default(dbgenerated("'1970-01-01 00:00:00'::timestamp"))
   updatedAt        DateTime @updatedAt
+}
+
+// Admin-controlled platform settings (JSON value per key). Today: the buyer-visibility radius.
+model PlatformSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @default(now())
+  updatedBy String?
 }
 
 model OutboxMessage {

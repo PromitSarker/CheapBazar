@@ -326,3 +326,125 @@ test("search suggestions: prefix first, distinct, retail-visible only, wildcards
   assert.deepEqual((await A.get(`/aggregator/suggest?q=${encodeURIComponent("%")}`)).suggestions.filter((n: string) => !n.includes("%")), [], "% is literal");
   assert.ok((await A.get(`/aggregator/suggest?q=${encodeURIComponent(tag + " 100%")}`)).suggestions.includes(`${tag} 100% Cotton`));
 });
+
+// ---------------------------------------------------------------- location range
+
+const DHAKA = { lat: "23.8103", lng: "90.4125" };
+async function mkAt(name: string, at: { lat: number; lng: number } | null, district = "dhaka") {
+  const s = await mkStore({ name });
+  if (at) await send("StoreUpdated", { storeId: s.id, ownerId: `o_${s.id}`, name, slug: s.slug, template: "classic", customDomain: null, latitude: at.lat, longitude: at.lng, district });
+  const p = await prod(s.id, { name: `Rangetest ${name}` });
+  return { ...s, p };
+}
+const setRange = (b: Record<string, unknown>) => A.post("/admin/settings/location", { admin: "admin1", ...b });
+const expectCode = (p: Promise<any>, code: string, status: number) =>
+  assert.rejects(p, (e: any) => { assert.equal(e.code, code); assert.equal(e.status, status); return true; });
+
+test("location range: off by default; when on, buyers only see shops with a pin inside the radius", async () => {
+  const near = await mkAt("Near Mart", { lat: 23.8, lng: 90.41 }); // ~1.5 km from the buyer
+  const mid = await mkAt("Gazipur Mart", { lat: 24.0023, lng: 90.4264 }, "gazipur"); // ~21 km
+  const far = await mkAt("Chittagong Mart", { lat: 22.3569, lng: 91.7832 }, "chattogram"); // ~215 km
+  const nopin = await mkAt("Unpinned Mart", null);
+  const all = [near, mid, far, nopin].map((s) => s.p.productId).sort();
+  const seen = async (q: Record<string, string> = {}) => ids(await retail({ q: "rangetest", ...q })).filter((id: string) => all.includes(id)).sort();
+
+  try {
+    // 1. default: nothing changes, and a shop without a pin is still listed
+    const pol = await A.get("/settings/location");
+    assert.equal(pol.enabled, false);
+    assert.deepEqual(await seen(), all);
+    assert.equal((await retail({ q: "rangetest" })).location.required, false);
+
+    // 2. on, 30 km, no position -> nothing, and the response says a position is needed
+    await setRange({ enabled: true, radiusKm: 30 });
+    const noPos = await retail({ q: "rangetest" });
+    assert.deepEqual(noPos.items, []);
+    assert.equal(noPos.location.required, true);
+    assert.equal(noPos.location.radiusKm, 30);
+    assert.deepEqual((await retail({ q: "rangetest", lat: "0", lng: "0" })).items, [], "a point outside Bangladesh counts as no position");
+
+    // 3. with a position: near + mid only; far and the unpinned shop are hidden
+    assert.deepEqual(await seen(DHAKA), [near.p.productId, mid.p.productId].sort());
+    const r = await retail({ q: "rangetest", ...DHAKA });
+    assert.equal(r.location.applied, true);
+    const nearItem = r.items.find((i: any) => i.productId === near.p.productId);
+    assert.ok(nearItem.store.distanceKm > 0.5 && nearItem.store.distanceKm < 3, `distance ${nearItem.store.distanceKm}`);
+    assert.equal(nearItem.store.district, "dhaka");
+    assert.equal(JSON.stringify(r).includes("latitude"), false, "exact coordinates are never returned to buyers");
+    assert.ok(r.facets.stores.every((f: any) => [near.id, mid.id].includes(f.storeId) || !all.includes(f.storeId)), "facets respect the range");
+
+    // 4. the radius is exact, not rounded to districts
+    await setRange({ radiusKm: 5 });
+    assert.deepEqual(await seen(DHAKA), [near.p.productId]);
+    await setRange({ radiusKm: 500 });
+    assert.deepEqual(await seen(DHAKA), [near.p.productId, mid.p.productId, far.p.productId].sort());
+    // a buyer standing in Chattogram sees Chattogram first, in a small radius only that
+    await setRange({ radiusKm: 10 });
+    assert.deepEqual(await seen({ lat: "22.36", lng: "91.78" }), [far.p.productId]);
+
+    // 5. wholesale tab obeys the same limit
+    await setRange({ radiusKm: 30 });
+    const ws = await mkAt("Wholesale Near", { lat: 23.81, lng: 90.41 });
+    await prod(ws.id, { name: "Rangetest Bulk", channel: "WHOLESALE", wholesalePrice: 80, moq: 10 });
+    const wNear = await wholesale({ q: "rangetest bulk", ...DHAKA });
+    assert.equal(wNear.items.length, 1);
+    assert.equal((await wholesale({ q: "rangetest bulk" })).items.length, 0);
+
+    // 6. type-ahead only suggests what the buyer could see
+    assert.deepEqual((await A.get(`/aggregator/suggest?q=rangetest%20near`)).suggestions, []);
+    assert.ok((await A.get(`/aggregator/suggest?q=rangetest%20near&lat=${DHAKA.lat}&lng=${DHAKA.lng}`)).suggestions.includes("Rangetest Near Mart"));
+    assert.deepEqual((await A.get(`/aggregator/suggest?q=rangetest%20chittagong&lat=${DHAKA.lat}&lng=${DHAKA.lng}`)).suggestions, []);
+
+    // 7. product page: in range ok, out of range 404, no position 403
+    assert.equal((await A.get(`/aggregator/products/${near.p.productId}?lat=${DHAKA.lat}&lng=${DHAKA.lng}`)).item.productId, near.p.productId);
+    await expectCode(A.get(`/aggregator/products/${far.p.productId}?lat=${DHAKA.lat}&lng=${DHAKA.lng}`), "NOT_FOUND", 404);
+    await expectCode(A.get(`/aggregator/products/${near.p.productId}`), "LOCATION_REQUIRED", 403);
+
+    // 8. store directory: nearest first, hidden ones absent, empty without a position
+    const dir = await A.get(`/aggregator/stores?lat=${DHAKA.lat}&lng=${DHAKA.lng}&limit=100`);
+    const mine = dir.stores.filter((s: any) => [near.id, mid.id, far.id, nopin.id].includes(s.storeId));
+    assert.deepEqual(mine.map((s: any) => s.storeId), [near.id, mid.id]);
+    assert.ok(mine[0].distanceKm < mine[1].distanceKm);
+    assert.deepEqual((await A.get(`/aggregator/stores`)).stores, []);
+    assert.equal((await A.get(`/aggregator/stores`)).location.required, true);
+
+    // 9. direct-link check used by the storefront and the apps
+    const vis = (slug: string, q = DHAKA) => A.get(`/aggregator/stores/${slug}/visibility?lat=${q.lat}&lng=${q.lng}`);
+    assert.equal((await vis(near.slug)).visible, true);
+    assert.equal((await vis(far.slug)).reason, "OUT_OF_RANGE");
+    assert.equal((await vis(nopin.slug)).reason, "SHOP_HAS_NO_LOCATION");
+    assert.equal((await A.get(`/aggregator/stores/${near.slug}/visibility`)).reason, "LOCATION_REQUIRED");
+    assert.equal((await A.get(`/aggregator/stores/no-such-shop/visibility`)).found, false);
+
+    // 10. a shop that moves is re-evaluated on the next event; an older event cannot move it back
+    await send("StoreUpdated", { storeId: far.id, ownerId: `o_${far.id}`, name: far.name, slug: far.slug, template: "classic", customDomain: null, latitude: 23.82, longitude: 90.42, district: "dhaka" });
+    assert.ok((await seen(DHAKA)).includes(far.p.productId));
+    await send("StoreUpdated", { storeId: far.id, ownerId: `o_${far.id}`, name: far.name, slug: far.slug, template: "classic", customDomain: null, latitude: 22.3569, longitude: 91.7832, district: "chattogram" }, new Date(T0 - 100000).toISOString());
+    assert.ok((await seen(DHAKA)).includes(far.p.productId), "stale location event ignored");
+
+    // 11. off again: everything is back, including the unpinned shop
+    await setRange({ enabled: false });
+    assert.ok((await seen()).includes(nopin.p.productId));
+    assert.equal((await A.get(`/aggregator/stores/${far.slug}/visibility`)).visible, true);
+  } finally {
+    await setRange({ enabled: false });
+  }
+});
+
+test("location range: admin setting is validated and remembers who changed it", async () => {
+  try {
+    await expectCode(setRange({ radiusKm: 0 }), "VALIDATION", 400);
+    await expectCode(setRange({ radiusKm: 100000 }), "VALIDATION", 400);
+    await expectCode(setRange({ radiusKm: "far" }), "VALIDATION", 400);
+    const p = await setRange({ enabled: true, radiusKm: 12.34 });
+    assert.equal(p.enabled, true);
+    assert.equal(p.radiusKm, 12.3);
+    assert.equal(p.updatedBy, "admin1");
+    assert.ok(p.updatedAt);
+    // changing only one field keeps the other
+    assert.equal((await setRange({ radiusKm: 40 })).enabled, true);
+    assert.equal((await setRange({ enabled: false })).radiusKm, 40);
+  } finally {
+    await setRange({ enabled: false });
+  }
+});

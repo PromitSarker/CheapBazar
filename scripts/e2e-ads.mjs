@@ -55,7 +55,7 @@ async function user(label, role = "SELLER") {
   return r;
 }
 async function shop(u, slug) {
-  const s = await svc("identity", "POST", "/stores", { ownerId: u.user.id, name: `${slug} shop`, slug, template: "modern" });
+  const s = await svc("identity", "POST", "/stores", { latitude: 23.78, longitude: 90.41, ownerId: u.user.id, name: `${slug} shop`, slug, template: "modern" });
   for (let i = 0; i < 40; i++) { if ((await svc("ledger", "GET", `/wallets/${s.id}/status`)).exists) break; await sleep(500); }
   return s;
 }

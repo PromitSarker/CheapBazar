@@ -62,3 +62,75 @@ test("mobile API: product page returns the item, excludes itself from similar, a
   assert.equal(missing.status, 404);
   agg.close();
 });
+
+// ------------------------------------------------------------ location range
+
+const post = (path: string, body: unknown) =>
+  router.handle(new Request(`http://app.test/api/m/v1${path}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }), path);
+
+test("mobile API: /location/config lists the 64 districts and the admin's range", async () => {
+  const agg = await start((req, res) => {
+    if (new URL(req.url!, "http://x").pathname === "/settings/location") return json(res, { enabled: true, radiusKm: 30, updatedAt: null, updatedBy: null });
+    json(res, {});
+  });
+  process.env.INTERNAL_AUTH_SECRET = "s"; process.env.SERVICE_URL_AGGREGATOR = agg.url;
+  const r = await (await get("/location/config")).json();
+  assert.equal(r.districts.length, 64);
+  assert.ok(r.districts.every((d: any) => d.nameEn && d.nameBn && typeof d.lat === "number"));
+  agg.close();
+});
+
+test("mobile API: the buyer's position is passed to the aggregator only when it is a real point in Bangladesh", async () => {
+  const seen: string[] = [];
+  const agg = await start((req, res) => {
+    const u = new URL(req.url!, "http://x");
+    seen.push(u.pathname + u.search);
+    if (u.pathname === "/aggregator/retail/search")
+      return json(res, { items: [], total: 0, page: 1, pages: 1, limit: 20, paywall: null, facets: { stores: [] }, location: { enabled: true, radiusKm: 30, required: false, applied: true } });
+    json(res, {});
+  });
+  process.env.INTERNAL_AUTH_SECRET = "s"; process.env.SERVICE_URL_AGGREGATOR = agg.url; process.env.SERVICE_URL_AD = agg.url;
+  const r = await (await get("/browse?q=rice&lat=23.81&lng=90.41")).json();
+  assert.equal(r.location.applied, true, "the range info reaches the app");
+  assert.ok(seen.some((s) => s.startsWith("/aggregator/retail/search") && s.includes("lat=23.81") && s.includes("lng=90.41")));
+  seen.length = 0;
+  await get("/browse?q=rice&lat=0&lng=0");   // not in Bangladesh
+  await get("/browse?q=rice&lat=abc&lng=90"); // junk
+  assert.ok(seen.filter((s) => s.startsWith("/aggregator/retail/search")).every((s) => !s.includes("lat=")), "bad coordinates are dropped, not forwarded");
+  agg.close();
+});
+
+test("mobile API: a shop outside the buyer's range is 403 on its page and cannot be ordered from; an outage never blocks", async () => {
+  const idn = await start((_req, res) => json(res, { id: "st1", name: "Far Shop", slug: "far", template: "classic", ownerId: "o1" }));
+  const led = await start((_req, res) => json(res, { status: "ACTIVE" }));
+  const cat = await start((_req, res) => json(res, { products: [] }));
+  let visible: any = { found: true, visible: false, reason: "OUT_OF_RANGE", enabled: true, radiusKm: 30, distanceKm: 215, district: "chattogram" };
+  let aggDown = false;
+  const agg = await start((req, res) => {
+    const u = new URL(req.url!, "http://x");
+    if (aggDown) { res.destroy(); return; }
+    if (u.pathname === "/aggregator/stores/far/visibility") return json(res, visible);
+    json(res, {});
+  });
+  Object.assign(process.env, { INTERNAL_AUTH_SECRET: "s", SERVICE_URL_IDENTITY: idn.url, SERVICE_URL_LEDGER: led.url, SERVICE_URL_CATALOG: cat.url, SERVICE_URL_AGGREGATOR: agg.url, SERVICE_URL_AD: agg.url });
+
+  const blocked = await get("/stores/far?lat=23.81&lng=90.41");
+  assert.equal(blocked.status, 403);
+  const body = await blocked.json();
+  assert.equal(body.code, "OUT_OF_RANGE");
+  assert.match(body.error, /outside your area/);
+
+  const order = { storeSlug: "far", buyer: { name: "A", phone: "01712345678" }, shipping: { address: "Road 1", city: "Dhaka" }, items: [{ productId: "p1", quantity: 1 }], location: { lat: 23.81, lng: 90.41 } };
+  const ordered = await post("/orders", order);
+  assert.equal(ordered.status, 403, "checkout re-checks the range, so an old bag cannot bypass it");
+
+  visible = { found: true, visible: false, reason: "LOCATION_REQUIRED", enabled: true, radiusKm: 30, distanceKm: null, district: null };
+  assert.equal((await (await get("/stores/far")).json()).code, "LOCATION_REQUIRED");
+
+  visible = { found: true, visible: true, reason: null, enabled: true, radiusKm: 30, distanceKm: 3, district: "dhaka" };
+  assert.equal((await get("/stores/far?lat=23.81&lng=90.41")).status, 200);
+
+  aggDown = true; // the aggregator cannot answer: the page still works
+  assert.equal((await get("/stores/far?lat=23.81&lng=90.41")).status, 200);
+  for (const s of [idn, led, cat, agg]) s.close();
+});

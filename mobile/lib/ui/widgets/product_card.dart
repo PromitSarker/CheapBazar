@@ -10,6 +10,11 @@ import 'common.dart';
 /// Height of everything under the square image (name, subtitle, price, action) at normal text size.
 const double _kInfoHeight = 144;
 
+String _kmText(double km, bool bn) {
+  final s = km < 10 ? km.toStringAsFixed(1) : km.round().toString();
+  return bn ? toBnDigits(s) : s;
+}
+
 double _textScale(BuildContext context) => MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6);
 
 /// Grid delegate whose cell height follows the cell width and the user's text size, so big fonts never overflow.
@@ -65,7 +70,7 @@ class ProductCard extends StatelessWidget {
                 if (sub.isNotEmpty)
                   Padding(padding: const EdgeInsets.only(top: 2), child: Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kMuted, fontSize: 12)))
                 else if (showStore && p.storeName.isNotEmpty)
-                  Padding(padding: const EdgeInsets.only(top: 2), child: Text(p.storeName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kMuted, fontSize: 12))),
+                  Padding(padding: const EdgeInsets.only(top: 2), child: Text(p.distanceKm == null ? p.storeName : '${p.storeName} · ${t.t('km_away', {'km': _kmText(p.distanceKm!, t.isBn)})}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kMuted, fontSize: 12))),
                 const Spacer(),
                 _priceAndAction(context, t),
               ]),

@@ -52,6 +52,12 @@ model Store {
   kycVerified  Boolean  @default(false)
   logoUrl      String?  // /uploads/<file> - the only branding asset a seller can set
   themeColor   String?  // #rrggbb accent, chosen from the web preset list
+  // Where the shop is. Required for new shops; older shops have none until the seller sets it.
+  latitude          Float?
+  longitude         Float?
+  address           String?   // street / area text shown to buyers
+  district          String?   // district id from packages/geo (e.g. "dhaka")
+  locationUpdatedAt DateTime?
   ownerId      String   @unique
   owner        User     @relation(fields: [ownerId], references: [id])
   createdAt    DateTime @default(now())

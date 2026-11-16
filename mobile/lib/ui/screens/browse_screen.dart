@@ -7,11 +7,13 @@ import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../state/catalog.dart';
 import '../../state/l10n.dart';
+import '../../state/location.dart';
 import '../../state/recent_searches.dart';
 import '../../state/session.dart';
 import '../theme.dart';
 import '../widgets/cart_bar.dart';
 import '../widgets/common.dart';
+import '../widgets/location_ui.dart';
 import '../widgets/filter_sheet.dart';
 import '../widgets/product_card.dart';
 import '../widgets/skeleton.dart';
@@ -59,6 +61,17 @@ class BrowseScreenState extends State<BrowseScreen> {
   bool _loading = false;
   String? _error;
   String? _paywall; // LOGIN_REQUIRED | BUYER_PRO_REQUIRED
+  bool _needLocation = false; // the admin limits shops by distance and the buyer has not said where they are
+  double? _radiusKm;
+  int _locVersion = -1;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final v = context.watch<LocationController>().version;
+    if (_locVersion != -1 && v != _locVersion) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _fetch() : null);
+    _locVersion = v;
+  }
 
   @override
   void initState() {
@@ -127,6 +140,8 @@ class BrowseScreenState extends State<BrowseScreen> {
         _pages = (r['pages'] as num?)?.toInt() ?? 1;
         _total = (r['total'] as num?)?.toInt() ?? _items.length;
         _paywall = (pw != null && pw['locked'] == true) ? '${pw['reason']}' : null;
+        _needLocation = (r['location'] as Map?)?['required'] == true;
+        _radiusKm = ((r['location'] as Map?)?['radiusKm'] as num?)?.toDouble();
         _brands = (((r['facets'] as Map?)?['brands'] as List?) ?? const [])
             .map((e) => (brand: '${(e as Map)['brand']}', count: (e['count'] as num?)?.toInt() ?? 0))
             .toList();
@@ -210,7 +225,7 @@ class BrowseScreenState extends State<BrowseScreen> {
     final title = widget.title ?? (cur?.name(bn)) ?? t.t('browse');
 
     return Scaffold(
-      appBar: AppBar(title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis)),
+      appBar: AppBar(title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis), actions: const [LocationChip()]),
       bottomNavigationBar: SafeArea(child: CartBar(onTap: _openCart)),
       body: Column(children: [
         Padding(
@@ -410,6 +425,7 @@ class BrowseScreenState extends State<BrowseScreen> {
   Widget _body(LocaleController t) {
     if (_error != null && _items.isEmpty) return ErrorRetry(message: _error!, onRetry: _fetch);
     if (_loading && _items.isEmpty) return const _GridSkeleton();
+    if (_needLocation && _items.isEmpty) return LocationPrompt(radiusKm: _radiusKm);
     return RefreshIndicator(
       onRefresh: () => _fetch(),
       child: CustomScrollView(controller: _scroll, physics: const AlwaysScrollableScrollPhysics(), slivers: [

@@ -1,5 +1,6 @@
 import { HttpError } from "../../../packages/service-kit";
 import { publish } from "../../../packages/event-bus";
+import { parseCoords, districtById, nearestDistrict } from "../../../packages/geo";
 import type { Db } from "./db";
 
 export const TEMPLATES = ["classic", "modern"] as const;
@@ -36,13 +37,40 @@ export function normalizeDomain(raw: unknown): string | null {
 const LOGO_RE = /^\/uploads\/[A-Za-z0-9._-]{1,100}\.(png|jpg|gif|webp)$/;
 const COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 
+/**
+ * Validates a shop location from a request body. Coordinates must be a real point inside Bangladesh; the district is
+ * taken from the request when it is a known id, otherwise it is the district whose centre is nearest to the pin.
+ */
+function parseLocation(b: any) {
+  const c = parseCoords(b.latitude, b.longitude);
+  if (!c) {
+    const missing = [b.latitude, b.longitude].some((v) => v === undefined || v === null || v === "");
+    throw new HttpError(
+      400,
+      missing ? "Pin your shop's location on the map." : "That location is not valid. Pin your shop on the map, inside Bangladesh.",
+      missing ? "LOCATION_REQUIRED" : "LOCATION_INVALID"
+    );
+  }
+  let district = nearestDistrict(c).id;
+  if (b.district !== undefined && b.district !== null && String(b.district) !== "") {
+    const d = districtById(b.district);
+    if (!d) throw new HttpError(400, "Choose a district from the list.", "VALIDATION");
+    district = d.id;
+  }
+  const address = String(b.address ?? "").trim().slice(0, 200) || null;
+  return { latitude: Math.round(c.lat * 1e5) / 1e5, longitude: Math.round(c.lng * 1e5) / 1e5, district, address };
+}
+
 const shape = (s: any) => ({
   id: s.id, name: s.name, slug: s.slug, customDomain: s.customDomain, template: s.template,
   logoUrl: s.logoUrl ?? null, themeColor: s.themeColor ?? null,
+  latitude: s.latitude ?? null, longitude: s.longitude ?? null, address: s.address ?? null, district: s.district ?? null,
+  hasLocation: s.latitude != null && s.longitude != null,
   kycVerified: s.kycVerified, ownerId: s.ownerId, createdAt: s.createdAt,
 });
 const eventData = (s: any) => ({
   storeId: s.id, ownerId: s.ownerId, name: s.name, slug: s.slug, template: s.template, customDomain: s.customDomain,
+  latitude: s.latitude ?? null, longitude: s.longitude ?? null, district: s.district ?? null,
 });
 
 export async function createStore(db: Db, b: any) {
@@ -54,6 +82,7 @@ export async function createStore(db: Db, b: any) {
   if (!name || name.length > 80) throw new HttpError(400, "Store name is required (max 80 characters).", "VALIDATION");
   if (!(TEMPLATES as readonly string[]).includes(template)) throw new HttpError(400, "Unknown template.", "VALIDATION");
   validateSlug(slug);
+  const location = parseLocation(b); // a shop cannot be opened without a place
 
   try {
     return await db.$transaction(async (tx) => {
@@ -61,7 +90,7 @@ export async function createStore(db: Db, b: any) {
       if (!owner) throw new HttpError(404, "Owner not found", "NOT_FOUND");
       if (owner.role !== "SELLER") throw new HttpError(403, "Only seller accounts can open a store.", "NOT_SELLER");
       if (await tx.store.findUnique({ where: { ownerId } })) throw new HttpError(409, "This account already has a store.", "STORE_EXISTS");
-      const store = await tx.store.create({ data: { ownerId, name, slug, template } });
+      const store = await tx.store.create({ data: { ownerId, name, slug, template, ...location, locationUpdatedAt: new Date() } });
       await publish(tx as any, "identity", "StoreCreated", eventData(store), store.id);
       return shape(store);
     });
@@ -106,6 +135,14 @@ export async function updateStore(db: Db, storeId: string, b: any) {
         const v = b.themeColor === null || b.themeColor === "" ? null : String(b.themeColor).toLowerCase();
         if (v !== null && !COLOR_RE.test(v)) throw new HttpError(400, "The theme colour must look like #1d4ed8.", "VALIDATION");
         data.themeColor = v;
+      }
+
+      if (b.latitude !== undefined || b.longitude !== undefined || b.district !== undefined || b.address !== undefined) {
+        // Changing any part of the location re-validates the whole thing (a pin is always sent with its district/address).
+        Object.assign(data, parseLocation({
+          latitude: b.latitude ?? cur.latitude, longitude: b.longitude ?? cur.longitude,
+          district: b.district ?? (b.latitude !== undefined ? undefined : cur.district), address: b.address ?? cur.address,
+        }), { locationUpdatedAt: new Date() });
       }
 
       const store = await tx.store.update({ where: { id: storeId }, data });

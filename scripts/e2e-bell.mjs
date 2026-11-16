@@ -35,7 +35,7 @@ async function form(token, html, has, fields = {}) {
 }
 
 const seller = await reg("bell-seller"), other = await reg("bell-other");
-const store = await svc("identity", "POST", "/stores", { ownerId: seller.user.id, name: `Bell Shop ${run}`, slug: `bell-${run}`, template: "classic" });
+const store = await svc("identity", "POST", "/stores", { latitude: 23.78, longitude: 90.41, ownerId: seller.user.id, name: `Bell Shop ${run}`, slug: `bell-${run}`, template: "classic" });
 await until(async () => (await svc("ledger", "GET", `/wallets/${store.id}/status`)).exists);
 await svc("ledger", "POST", `/wallets/${store.id}/topup`, { amount: 3000, reference: `bell-${run}`, method: "CASH" });
 const product = await svc("catalog", "POST", `/stores/${store.id}/products`, { name: `Bellitem ${run}`, price: 100, stock: 10 });
