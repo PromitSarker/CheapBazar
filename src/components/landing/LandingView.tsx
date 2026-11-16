@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLanguage } from "@/modules/i18n/LanguageContext";
 import Icon from "@/components/ui/Icon";
 import SponsoredBanner from "@/components/sponsored/SponsoredBanner";
+import BuyerLocation from "@/components/location/BuyerLocation";
 
 interface StoreItem {
   id: string;
@@ -14,9 +15,15 @@ interface StoreItem {
   customDomain?: string | null;
   productCount: number;
   sampleProducts?: { name: string; price: number }[];
+  district?: string;
+  distanceKm?: number;
 }
 
-export default function LandingView({ stores, heroAds = [] }: { stores: StoreItem[]; heroAds?: { headline: string; imageUrl: string; targetUrl: string }[] }) {
+export default function LandingView({ stores, heroAds = [], locationRequired = false, locationRadiusKm = null }: {
+  stores: StoreItem[]; heroAds?: { headline: string; imageUrl: string; targetUrl: string }[];
+  /** The admin's range limit is on and the visitor has not shared a location yet. */
+  locationRequired?: boolean; locationRadiusKm?: number | null;
+}) {
   const { t, language, toNumerals, formatTaka } = useLanguage();
 
   // Interactive Live Preview Card State
@@ -324,7 +331,14 @@ export default function LandingView({ stores, heroAds = [] }: { stores: StoreIte
           <p className="muted">{t.creatorsSectionSub}</p>
         </div>
 
-        {stores.length === 0 ? (
+        {locationRequired ? (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem", padding: "2rem 1rem", textAlign: "center" }}>
+            <p className="muted" style={{ maxWidth: 440 }}>
+              {locationRadiusKm ? `We show shops within ${locationRadiusKm} km of you.` : "We show the shops closest to you."} Tell us where you are to see them.
+            </p>
+            <BuyerLocation current={null} radiusKm={locationRadiusKm} variant="block" />
+          </div>
+        ) : stores.length === 0 ? (
           <div className="empty-state" style={{ padding: "3rem 1.5rem", textAlign: "center" }}>
             <p className="muted">{t.noStores}</p>
             <Link href="/signup" className="button glow-button" style={{ marginTop: "1rem" }}>
@@ -359,6 +373,7 @@ export default function LandingView({ stores, heroAds = [] }: { stores: StoreIte
 
                   <span className="muted small">
                     {toNumerals(s.productCount)} {t.productsCount}
+                    {s.distanceKm != null ? ` · ${s.distanceKm} km` : ""}
                   </span>
 
                   {s.sampleProducts && s.sampleProducts.length > 0 && (

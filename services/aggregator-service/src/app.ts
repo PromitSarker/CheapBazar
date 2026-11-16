@@ -4,7 +4,8 @@ import { createDb, type Db } from "./db";
 import { httpEntitlements, type Entitlements } from "./entitlements";
 import { handlers } from "./projection";
 import { HttpError } from "../../../packages/service-kit";
-import { search, storeDirectory, suggest } from "./search";
+import { search, storeDirectory, storeVisibility, suggest } from "./search";
+import { getPolicy, setPolicy } from "./location";
 
 export function buildRouter(db: Db, ent: Entitlements): Router {
   const r = new Router();
@@ -16,12 +17,18 @@ export function buildRouter(db: Db, ent: Entitlements): Router {
   // (locked for anyone who may not see wholesale prices). Hidden/suspended stores are a plain 404.
   r.get("/aggregator/products/:id", async ({ params, query }) => {
     for (const tab of ["retail", "wholesale"] as const) {
-      const res = await search(db, ent, tab, { productId: params.id, viewerId: query.viewerId, limit: "1" });
+      const res = await search(db, ent, tab, { productId: params.id, viewerId: query.viewerId, lat: query.lat, lng: query.lng, limit: "1" });
+      if (res.location.required) throw new HttpError(403, "Set your location to see what is available near you.", "LOCATION_REQUIRED");
       if (res.items.length) return { tab, item: res.items[0], paywall: res.paywall };
     }
     throw new HttpError(404, "Product not found", "NOT_FOUND");
   });
-  r.get("/aggregator/stores", async ({ query }) => ({ stores: await storeDirectory(db, query) }));
+  r.get("/aggregator/stores", ({ query }) => storeDirectory(db, query));
+  r.get("/aggregator/stores/:slug/visibility", ({ params, query }) => storeVisibility(db, params.slug, query));
+
+  // The admin's range limit (off by default). Read by the web tier / apps; written only from the admin screen.
+  r.get("/settings/location", () => getPolicy(db));
+  r.post("/admin/settings/location", ({ body }) => setPolicy(db, body));
 
   r.get("/admin/stats", async () => {
     const [row] = await db.$queryRawUnsafe<{ listings: bigint; retail: bigint; wholesale: bigint; stores: bigint; visibleStores: bigint }[]>(

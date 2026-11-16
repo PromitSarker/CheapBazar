@@ -10,6 +10,10 @@ CheapBazar runs as 8 small services on this server (103.228.38.77), 131 tests. *
 runs on the services; the old Neon database is only a read-only fallback. **What is left is in `PLATFORM_REVIEW.md`** (2026-11-14 review):
 HTTPS, rate-limit fix, backups, reboot persistence, firewall first. The cutover steps and open-decision tables below are historical.
 
+## In progress 2026-11-16: location-based shops (branch `feat/location-radius`, not live yet)
+
+Admin picks how far buyers can see shops (`/admin/location`, default OFF); sellers must pin their shop at sign-up (web onboarding) and can edit it in Settings; the website and the Flutter app ask buyers for their location. Built and tested (see the 2026-11-16 entry in `WORK_LOG.md` for details, decisions and the go-live steps). **Order matters when going live: deploy, publish the new APK, ask the existing sellers to add a pin, THEN switch the limit on.**
+
 ## Moved 2026-11-15: new server 103.228.38.77
 
 Everything (web app, 8 services, the 8 databases, uploads, secrets, release signing key copy) moved from 103.228.38.69 to **103.228.38.77**

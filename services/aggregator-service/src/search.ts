@@ -1,5 +1,6 @@
 import type { Entitlements } from "./entitlements";
 import type { Runner } from "./db";
+import { getPolicy, buyerCoords, distanceSql, round1 } from "./location";
 
 /** Stores whose products appear in the aggregator ("Delisted: removed from aggregator"). */
 // A store is visible unless an admin suspended or banned it (nothing else hides a store).
@@ -24,7 +25,13 @@ export interface SearchParams {
   page?: string;
   limit?: string;
   viewerId?: string;
+  /** The buyer's position (decimal degrees). Needed to see shops when the admin has turned the range limit on. */
+  lat?: string;
+  lng?: string;
 }
+
+/** What the buyer's location did to this request, so the apps can prompt for it or explain an empty list. */
+export interface LocationInfo { enabled: boolean; radiusKm: number | null; required: boolean; applied: boolean }
 
 const escapeLike = (s: string) => s.replace(/[\\%_]/g, (m) => `\\${m}`);
 const numOrNull = (v?: string) => (v !== undefined && v !== "" && Number.isFinite(Number(v)) ? Number(v) : null);
@@ -33,7 +40,16 @@ interface Row {
   productId: string; storeId: string; name: string; description: string; image: string | null;
   price: any; stock: number; channel: string; moq: number; wholesalePrice: any; tiers: any;
   images: any; categoryId: string | null; parentCategoryId: string | null; brand: string | null; unit: string | null; compareAtPrice: any;
-  storeSlug: string; storeName: string;
+  storeSlug: string; storeName: string; storeDistrict: string | null; distanceKm: number | null;
+}
+
+/** A shop's `store` object in results; location fields appear only when there is something to show. */
+function storeOut(r: { storeId: string; storeSlug: string; storeName: string; storeDistrict: string | null; distanceKm: number | null }) {
+  return {
+    id: r.storeId, slug: r.storeSlug, name: r.storeName,
+    ...(r.storeDistrict ? { district: r.storeDistrict } : {}),
+    ...(r.distanceKm != null ? { distanceKm: round1(Number(r.distanceKm)) } : {}),
+  };
 }
 
 export async function search(db: Runner, ent: Entitlements, tab: Tab, p: SearchParams) {
@@ -50,6 +66,27 @@ export async function search(db: Runner, ent: Entitlements, tab: Tab, p: SearchP
     `s."status" NOT IN ${HIDDEN_STATUSES}`,
     wholesale ? `l."channel" IN ('WHOLESALE','BOTH')` : `l."channel" IN ('RETAIL','BOTH')`,
   ];
+
+  // Location: with the range limit on, a buyer only sees shops that have a pin within the radius of their own position.
+  const policy = await getPolicy(db);
+  const me = buyerCoords(p);
+  let distCol = `NULL::float8`;
+  if (me) {
+    const latPh = arg(me.lat), lngPh = arg(me.lng);
+    distCol = distanceSql(latPh, lngPh);
+  }
+  const location: LocationInfo = { enabled: policy.enabled, radiusKm: policy.enabled ? policy.radiusKm : null, required: policy.enabled && !me, applied: policy.enabled && !!me };
+  if (policy.enabled) {
+    if (!me) {
+      // Without a position nothing can be in range: ask for it instead of silently showing the whole country.
+      return {
+        tab, items: [], total: 0, page: 1, pages: 1, limit: Math.min(Math.max(Number(p.limit) || 24, 1), 48),
+        paywall: wholesale ? { locked: !unlocked, reason: unlocked ? null : p.viewerId ? "BUYER_PRO_REQUIRED" : "LOGIN_REQUIRED" } : null,
+        facets: { stores: [], categories: [], brands: [] }, location,
+      };
+    }
+    where.push(`s."latitude" IS NOT NULL AND s."longitude" IS NOT NULL`, `${distCol} <= ${arg(policy.radiusKm)}::float8`);
+  }
 
   const terms = (p.q ?? "").toLowerCase().split(/\s+/).filter(Boolean).slice(0, 6);
   for (const t of terms) {
@@ -95,7 +132,7 @@ export async function search(db: Runner, ent: Entitlements, tab: Tab, p: SearchP
   const rows = await db.$queryRawUnsafe<Row[]>(
     `SELECT l."productId", l."storeId", l."name", l."description", l."image", l."price", l."stock", l."channel", l."moq",
             l."wholesalePrice", l."tiers", l."images", l."categoryId", l."parentCategoryId", l."brand", l."unit", l."compareAtPrice",
-            s."slug" AS "storeSlug", s."name" AS "storeName"
+            s."slug" AS "storeSlug", s."name" AS "storeName", s."district" AS "storeDistrict", ${distCol} AS "distanceKm"
        ${from} WHERE ${baseWhere}${storeWhere}${catWhere}${brandWhere}
        ORDER BY ${order} LIMIT ${limit} OFFSET ${(page - 1) * limit}`,
     ...args
@@ -139,7 +176,7 @@ export async function search(db: Runner, ent: Entitlements, tab: Tab, p: SearchP
   ).map((b) => ({ brand: b.brand, count: Number(b.n) }));
 
   const items = rows.map((r) => {
-    const store = { id: r.storeId, slug: r.storeSlug, name: r.storeName };
+    const store = storeOut(r);
     const images: string[] = Array.isArray(r.images) ? r.images : [];
     const base = {
       productId: r.productId, name: r.name, description: r.description, image: r.image, images, store, inStock: r.stock > 0,
@@ -167,37 +204,88 @@ export async function search(db: Runner, ent: Entitlements, tab: Tab, p: SearchP
     tab, items, total, page, pages: Math.max(1, Math.ceil(total / limit)), limit,
     paywall: wholesale ? { locked: !unlocked, reason: unlocked ? null : p.viewerId ? "BUYER_PRO_REQUIRED" : "LOGIN_REQUIRED" } : null,
     facets: { stores, categories, brands },
+    location,
   };
 }
 
 /** Public store directory (home page / explore): visible stores with their retail product counts. */
-export async function storeDirectory(db: Runner, q: { q?: string; limit?: string }) {
+export async function storeDirectory(db: Runner, q: { q?: string; limit?: string; lat?: string; lng?: string }) {
   const args: any[] = [];
+  const arg = (v: any) => (args.push(v), `$${args.length}`);
   let like = "";
-  if (q.q) {
-    args.push(`%${escapeLike(q.q.toLowerCase())}%`);
-    like = ` AND (lower(s."name") LIKE $1 ESCAPE '\\' OR s."slug" LIKE $1 ESCAPE '\\')`;
+  if (q.q) like = ` AND (lower(s."name") LIKE ${arg(`%${escapeLike(q.q.toLowerCase())}%`)} ESCAPE '\\' OR s."slug" LIKE $1 ESCAPE '\\')`;
+  const policy = await getPolicy(db);
+  const me = buyerCoords(q);
+  let distCol = `NULL::float8`;
+  let range = "";
+  if (me) distCol = distanceSql(arg(me.lat), arg(me.lng));
+  const location: LocationInfo = { enabled: policy.enabled, radiusKm: policy.enabled ? policy.radiusKm : null, required: policy.enabled && !me, applied: policy.enabled && !!me };
+  if (policy.enabled) {
+    if (!me) return { stores: [], location };
+    range = ` AND s."latitude" IS NOT NULL AND s."longitude" IS NOT NULL AND ${distCol} <= ${arg(policy.radiusKm)}::float8`;
   }
   const limit = Math.min(Math.max(Number(q.limit) || 24, 1), 100);
-  const rows = await db.$queryRawUnsafe<{ storeId: string; slug: string; name: string; template: string; customDomain: string | null; n: bigint }[]>(
-    `SELECT s."storeId", s."slug", s."name", s."template", s."customDomain",
+  // nearest first when we know where the buyer is; otherwise the busiest shops first, as before
+  const order = me ? `"distanceKm" ASC NULLS LAST, n DESC, s."name"` : `n DESC, s."name"`;
+  const rows = await db.$queryRawUnsafe<{ storeId: string; slug: string; name: string; template: string; customDomain: string | null; district: string | null; distanceKm: number | null; n: bigint }[]>(
+    `SELECT s."storeId", s."slug", s."name", s."template", s."customDomain", s."district", ${distCol} AS "distanceKm",
             COUNT(l."productId") FILTER (WHERE l."deleted" = false AND l."channel" IN ('RETAIL','BOTH'))::bigint AS n
        FROM "StoreProjection" s LEFT JOIN "ListingIndex" l ON l."storeId" = s."storeId"
-      WHERE s."slug" <> '' AND s."status" NOT IN ${HIDDEN_STATUSES}${like}
-      GROUP BY s."storeId", s."slug", s."name", s."template", s."customDomain"
-      ORDER BY n DESC, s."name" LIMIT ${limit}`,
+      WHERE s."slug" <> '' AND s."status" NOT IN ${HIDDEN_STATUSES}${like}${range}
+      GROUP BY s."storeId", s."slug", s."name", s."template", s."customDomain", s."district", s."latitude", s."longitude"
+      ORDER BY ${order} LIMIT ${limit}`,
     ...args
   );
-  return rows.map((r) => ({ storeId: r.storeId, slug: r.slug, name: r.name, template: r.template, customDomain: r.customDomain, productCount: Number(r.n) }));
+  return {
+    stores: rows.map((r) => ({
+      storeId: r.storeId, slug: r.slug, name: r.name, template: r.template, customDomain: r.customDomain, productCount: Number(r.n),
+      ...(r.district ? { district: r.district } : {}), ...(r.distanceKm != null ? { distanceKm: round1(Number(r.distanceKm)) } : {}),
+    })),
+    location,
+  };
+}
+
+/** Can this buyer see this shop? Used by storefront pages and the apps for shops reached by link. */
+export async function storeVisibility(db: Runner, slug: string, q: { lat?: string; lng?: string }) {
+  const policy = await getPolicy(db);
+  const me = buyerCoords(q);
+  const rows = await db.$queryRawUnsafe<{ storeId: string; status: string; latitude: number | null; longitude: number | null; district: string | null }[]>(
+    `SELECT "storeId","status","latitude","longitude","district" FROM "StoreProjection" WHERE "slug" = $1`, slug.toLowerCase()
+  );
+  const s = rows[0];
+  const base = { enabled: policy.enabled, radiusKm: policy.enabled ? policy.radiusKm : null };
+  if (!s) return { found: false, visible: false, reason: "NOT_FOUND", ...base, distanceKm: null, district: null };
+  let distanceKm: number | null = null;
+  if (me && s.latitude != null && s.longitude != null) {
+    const r = await db.$queryRawUnsafe<{ d: number }[]>(
+      `SELECT ${distanceSql("$1", "$2")} AS d FROM (SELECT $3::float8 AS "latitude", $4::float8 AS "longitude") s`, me.lat, me.lng, s.latitude, s.longitude
+    );
+    distanceKm = round1(Number(r[0].d));
+  }
+  let reason: string | null = null;
+  if (policy.enabled) {
+    if (!me) reason = "LOCATION_REQUIRED";
+    else if (distanceKm === null) reason = "SHOP_HAS_NO_LOCATION";
+    else if (distanceKm > policy.radiusKm) reason = "OUT_OF_RANGE";
+  }
+  return { found: true, visible: reason === null, reason, ...base, distanceKm, district: s.district };
 }
 
 /**
  * Type-ahead for the search box: up to `limit` distinct product names (prefix matches first) from visible
  * retail listings. Names only, never prices, so it cannot leak anything behind the wholesale paywall.
  */
-export async function suggest(db: Runner, q: { q?: string; limit?: string }) {
+export async function suggest(db: Runner, q: { q?: string; limit?: string; lat?: string; lng?: string }) {
   const term = (q.q ?? "").toLowerCase().trim().slice(0, 60);
   if (term.length < 2) return { suggestions: [] as string[] };
+  // only suggest what the buyer could actually see
+  const policy = await getPolicy(db);
+  const me = buyerCoords(q);
+  if (policy.enabled && !me) return { suggestions: [] as string[] };
+  const range = policy.enabled && me
+    ? ` AND s."latitude" IS NOT NULL AND s."longitude" IS NOT NULL AND ${distanceSql("$3", "$4")} <= $5::float8`
+    : "";
+  const extra = range ? [me!.lat, me!.lng, policy.radiusKm] : [];
   const limit = Math.min(Math.max(Number(q.limit) || 6, 1), 10);
   const like = `%${escapeLike(term)}%`;
   const prefix = `${escapeLike(term)}%`;
@@ -207,10 +295,10 @@ export async function suggest(db: Runner, q: { q?: string; limit?: string }) {
               (CASE WHEN lower(l."name") LIKE $2 ESCAPE '\\' THEN 0 ELSE 1 END) AS rank
          FROM "ListingIndex" l JOIN "StoreProjection" s ON s."storeId" = l."storeId"
         WHERE l."deleted" = false AND l."name" <> '' AND s."slug" <> '' AND s."status" NOT IN ${HIDDEN_STATUSES}
-          AND l."channel" IN ('RETAIL','BOTH') AND l."searchText" LIKE $1 ESCAPE '\\'
+          AND l."channel" IN ('RETAIL','BOTH') AND l."searchText" LIKE $1 ESCAPE '\\'${range}
         ORDER BY lower(l."name")
      ) t ORDER BY rank, name LIMIT ${limit}`,
-    like, prefix
+    like, prefix, ...extra
   );
   return { suggestions: rows.map((r) => r.name) };
 }

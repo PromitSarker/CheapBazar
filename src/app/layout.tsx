@@ -6,6 +6,8 @@ import SiteHeader from "@/components/layout/SiteHeader";
 import SiteFooter from "@/components/layout/SiteFooter";
 import { servicesEnabled } from "@/lib/bff/client";
 import { unreadCountViaServices } from "@/lib/bff/notifications";
+import { locationPolicy } from "@/lib/bff/location";
+import { getBuyerLocation } from "@/lib/location";
 import { Outfit, Noto_Sans_Bengali } from "next/font/google";
 import "./globals.css";
 
@@ -36,12 +38,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   ]);
 
   const unread = user && servicesEnabled() ? await unreadCountViaServices(user.id) : 0;
+  // The buyer's location chip is only shown while the admin's range limit is on (and never to admins/sellers).
+  const policy = servicesEnabled() && user?.role !== "ADMIN" && user?.role !== "SELLER" ? await locationPolicy() : null;
+  const buyerLoc = policy?.enabled ? getBuyerLocation() : null;
 
   return (
     <html lang={initialLang}>
       <body className={`${outfit.variable} ${bengali.variable}`}>
         <LanguageProvider initialLang={initialLang}>
-          <SiteHeader user={user} marketplace={servicesEnabled()} unread={unread} />
+          <SiteHeader user={user} marketplace={servicesEnabled()} unread={unread} locationUi={policy?.enabled ? { radiusKm: policy.radiusKm, current: buyerLoc } : null} />
           <main className="site-main">{children}</main>
           <SiteFooter />
         </LanguageProvider>

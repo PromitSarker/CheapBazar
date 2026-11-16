@@ -27,7 +27,7 @@ const slug = `e2e-${run}`;
 
 console.log("seeding services…");
 const reg = await call("identity", "POST", "/auth/register", { email: `e2e-${run}@example.test`, name: "E2E Seller", password: "e2e-password-1", role: "SELLER", ip: "198.51.100.7" });
-const store = await call("identity", "POST", "/stores", { ownerId: reg.user.id, name: `E2E Shop ${run}`, slug, template: "classic" });
+const store = await call("identity", "POST", "/stores", { latitude: 23.78, longitude: 90.41, ownerId: reg.user.id, name: `E2E Shop ${run}`, slug, template: "classic" });
 let w;
 for (let i = 0; i < 40; i++) { // the wallet is created by the StoreCreated event
   w = await call("ledger", "GET", `/wallets/${store.id}/status`);

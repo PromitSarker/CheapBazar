@@ -7,6 +7,7 @@ import { servicesEnabled } from "@/lib/bff/client";
 import { createStoreViaServices } from "@/lib/bff/portal";
 
 import { TEMPLATES, TemplateId } from "@/lib/constants";
+import { parseCoords } from "../../../packages/geo";
 
 export async function createStore(formData: FormData) {
   const user = await getCurrentUser();
@@ -25,7 +26,13 @@ export async function createStore(formData: FormData) {
     redirect("/onboarding?error=invalid");
   }
   if (servicesEnabled()) {
-    const r = await createStoreViaServices(user.id, name, slug, template);
+    // The shop's place is required: buyers find shops by distance. The service validates it again.
+    const location = {
+      latitude: formData.get("latitude"), longitude: formData.get("longitude"),
+      district: String(formData.get("district") || ""), address: String(formData.get("address") || ""),
+    };
+    if (!parseCoords(location.latitude, location.longitude)) redirect("/onboarding?error=location");
+    const r = await createStoreViaServices(user.id, name, slug, template, location);
     if (r === "ok" || r === "exists") redirect("/dashboard");
     redirect(`/onboarding?error=${r}`);
   }

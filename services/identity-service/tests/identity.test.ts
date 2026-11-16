@@ -108,17 +108,17 @@ test("roles: change role, the last admin cannot be demoted", async () => {
 test("stores: only sellers, one per owner, slug rules, StoreCreated fans out", async () => {
   const seller = await reg("SELLER");
   const buyer = await reg("BUYER");
-  await expectErr(api.post("/stores", { ownerId: buyer.user.id, name: "Nope" }), "NOT_SELLER", 403);
-  await expectErr(api.post("/stores", { ownerId: seller.user.id, name: "Admin Hub", slug: "Admin" }), "SLUG_RESERVED", 400);
+  await expectErr(api.post("/stores", { latitude: 23.78, longitude: 90.41, ownerId: buyer.user.id, name: "Nope" }), "NOT_SELLER", 403);
+  await expectErr(api.post("/stores", { latitude: 23.78, longitude: 90.41, ownerId: seller.user.id, name: "Admin Hub", slug: "Admin" }), "SLUG_RESERVED", 400);
 
-  const s = await api.post("/stores", { ownerId: seller.user.id, name: "  Rahim's Bakery!  ", template: "modern" });
+  const s = await api.post("/stores", { latitude: 23.78, longitude: 90.41, ownerId: seller.user.id, name: "  Rahim's Bakery!  ", template: "modern" });
   assert.equal(s.slug, "rahim-s-bakery", "slug derived from the name when omitted");
   assert.equal(s.template, "modern");
-  await expectErr(api.post("/stores", { ownerId: seller.user.id, name: "Again" }), "STORE_EXISTS", 409);
+  await expectErr(api.post("/stores", { latitude: 23.78, longitude: 90.41, ownerId: seller.user.id, name: "Again" }), "STORE_EXISTS", 409);
 
   const other = await reg("SELLER");
-  await expectErr(api.post("/stores", { ownerId: other.user.id, name: "Clash", slug: "rahim-s-bakery" }), "SLUG_TAKEN", 409);
-  await expectErr(api.post("/stores", { ownerId: other.user.id, name: "Bad", template: "neon" }), "VALIDATION", 400);
+  await expectErr(api.post("/stores", { latitude: 23.78, longitude: 90.41, ownerId: other.user.id, name: "Clash", slug: "rahim-s-bakery" }), "SLUG_TAKEN", 409);
+  await expectErr(api.post("/stores", { latitude: 23.78, longitude: 90.41, ownerId: other.user.id, name: "Bad", template: "neon" }), "VALIDATION", 400);
 
   const rows = await svc.db.$queryRawUnsafe<{ consumer: string }[]>(
     `SELECT "consumer" FROM "OutboxMessage" WHERE "eventType" = 'StoreCreated' AND "envelope"->'data'->>'storeId' = $1`, s.id);
@@ -131,7 +131,7 @@ test("stores: only sellers, one per owner, slug rules, StoreCreated fans out", a
 test("store settings: ownership enforced, custom domains validated and unique, events emitted", async () => {
   const seller = await reg("SELLER");
   const intruder = await reg("SELLER");
-  const s = await api.post("/stores", { ownerId: seller.user.id, name: "Tenant One" });
+  const s = await api.post("/stores", { latitude: 23.78, longitude: 90.41, ownerId: seller.user.id, name: "Tenant One" });
 
   await expectErr(api.patch(`/stores/${s.id}`, { actorId: intruder.user.id, name: "Hijack" }), "FORBIDDEN", 403);
   const upd = await api.patch(`/stores/${s.id}`, { actorId: seller.user.id, name: "Tenant 1", customDomain: "https://Shop.Example.com/path" });
@@ -141,7 +141,7 @@ test("store settings: ownership enforced, custom domains validated and unique, e
   await expectErr(api.patch(`/stores/${s.id}`, { actorId: seller.user.id, customDomain: "cheap-bazar.com" }), "VALIDATION", 400);
   await expectErr(api.patch(`/stores/${s.id}`, { actorId: seller.user.id, customDomain: "not a domain" }), "VALIDATION", 400);
 
-  const s2 = await api.post("/stores", { ownerId: intruder.user.id, name: "Tenant Two" });
+  const s2 = await api.post("/stores", { latitude: 23.78, longitude: 90.41, ownerId: intruder.user.id, name: "Tenant Two" });
   await expectErr(api.patch(`/stores/${s2.id}`, { actorId: intruder.user.id, customDomain: "shop.example.com" }), "DOMAIN_TAKEN", 409);
   await expectErr(api.patch(`/stores/${s2.id}`, { actorId: intruder.user.id, slug: "tenant-one" }), "SLUG_TAKEN", 409);
 
@@ -153,7 +153,7 @@ test("store settings: ownership enforced, custom domains validated and unique, e
 
 test("tenant resolution by custom domain and by slug (used by the edge router)", async () => {
   const seller = await reg("SELLER");
-  const s = await api.post("/stores", { ownerId: seller.user.id, name: "Resolver Shop" });
+  const s = await api.post("/stores", { latitude: 23.78, longitude: 90.41, ownerId: seller.user.id, name: "Resolver Shop" });
   await api.patch(`/stores/${s.id}`, { actorId: seller.user.id, customDomain: "resolver.example.org" });
   assert.equal((await api.get("/tenants/resolve?domain=resolver.example.org")).id, s.id);
   assert.equal((await api.get("/tenants/resolve?domain=RESOLVER.example.org")).id, s.id);
@@ -164,7 +164,7 @@ test("tenant resolution by custom domain and by slug (used by the edge router)",
 
 test("KYC flag, admin stats and store listing", async () => {
   const seller = await reg("SELLER");
-  const s = await api.post("/stores", { ownerId: seller.user.id, name: "Listing Lane" });
+  const s = await api.post("/stores", { latitude: 23.78, longitude: 90.41, ownerId: seller.user.id, name: "Listing Lane" });
   assert.equal(s.kycVerified, false);
   assert.equal((await api.patch(`/stores/${s.id}/kyc`, { kycVerified: true, admin: "root" })).kycVerified, true);
   await expectErr(api.patch(`/stores/nope/kyc`, { kycVerified: true, admin: "root" }), "NOT_FOUND", 404);
@@ -184,7 +184,7 @@ test("KYC flag, admin stats and store listing", async () => {
 
 test("store branding: logo must be an uploaded image path, colour must be #rrggbb, both can be removed", async () => {
   const { user } = await reg("SELLER");
-  const store = await api.post("/stores", { ownerId: user.id, name: "Brand Shop", slug: `brand-${Math.random().toString(36).slice(2, 7)}`, template: "modern" });
+  const store = await api.post("/stores", { latitude: 23.78, longitude: 90.41, ownerId: user.id, name: "Brand Shop", slug: `brand-${Math.random().toString(36).slice(2, 7)}`, template: "modern" });
   assert.equal(store.logoUrl, null);
   assert.equal(store.themeColor, null);
 
@@ -207,4 +207,49 @@ test("store branding: logo must be an uploaded image path, colour must be #rrggb
   const cleared = await api.patch(`/stores/${store.id}`, { actorId: user.id, logoUrl: null, themeColor: null });
   assert.equal(cleared.logoUrl, null);
   assert.equal(cleared.themeColor, null);
+});
+
+test("store location: required, must be a real point in Bangladesh, derived district, re-validated on update, sent in events", async () => {
+  const seller = await reg("SELLER");
+  await expectErr(api.post("/stores", { ownerId: seller.user.id, name: "No Pin" }), "LOCATION_REQUIRED", 400);
+  await expectErr(api.post("/stores", { ownerId: seller.user.id, name: "Half Pin", latitude: 23.78 }), "LOCATION_REQUIRED", 400);
+  await expectErr(api.post("/stores", { ownerId: seller.user.id, name: "Swapped", latitude: 90.41, longitude: 23.78 }), "LOCATION_INVALID", 400);
+  await expectErr(api.post("/stores", { ownerId: seller.user.id, name: "Abroad", latitude: 51.5, longitude: -0.12 }), "LOCATION_INVALID", 400);
+  await expectErr(api.post("/stores", { ownerId: seller.user.id, name: "Text", latitude: "north", longitude: "east" }), "LOCATION_INVALID", 400);
+  await expectErr(api.post("/stores", { ownerId: seller.user.id, name: "Atlantis", latitude: 23.78, longitude: 90.41, district: "atlantis" }), "VALIDATION", 400);
+
+  // a pin near Chattogram with no district picked: the nearest district is filled in; coordinates are rounded to ~1 m
+  const s = await api.post("/stores", { ownerId: seller.user.id, name: "Pinned Shop", latitude: "22.3569123456", longitude: 91.7832, address: "  12 Agrabad C/A  " });
+  assert.equal(s.hasLocation, true);
+  assert.equal(s.district, "chattogram");
+  assert.equal(s.latitude, 22.35691);
+  assert.equal(s.address, "12 Agrabad C/A");
+
+  const ev = await svc.db.$queryRawUnsafe<{ d: any }[]>(
+    `SELECT "envelope"->'data' AS d FROM "OutboxMessage" WHERE "eventType" = 'StoreCreated' AND "consumer" = 'aggregator' AND "envelope"->'data'->>'storeId' = $1`, s.id);
+  assert.equal(ev[0].d.latitude, 22.35691);
+  assert.equal(ev[0].d.district, "chattogram");
+  assert.equal(ev[0].d.address, undefined, "the street address is not broadcast to other services");
+
+  // moving the pin: only the owner, validated again, re-published
+  const other = await reg("SELLER");
+  await expectErr(api.patch(`/stores/${s.id}`, { actorId: other.user.id, latitude: 23.8, longitude: 90.4 }), "FORBIDDEN", 403);
+  await expectErr(api.patch(`/stores/${s.id}`, { actorId: seller.user.id, latitude: 0, longitude: 0 }), "LOCATION_INVALID", 400);
+  const moved = await api.patch(`/stores/${s.id}`, { actorId: seller.user.id, latitude: 23.8103, longitude: 90.4125 });
+  assert.equal(moved.district, "dhaka", "district follows the pin when none is sent");
+  // renaming does not touch the location
+  const renamed = await api.patch(`/stores/${s.id}`, { actorId: seller.user.id, name: "Pinned Shop 2" });
+  assert.equal(renamed.latitude, 23.8103);
+  assert.equal(renamed.district, "dhaka");
+});
+
+test("shops created before location existed have none until the owner sets it", async () => {
+  const seller = await reg("SELLER");
+  const legacy = await svc.db.store.create({ data: { name: "Old Shop", slug: `old-${Math.random().toString(36).slice(2, 7)}`, template: "classic", ownerId: seller.user.id } });
+  const before = await api.get(`/stores/${legacy.id}`);
+  assert.equal(before.hasLocation, false);
+  assert.equal(before.latitude, null);
+  const after = await api.patch(`/stores/${legacy.id}`, { actorId: seller.user.id, latitude: 24.8949, longitude: 91.8687, address: "Zindabazar" });
+  assert.equal(after.hasLocation, true);
+  assert.equal(after.district, "sylhet");
 });

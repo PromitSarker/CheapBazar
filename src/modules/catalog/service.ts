@@ -19,6 +19,8 @@ export interface StoreVM {
   template: string;
   status: string;
   customDomain?: string | null;
+  /** Owner's user id (services path only). */
+  ownerId?: string;
 }
 
 export async function getPublicStoreWithProducts(identifier: string) {

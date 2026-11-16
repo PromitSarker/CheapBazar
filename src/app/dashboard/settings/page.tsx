@@ -1,5 +1,7 @@
 import { requireStore } from "@/lib/tenant";
-import { updateStore } from "./actions";
+import { updateStore, saveLocation } from "./actions";
+import ShopLocationField from "@/components/location/ShopLocationField";
+import { servicesEnabled } from "@/lib/bff/client";
 import { THEME_PRESETS, themeOrDefault } from "@/lib/storefront-theme";
 
 const ERRORS: Record<string, string> = {
@@ -7,18 +9,21 @@ const ERRORS: Record<string, string> = {
   "slug-taken": "That store URL is already taken by another store. Try another one.",
   "domain-taken": "That custom domain is already registered to another store.",
   logo: "The logo must be a PNG, JPEG, GIF or WebP image under 5 MB.",
+  location: "Pin your shop on the map, inside Bangladesh, then save.",
 };
 
 export default async function SettingsPage({ searchParams }: { searchParams: { error?: string, success?: string } }) {
   const store = await requireStore();
   const error = searchParams.error ? ERRORS[searchParams.error] : undefined;
   const success = searchParams.success === "1";
+  const locationSaved = searchParams.success === "location";
 
   return (
     <div>
       <h1>Settings</h1>
       
       {error && <p className="error">{error}</p>}
+      {locationSaved && <p className="success" style={{ color: 'green', marginBottom: '1rem', padding: '0.5rem', backgroundColor: '#e6ffe6', borderRadius: '4px' }}>Shop location saved.</p>}
       {success && <p className="success" style={{ color: 'green', marginBottom: '1rem', padding: '0.5rem', backgroundColor: '#e6ffe6', borderRadius: '4px' }}>Settings updated successfully.</p>}
 
       <form action={updateStore} className="stack" style={{ maxWidth: '600px' }}>
@@ -117,6 +122,20 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
           Save Settings
         </button>
       </form>
+
+      {servicesEnabled() && (
+        <section id="location" className="card" style={{ maxWidth: 600, marginTop: "2.5rem", padding: "1.25rem", scrollMarginTop: 80 }}>
+          {!store.hasLocation && (
+            <p className="error" style={{ marginTop: 0 }}>
+              Your shop has no location yet. Buyers find shops by distance, so until you set it your shop may be hidden from them.
+            </p>
+          )}
+          <form action={saveLocation} className="stack" style={{ margin: 0 }}>
+            <ShopLocationField defaults={{ latitude: store.latitude, longitude: store.longitude, district: store.district, address: store.address }} />
+            <button type="submit" className="button">Save location</button>
+          </form>
+        </section>
+      )}
     </div>
   );
 }

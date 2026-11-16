@@ -53,6 +53,7 @@ export async function allStoresViaServices() {
   return stores.stores.map((s, i) => ({
     id: s.id, name: s.name, slug: s.slug, template: s.template, customDomain: s.customDomain ?? null,
     kycVerified: !!s.kycVerified, status: wallets.get(s.id) ?? "ACTIVE", createdAt: s.createdAt,
+    hasLocation: !!s.hasLocation, district: s.district ?? null, address: s.address ?? null, latitude: s.latitude ?? null, longitude: s.longitude ?? null,
     owner: { id: s.owner?.id ?? s.ownerId, name: s.owner?.name ?? "", email: s.owner?.email ?? "" },
     _count: { products: counts[i] },
   }));

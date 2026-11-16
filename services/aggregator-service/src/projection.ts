@@ -47,13 +47,15 @@ async function tombstone(tx: Runner, env: EventEnvelope) {
 async function upsertStoreInfo(tx: Runner, env: EventEnvelope) {
   const d = env.data;
   await tx.$executeRawUnsafe(
-    `INSERT INTO "StoreProjection" ("storeId","slug","name","ownerId","template","customDomain","infoTs","updatedAt")
-     VALUES ($1,$2,$3,$4,$5,$6,$7,now())
+    `INSERT INTO "StoreProjection" ("storeId","slug","name","ownerId","template","customDomain","latitude","longitude","district","infoTs","updatedAt")
+     VALUES ($1,$2,$3,$4,$5,$6,$7::float8,$8::float8,$9,$10,now())
      ON CONFLICT ("storeId") DO UPDATE SET
        "slug"=EXCLUDED."slug","name"=EXCLUDED."name","ownerId"=EXCLUDED."ownerId","template"=EXCLUDED."template",
-       "customDomain"=EXCLUDED."customDomain","infoTs"=EXCLUDED."infoTs","updatedAt"=now()
+       "customDomain"=EXCLUDED."customDomain","latitude"=EXCLUDED."latitude","longitude"=EXCLUDED."longitude","district"=EXCLUDED."district",
+       "infoTs"=EXCLUDED."infoTs","updatedAt"=now()
      WHERE "StoreProjection"."infoTs" <= EXCLUDED."infoTs"`,
-    d.storeId, d.slug ?? "", d.name ?? "", d.ownerId ?? null, d.template ?? "classic", d.customDomain ?? null, ts(env)
+    d.storeId, d.slug ?? "", d.name ?? "", d.ownerId ?? null, d.template ?? "classic", d.customDomain ?? null,
+    d.latitude ?? null, d.longitude ?? null, d.district ?? null, ts(env)
   );
 }
 
