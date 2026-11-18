@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-// Cheap-Bazar palette: deep evergreen + electric lime, mint surfaces, coral for sales.
+// Cheap-Bazar palette: deep evergreen + soft mint, mint surfaces, coral for sales.
 const Color kBrand = Color(0xFF123B32); // deep evergreen: app bar text, cart bar, brand
 const Color kInk = Color(0xFF24332D); // charcoal green: headings / body
-const Color kLime = Color(0xFFC9F36A); // primary CTA fill (label is always kBrand)
-const Color kLimePressed = Color(0xFFB4E04A);
+const Color kSoftMint = Color(0xFFBFE5CC); // soft highlight (selected nav pill, accents on evergreen); text on it is always kBrand
 const Color kMint = Color(0xFFEAF4EC);
 const Color kWarmWhite = Color(0xFFFAFAF5);
 const Color kAccent = Color(0xFF1E7A57); // readable green for text/icons on light
@@ -20,7 +19,7 @@ ThemeData buildTheme() {
   final scheme = ColorScheme.fromSeed(seedColor: kBrand, brightness: Brightness.light).copyWith(
     primary: kBrand,
     onPrimary: Colors.white,
-    primaryContainer: kLime,
+    primaryContainer: kSoftMint,
     onPrimaryContainer: kBrand,
     secondary: kAccent,
     secondaryContainer: kMint,
@@ -51,8 +50,8 @@ ThemeData buildTheme() {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: kLime,
-        foregroundColor: kBrand,
+        backgroundColor: kBrand,
+        foregroundColor: Colors.white,
         disabledBackgroundColor: const Color(0xFFE2E8DC),
         disabledForegroundColor: kMuted,
         side: const BorderSide(color: kBrand, width: 1),
@@ -60,7 +59,7 @@ ThemeData buildTheme() {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
       ).copyWith(
-        overlayColor: WidgetStateProperty.all(kLimePressed.withAlpha(90)),
+        overlayColor: WidgetStateProperty.all(kAccent.withAlpha(90)),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -83,7 +82,7 @@ ThemeData buildTheme() {
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Colors.white,
-      indicatorColor: kLime,
+      indicatorColor: kSoftMint,
       iconTheme: WidgetStateProperty.resolveWith((s) => IconThemeData(color: s.contains(WidgetState.selected) ? kBrand : kMuted)),
       labelTextStyle: WidgetStateProperty.resolveWith((s) => TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: s.contains(WidgetState.selected) ? kBrand : kMuted)),
     ),

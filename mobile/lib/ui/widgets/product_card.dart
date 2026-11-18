@@ -149,8 +149,8 @@ class AddControl extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             minimumSize: const Size(0, 40),
             padding: EdgeInsets.zero,
-            backgroundColor: kLime,
-            foregroundColor: kBrand,
+            backgroundColor: kBrand,
+            foregroundColor: Colors.white,
             side: const BorderSide(color: kBrand, width: 1.2),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
@@ -161,7 +161,7 @@ class AddControl extends StatelessWidget {
     }
     return Container(
       height: 40,
-      decoration: BoxDecoration(color: kLime, border: Border.all(color: kBrand, width: 1.2), borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(color: kSoftMint, border: Border.all(color: kBrand, width: 1.2), borderRadius: BorderRadius.circular(10)),
       child: Row(children: [
         _StepButton(icon: Icons.remove, label: t.t('remove_one'), onTap: () => cart.decrement(product.id)),
         Expanded(
