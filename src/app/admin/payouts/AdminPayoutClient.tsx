@@ -147,9 +147,9 @@ export default function AdminPayoutClient({
               style={{
                 padding: "0.4rem 0.85rem",
                 borderRadius: "6px",
-                border: filterStatus === st ? "1.5px solid #0284c7" : "1px solid #cbd5e1",
+                border: filterStatus === st ? "1.5px solid #0284c7" : "1px solid #c5d0c0",
                 backgroundColor: filterStatus === st ? "#0284c7" : "#ffffff",
-                color: filterStatus === st ? "#ffffff" : "#475569",
+                color: filterStatus === st ? "#ffffff" : "#4f6159",
                 fontWeight: 600,
                 fontSize: "0.82rem",
                 cursor: "pointer",
@@ -171,8 +171,8 @@ export default function AdminPayoutClient({
             padding: "0.5rem 0.85rem",
             borderRadius: "6px",
             backgroundColor: "#ffffff",
-            border: "1.5px solid #cbd5e1",
-            color: "#0f172a",
+            border: "1.5px solid #c5d0c0",
+            color: "#123b32",
             fontSize: "0.85rem",
             fontWeight: 500,
             width: "320px",
@@ -183,36 +183,36 @@ export default function AdminPayoutClient({
       </div>
 
       {/* Main Table */}
-      <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid #e2e8f0", backgroundColor: "#ffffff" }}>
+      <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid #e2e8dc", backgroundColor: "#ffffff" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
-              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Withdrawal Ref</th>
-              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Store & Merchant</th>
-              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Amount</th>
-              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Payout Destination</th>
-              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Status</th>
-              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Disbursement Proof</th>
-              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "right" }}>Actions</th>
+            <tr style={{ borderBottom: "1px solid #e2e8dc", background: "#f3f8f2" }}>
+              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Withdrawal Ref</th>
+              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Store & Merchant</th>
+              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Amount</th>
+              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Payout Destination</th>
+              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Status</th>
+              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Disbursement Proof</th>
+              <th style={{ padding: "0.85rem 1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "right" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ textAlign: "center", padding: "2.5rem", color: "#64748b" }}>
+                <td colSpan={7} style={{ textAlign: "center", padding: "2.5rem", color: "#5c6b64" }}>
                   No withdrawal requests found matching your filter.
                 </td>
               </tr>
             ) : (
               filtered.map((w) => (
-                <tr key={w.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                  <td style={{ padding: "0.85rem 1rem", fontWeight: 600, color: "#0f172a" }}>
+                <tr key={w.id} style={{ borderBottom: "1px solid #eaf4ec" }}>
+                  <td style={{ padding: "0.85rem 1rem", fontWeight: 600, color: "#123b32" }}>
                     <div>{w.withdrawalNumber}</div>
-                    <small style={{ color: "#64748b", fontSize: "0.75rem" }}>{w.createdAt}</small>
+                    <small style={{ color: "#5c6b64", fontSize: "0.75rem" }}>{w.createdAt}</small>
                   </td>
                   <td style={{ padding: "0.85rem 1rem" }}>
-                    <strong style={{ color: "#0f172a" }}>{w.storeName}</strong>
-                    <div style={{ color: "#64748b", fontSize: "0.75rem" }}>{w.ownerEmail}</div>
+                    <strong style={{ color: "#123b32" }}>{w.storeName}</strong>
+                    <div style={{ color: "#5c6b64", fontSize: "0.75rem" }}>{w.ownerEmail}</div>
                   </td>
                   <td style={{ padding: "0.85rem 1rem", fontWeight: 600, color: "var(--success)", fontSize: "0.95rem" }}>
                     ৳{w.amount.toFixed(2)}
@@ -336,12 +336,12 @@ export default function AdminPayoutClient({
         >
           <div
             className="card"
-            style={{ maxWidth: "440px", width: "100%", padding: "1.75rem", backgroundColor: "#ffffff", border: "1px solid #e2e8f0" }}
+            style={{ maxWidth: "440px", width: "100%", padding: "1.75rem", backgroundColor: "#ffffff", border: "1px solid #e2e8dc" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ margin: "0 0 0.5rem 0", color: "#0f172a" }}>Confirm Disbursement</h3>
-            <p style={{ fontSize: "0.85rem", marginBottom: "1rem", color: "#64748b" }}>
-              Confirm that <strong style={{ color: "#0f172a" }}>৳{approvingItem.amount.toFixed(2)}</strong> has been transferred to {approvingItem.storeName} via corporate bank EFT or bKash.
+            <h3 style={{ margin: "0 0 0.5rem 0", color: "#123b32" }}>Confirm Disbursement</h3>
+            <p style={{ fontSize: "0.85rem", marginBottom: "1rem", color: "#5c6b64" }}>
+              Confirm that <strong style={{ color: "#123b32" }}>৳{approvingItem.amount.toFixed(2)}</strong> has been transferred to {approvingItem.storeName} via corporate bank EFT or bKash.
             </p>
 
             {actionError && (
@@ -359,7 +359,7 @@ export default function AdminPayoutClient({
             )}
 
             <div style={{ marginBottom: "1.25rem" }}>
-              <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#334155", marginBottom: "0.4rem" }}>
+              <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#3b4f46", marginBottom: "0.4rem" }}>
                 Bank EFT Reference or MFS TrxID
               </label>
               <input
@@ -373,8 +373,8 @@ export default function AdminPayoutClient({
                   padding: "0.6rem",
                   borderRadius: "6px",
                   backgroundColor: "#ffffff",
-                  border: "1.5px solid #cbd5e1",
-                  color: "#0f172a",
+                  border: "1.5px solid #c5d0c0",
+                  color: "#123b32",
                   fontSize: "0.9rem",
                   outline: "none",
                 }}
@@ -385,7 +385,7 @@ export default function AdminPayoutClient({
               <button
                 type="button"
                 onClick={() => setApprovingItem(null)}
-                style={{ padding: "0.5rem 1rem", background: "#ffffff", border: "1px solid #cbd5e1", color: "#334155", borderRadius: "6px", cursor: "pointer", fontWeight: 600 }}
+                style={{ padding: "0.5rem 1rem", background: "#ffffff", border: "1px solid #c5d0c0", color: "#3b4f46", borderRadius: "6px", cursor: "pointer", fontWeight: 600 }}
               >
                 Cancel
               </button>
@@ -420,12 +420,12 @@ export default function AdminPayoutClient({
         >
           <div
             className="card"
-            style={{ maxWidth: "440px", width: "100%", padding: "1.75rem", backgroundColor: "#ffffff", border: "1px solid #e2e8f0" }}
+            style={{ maxWidth: "440px", width: "100%", padding: "1.75rem", backgroundColor: "#ffffff", border: "1px solid #e2e8dc" }}
             onClick={(e) => e.stopPropagation()}
           >
             <h3 style={{ margin: "0 0 0.5rem 0", color: "#b91c1c" }}>Reject Withdrawal</h3>
-            <p style={{ fontSize: "0.85rem", marginBottom: "1rem", color: "#64748b" }}>
-              Rejecting this request will <strong style={{ color: "#0f172a" }}>automatically restore ৳{rejectingItem.amount.toFixed(2)}</strong> back to the seller's wallet balance.
+            <p style={{ fontSize: "0.85rem", marginBottom: "1rem", color: "#5c6b64" }}>
+              Rejecting this request will <strong style={{ color: "#123b32" }}>automatically restore ৳{rejectingItem.amount.toFixed(2)}</strong> back to the seller's wallet balance.
             </p>
 
             {actionError && (
@@ -443,7 +443,7 @@ export default function AdminPayoutClient({
             )}
 
             <div style={{ marginBottom: "1.25rem" }}>
-              <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#334155", marginBottom: "0.4rem" }}>
+              <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#3b4f46", marginBottom: "0.4rem" }}>
                 Reason for Rejection
               </label>
               <input
@@ -457,8 +457,8 @@ export default function AdminPayoutClient({
                   padding: "0.6rem",
                   borderRadius: "6px",
                   backgroundColor: "#ffffff",
-                  border: "1.5px solid #cbd5e1",
-                  color: "#0f172a",
+                  border: "1.5px solid #c5d0c0",
+                  color: "#123b32",
                   fontSize: "0.9rem",
                   outline: "none",
                 }}
@@ -469,7 +469,7 @@ export default function AdminPayoutClient({
               <button
                 type="button"
                 onClick={() => setRejectingItem(null)}
-                style={{ padding: "0.5rem 1rem", background: "#ffffff", border: "1px solid #cbd5e1", color: "#334155", borderRadius: "6px", cursor: "pointer", fontWeight: 600 }}
+                style={{ padding: "0.5rem 1rem", background: "#ffffff", border: "1px solid #c5d0c0", color: "#3b4f46", borderRadius: "6px", cursor: "pointer", fontWeight: 600 }}
               >
                 Cancel
               </button>

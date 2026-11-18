@@ -153,7 +153,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                 onChanged: (v) => setState(() => _f = _f.copyWith(onSale: v)),
               ),
             const SizedBox(height: 12),
-            FilledButton(style: FilledButton.styleFrom(backgroundColor: kAction), onPressed: _apply, child: Text(t.t('apply'))),
+            FilledButton(onPressed: _apply, child: Text(t.t('apply'))),
           ]),
         ),
       ),

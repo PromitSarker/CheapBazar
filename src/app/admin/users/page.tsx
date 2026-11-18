@@ -10,7 +10,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams?: 
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <div>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#09090b", letterSpacing: "-0.03em" }}>
+          <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#0c2b24", letterSpacing: "-0.03em" }}>
             User & Role Management
           </h1>
           <p className="muted" style={{ marginTop: "0.25rem", fontSize: "0.95rem" }}>
@@ -24,15 +24,15 @@ export default async function AdminUsersPage({ searchParams }: { searchParams?: 
 
       {searchParams?.error && <p className="error">{searchParams.error}</p>}
 
-      <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid #e2e8f0", backgroundColor: "#ffffff" }}>
+      <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid #e2e8dc", backgroundColor: "#ffffff" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
-              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>User</th>
-              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Email</th>
-              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Associated Store</th>
-              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Current Role</th>
-              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Assign Role</th>
+            <tr style={{ borderBottom: "1px solid #e2e8dc", background: "#f3f8f2" }}>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>User</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Email</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Associated Store</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Current Role</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Assign Role</th>
             </tr>
           </thead>
           <tbody>
@@ -46,16 +46,16 @@ export default async function AdminUsersPage({ searchParams }: { searchParams?: 
               const badge = roleBadgeColors[u.role] || roleBadgeColors.BUYER;
 
               return (
-                <tr key={u.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                  <td style={{ padding: "0.9rem 1.1rem", fontWeight: 600, color: "#0f172a" }}>{u.name}</td>
-                  <td style={{ padding: "0.9rem 1.1rem", color: "#64748b" }}>{u.email}</td>
+                <tr key={u.id} style={{ borderBottom: "1px solid #eaf4ec" }}>
+                  <td style={{ padding: "0.9rem 1.1rem", fontWeight: 600, color: "#123b32" }}>{u.name}</td>
+                  <td style={{ padding: "0.9rem 1.1rem", color: "#5c6b64" }}>{u.email}</td>
                   <td style={{ padding: "0.9rem 1.1rem" }}>
                     {u.store ? (
                       <a href={`/store/${u.store.slug}`} target="_blank" rel="noreferrer" style={{ color: "#0284c7", fontWeight: 500 }}>
                         {u.store.name} ↗
                       </a>
                     ) : (
-                      <span className="muted" style={{ color: "#94a3b8" }}>None (Buyer)</span>
+                      <span className="muted" style={{ color: "#8a9a92" }}>None (Buyer)</span>
                     )}
                   </td>
                   <td style={{ padding: "0.9rem 1.1rem" }}>
@@ -86,18 +86,18 @@ export default async function AdminUsersPage({ searchParams }: { searchParams?: 
                           fontSize: "0.82rem",
                           fontWeight: 600,
                           backgroundColor: "#ffffff",
-                          border: "1.5px solid #cbd5e1",
+                          border: "1.5px solid #c5d0c0",
                           borderRadius: "6px",
-                          color: "#0f172a",
+                          color: "#123b32",
                           cursor: "pointer",
                           boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
                           outline: "none",
                         }}
                       >
-                        <option value="SELLER" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>SELLER</option>
-                        <option value="BUYER" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>BUYER</option>
-                        <option value="ADMIN" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>ADMIN</option>
-                        <option value="PRO_BUYER" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>PRO_BUYER</option>
+                        <option value="SELLER" style={{ color: "#123b32", backgroundColor: "#ffffff" }}>SELLER</option>
+                        <option value="BUYER" style={{ color: "#123b32", backgroundColor: "#ffffff" }}>BUYER</option>
+                        <option value="ADMIN" style={{ color: "#123b32", backgroundColor: "#ffffff" }}>ADMIN</option>
+                        <option value="PRO_BUYER" style={{ color: "#123b32", backgroundColor: "#ffffff" }}>PRO_BUYER</option>
                       </select>
                       <button
                         type="submit"
@@ -106,7 +106,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams?: 
                           padding: "0.4rem 0.8rem",
                           fontSize: "0.78rem",
                           fontWeight: 600,
-                          backgroundColor: "#09090b",
+                          backgroundColor: "#0c2b24",
                           color: "#ffffff",
                           borderRadius: "6px",
                           border: "none",

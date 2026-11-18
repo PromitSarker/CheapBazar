@@ -56,15 +56,15 @@ class _GroupCard extends StatelessWidget {
             if (wholesale)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: const Color(0xFFEEF2FF), borderRadius: BorderRadius.circular(10)),
-                child: Text(t.t('wholesale'), style: const TextStyle(color: Color(0xFF4338CA), fontSize: 11, fontWeight: FontWeight.w700)),
+                decoration: BoxDecoration(color: const Color(0xFFEAF4EC), borderRadius: BorderRadius.circular(10)),
+                child: Text(t.t('wholesale'), style: const TextStyle(color: Color(0xFF123B32), fontSize: 11, fontWeight: FontWeight.w700)),
               ),
           ]),
           const Divider(height: 22),
           for (final l in group.lines) _LineRow(line: l),
           const SizedBox(height: 8),
           Row(children: [
-            Text(t.t('subtotal'), style: const TextStyle(color: Color(0xFF52525B))),
+            Text(t.t('subtotal'), style: const TextStyle(color: Color(0xFF4F6159))),
             const Spacer(),
             Money(group.total, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           ]),
@@ -106,7 +106,7 @@ class _LineRow extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(line.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 2),
-            Money(line.effectiveUnit, style: const TextStyle(color: Color(0xFF52525B))),
+            Money(line.effectiveUnit, style: const TextStyle(color: Color(0xFF4F6159))),
             Row(children: [
               IconButton(
                 visualDensity: VisualDensity.compact,

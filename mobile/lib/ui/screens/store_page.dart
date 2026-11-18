@@ -56,12 +56,12 @@ class _StorePageState extends State<StorePage> {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
                   child: Row(children: [
-                    const CircleAvatar(radius: 24, backgroundColor: Color(0xFF18181B), child: Icon(Icons.storefront, color: Colors.white)),
+                    const CircleAvatar(radius: 24, backgroundColor: Color(0xFF123B32), child: Icon(Icons.storefront, color: Colors.white)),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-                        Text(t.t('products_count', {'n': '${products.length}'}), style: const TextStyle(color: Color(0xFF71717A))),
+                        Text(t.t('products_count', {'n': '${products.length}'}), style: const TextStyle(color: Color(0xFF5C6B64))),
                       ]),
                     ),
                   ]),

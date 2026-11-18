@@ -7,9 +7,9 @@ import { createCategory, fileProduct, removeCategory, saveCategory, setCategoryA
 
 export const dynamic = "force-dynamic";
 
-const box = { background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: "1.1rem 1.25rem", marginBottom: "1rem" } as const;
-const inp = { padding: "0.5rem 0.65rem", border: "1px solid #cbd5e1", borderRadius: 8, fontSize: "0.9rem", background: "#fff" } as const;
-const btn = { padding: "0.5rem 0.9rem", borderRadius: 8, border: "1px solid #cbd5e1", background: "#fff", cursor: "pointer", fontSize: "0.85rem" } as const;
+const box = { background: "#fff", border: "1px solid #e2e8dc", borderRadius: 14, padding: "1.1rem 1.25rem", marginBottom: "1rem" } as const;
+const inp = { padding: "0.5rem 0.65rem", border: "1px solid #c5d0c0", borderRadius: 8, fontSize: "0.9rem", background: "#fff" } as const;
+const btn = { padding: "0.5rem 0.9rem", borderRadius: 8, border: "1px solid #c5d0c0", background: "#fff", cursor: "pointer", fontSize: "0.85rem" } as const;
 const pill = (bg: string, fg: string) => ({ background: bg, color: fg, padding: "0.1rem 0.55rem", borderRadius: 999, fontSize: "0.75rem", fontWeight: 600 }) as const;
 
 function IconSelect({ value }: { value?: string }) {
@@ -26,7 +26,7 @@ function IconSelect({ value }: { value?: string }) {
 function EditRow({ c, isSub }: { c: AdminCategory; isSub: boolean }) {
   const used = c.productCount > 0 || c.children.length > 0;
   return (
-    <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", padding: "0.5rem 0", borderTop: isSub ? "1px solid #f1f5f9" : "none", opacity: c.active ? 1 : 0.65 }}>
+    <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", padding: "0.5rem 0", borderTop: isSub ? "1px solid #eaf4ec" : "none", opacity: c.active ? 1 : 0.65 }}>
       <form action={saveCategory} style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap", flex: 1, minWidth: 280 }}>
         <input type="hidden" name="id" value={c.id} />
         <input name="nameEn" defaultValue={c.nameEn} required maxLength={60} placeholder="English name" aria-label="English name" style={{ ...inp, width: isSub ? 170 : 200, fontWeight: isSub ? 400 : 700 }} />
@@ -35,7 +35,7 @@ function EditRow({ c, isSub }: { c: AdminCategory; isSub: boolean }) {
         <input name="sortOrder" type="number" min={0} defaultValue={c.sortOrder} aria-label="Sort order" title="Lower numbers appear first" style={{ ...inp, width: 70 }} />
         <button type="submit" style={btn}>Save</button>
       </form>
-      <span style={pill("#f1f5f9", "#475569")}>{c.productCount} product{c.productCount === 1 ? "" : "s"}</span>
+      <span style={pill("#eaf4ec", "#4f6159")}>{c.productCount} product{c.productCount === 1 ? "" : "s"}</span>
       {!c.active && <span style={pill("#fef3c7", "#92400e")}>Hidden</span>}
       <form action={setCategoryActive}>
         <input type="hidden" name="id" value={c.id} />
@@ -44,7 +44,7 @@ function EditRow({ c, isSub }: { c: AdminCategory; isSub: boolean }) {
       </form>
       <form action={removeCategory}>
         <input type="hidden" name="id" value={c.id} />
-        <button type="submit" disabled={used} title={used ? "Only empty categories can be deleted. Hide it instead." : "Delete"} style={{ ...btn, color: used ? "#94a3b8" : "#dc2626", cursor: used ? "not-allowed" : "pointer" }}>Delete</button>
+        <button type="submit" disabled={used} title={used ? "Only empty categories can be deleted. Hide it instead." : "Delete"} style={{ ...btn, color: used ? "#8a9a92" : "#dc2626", cursor: used ? "not-allowed" : "pointer" }}>Delete</button>
       </form>
     </div>
   );
@@ -109,7 +109,7 @@ export default async function AdminCategoriesPage({ searchParams }: { searchPara
           <input name="nameBn" maxLength={60} placeholder="বাংলা নাম" style={{ ...inp, width: 180 }} />
           <IconSelect />
           <input name="sortOrder" type="number" min={0} placeholder="Sort" style={{ ...inp, width: 80 }} />
-          <button type="submit" style={{ ...btn, background: "#0f172a", color: "#fff", borderColor: "#0f172a" }}>Add department</button>
+          <button type="submit" style={{ ...btn, background: "#123b32", color: "#fff", borderColor: "#123b32" }}>Add department</button>
         </form>
       </div>
 
@@ -117,7 +117,7 @@ export default async function AdminCategoriesPage({ searchParams }: { searchPara
         <div key={d.id} style={box}>
           <EditRow c={d} isSub={false} />
           {d.children.map((s) => <EditRow key={s.id} c={s} isSub />)}
-          <form action={createCategory} style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center", paddingTop: "0.6rem", borderTop: "1px dashed #e2e8f0", marginTop: "0.4rem" }}>
+          <form action={createCategory} style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center", paddingTop: "0.6rem", borderTop: "1px dashed #e2e8dc", marginTop: "0.4rem" }}>
             <input type="hidden" name="parentId" value={d.id} />
             <input name="nameEn" required maxLength={60} placeholder={`New sub-category in ${d.nameEn}`} style={{ ...inp, width: 240 }} />
             <input name="nameBn" maxLength={60} placeholder="বাংলা নাম" style={{ ...inp, width: 170 }} />

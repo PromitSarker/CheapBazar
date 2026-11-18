@@ -21,41 +21,41 @@ export default async function AdminStoresPage({ searchParams }: { searchParams?:
 
       {searchParams?.error && <p className="error">{searchParams.error}</p>}
 
-      <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid #e2e8f0", backgroundColor: "#ffffff" }}>
+      <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid #e2e8dc", backgroundColor: "#ffffff" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
-              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Store</th>
-              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Owner</th>
-              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Custom Domain</th>
-              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Location</th>
-              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Catalog</th>
-              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>KYC Status</th>
-              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Lifecycle Status</th>
-              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>Actions</th>
+            <tr style={{ borderBottom: "1px solid #e2e8dc", background: "#f3f8f2" }}>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Store</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Owner</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Custom Domain</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Location</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Catalog</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>KYC Status</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Lifecycle Status</th>
+              <th style={{ padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {stores.map((s) => (
-              <tr key={s.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+              <tr key={s.id} style={{ borderBottom: "1px solid #eaf4ec" }}>
                 <td style={{ padding: "0.9rem 1.1rem" }}>
-                  <strong style={{ display: "block", color: "#0f172a" }}>{s.name}</strong>
+                  <strong style={{ display: "block", color: "#123b32" }}>{s.name}</strong>
                   <a href={`/store/${s.slug}`} target="_blank" rel="noreferrer" style={{ fontSize: "0.82rem", color: "#0284c7", fontWeight: 500 }}>
                     /store/{s.slug} ↗
                   </a>
                 </td>
                 <td style={{ padding: "0.9rem 1.1rem" }}>
-                  <div style={{ fontWeight: 600, color: "#0f172a" }}>{s.owner.name}</div>
-                  <small style={{ color: "#64748b" }}>{s.owner.email}</small>
+                  <div style={{ fontWeight: 600, color: "#123b32" }}>{s.owner.name}</div>
+                  <small style={{ color: "#5c6b64" }}>{s.owner.email}</small>
                 </td>
-                <td style={{ padding: "0.9rem 1.1rem", fontSize: "0.85rem", color: s.customDomain ? "#0284c7" : "#94a3b8" }}>
+                <td style={{ padding: "0.9rem 1.1rem", fontSize: "0.85rem", color: s.customDomain ? "#0284c7" : "#8a9a92" }}>
                   {s.customDomain || "None"}
                 </td>
                 <td style={{ padding: "0.9rem 1.1rem", fontSize: "0.85rem" }}>
                   {"hasLocation" in s ? (
                     s.hasLocation ? (
                       <>
-                        <strong style={{ color: "#0f172a" }}>{districtById(s.district)?.en ?? "Pinned"}</strong>
+                        <strong style={{ color: "#123b32" }}>{districtById(s.district)?.en ?? "Pinned"}</strong>
                         <a href={`https://www.openstreetmap.org/?mlat=${s.latitude}&mlon=${s.longitude}#map=15/${s.latitude}/${s.longitude}`} target="_blank" rel="noreferrer" style={{ display: "block", fontSize: "0.78rem", color: "#0284c7" }}>
                           {Number(s.latitude).toFixed(4)}, {Number(s.longitude).toFixed(4)} ↗
                         </a>
@@ -64,10 +64,10 @@ export default async function AdminStoresPage({ searchParams }: { searchParams?:
                       <span style={{ color: "#b45309", fontWeight: 600 }}>No location</span>
                     )
                   ) : (
-                    <span style={{ color: "#94a3b8" }}>n/a</span>
+                    <span style={{ color: "#8a9a92" }}>n/a</span>
                   )}
                 </td>
-                <td style={{ padding: "0.9rem 1.1rem", color: "#334155" }}>
+                <td style={{ padding: "0.9rem 1.1rem", color: "#3b4f46" }}>
                   {s._count.products} products ({s.template})
                 </td>
                 <td style={{ padding: "0.9rem 1.1rem" }}>
@@ -121,17 +121,17 @@ export default async function AdminStoresPage({ searchParams }: { searchParams?:
                         fontSize: "0.82rem",
                         fontWeight: 600,
                         backgroundColor: "#ffffff",
-                        border: "1.5px solid #cbd5e1",
+                        border: "1.5px solid #c5d0c0",
                         borderRadius: "6px",
-                        color: "#0f172a",
+                        color: "#123b32",
                         cursor: "pointer",
                         boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
                         outline: "none",
                       }}
                     >
-                      <option value="ACTIVE" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>ACTIVE</option>
-                      <option value="SUSPENDED" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>SUSPENDED</option>
-                      <option value="BANNED" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>BANNED</option>
+                      <option value="ACTIVE" style={{ color: "#123b32", backgroundColor: "#ffffff" }}>ACTIVE</option>
+                      <option value="SUSPENDED" style={{ color: "#123b32", backgroundColor: "#ffffff" }}>SUSPENDED</option>
+                      <option value="BANNED" style={{ color: "#123b32", backgroundColor: "#ffffff" }}>BANNED</option>
                     </select>
                     <button
                       type="submit"
@@ -140,7 +140,7 @@ export default async function AdminStoresPage({ searchParams }: { searchParams?:
                         padding: "0.4rem 0.8rem",
                         fontSize: "0.78rem",
                         fontWeight: 600,
-                        backgroundColor: "#09090b",
+                        backgroundColor: "#0c2b24",
                         color: "#ffffff",
                         borderRadius: "6px",
                         border: "none",

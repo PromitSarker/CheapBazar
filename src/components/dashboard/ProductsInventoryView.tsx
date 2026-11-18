@@ -64,7 +64,7 @@ export default function ProductsInventoryView({
       ? bn ? "ছবিটি গ্রহণযোগ্য নয়। ৫ MB এর কম PNG, JPEG, GIF বা WebP ছবি দিন।" : "That image was not accepted. Use a PNG, JPEG, GIF or WebP file under 5 MB."
       : bn ? "অনুগ্রহ করে পণ্যের সঠিক নাম এবং বৈধ মূল্য প্রদান করুন।" : "Please provide a valid name and price.";
 
-  const th: React.CSSProperties = { padding: "1rem 1.25rem", color: "#71717a", fontWeight: 600, fontSize: "0.8rem", textTransform: "uppercase" };
+  const th: React.CSSProperties = { padding: "1rem 1.25rem", color: "#5c6b64", fontWeight: 600, fontSize: "0.8rem", textTransform: "uppercase" };
 
   return (
     <div>
@@ -76,7 +76,7 @@ export default function ProductsInventoryView({
           </p>
         </div>
         {services && (
-          <Link href="/dashboard/products/import" className="button" style={{ background: "#fff", color: "#09090b", border: "1px solid rgba(0,0,0,0.15)" }}>
+          <Link href="/dashboard/products/import" className="button" style={{ background: "#fff", color: "#0c2b24", border: "1px solid rgba(0,0,0,0.15)" }}>
             {bn ? "CSV থেকে আমদানি" : "Import from CSV"}
           </Link>
         )}
@@ -89,7 +89,7 @@ export default function ProductsInventoryView({
         className="card"
         style={{ marginBottom: "2.5rem", padding: "1.75rem", background: "var(--surface-muted)", border: "1px solid rgba(0, 0, 0, 0.08)", borderRadius: "20px", boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.04)" }}
       >
-        <h3 style={{ margin: "0 0 1.25rem 0", fontSize: "1.1rem", fontWeight: 700, color: "#09090b" }}>{t.addProduct}</h3>
+        <h3 style={{ margin: "0 0 1.25rem 0", fontSize: "1.1rem", fontWeight: 700, color: "#0c2b24" }}>{t.addProduct}</h3>
         <form action={addProductAction} className="stack" style={{ margin: 0, gap: "1.25rem" }}>
           <ProductFormFields categories={categories} wholesale={wholesale} />
           <button type="submit" className="button glow-button" style={{ alignSelf: "flex-start", padding: "0.75rem 1.75rem", fontSize: "0.95rem", borderRadius: "10px", marginTop: "0.5rem" }}>
@@ -100,7 +100,7 @@ export default function ProductsInventoryView({
 
       {products.length === 0 ? (
         <div className="card" style={{ padding: "3rem 1.5rem", textAlign: "center", background: "var(--surface-muted)", borderRadius: "20px" }}>
-          <h3 style={{ margin: "0 0 0.5rem 0", color: "#09090b" }}>{bn ? "এখনও কোনো পণ্য নেই" : "No products in inventory"}</h3>
+          <h3 style={{ margin: "0 0 0.5rem 0", color: "#0c2b24" }}>{bn ? "এখনও কোনো পণ্য নেই" : "No products in inventory"}</h3>
           <p className="muted" style={{ margin: 0 }}>
             {bn ? "উপরের ফর্মটি পূরণ করে প্রথম পণ্য যোগ করুন, অথবা CSV থেকে একসাথে অনেক পণ্য আমদানি করুন।" : "Use the form above to list your first product, or import many at once from a CSV file."}
           </p>
@@ -109,7 +109,7 @@ export default function ProductsInventoryView({
         <div className="card" style={{ padding: 0, overflow: "auto", background: "#ffffff", borderRadius: "20px", boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.04)", border: "1px solid rgba(0, 0, 0, 0.08)" }}>
           <table className="data-table" style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid rgba(0, 0, 0, 0.08)", background: "#fafafa" }}>
+              <tr style={{ borderBottom: "1px solid rgba(0, 0, 0, 0.08)", background: "#f3f8f2" }}>
                 <th style={th}>{t.productName}</th>
                 {services && <th style={th}>{bn ? "ক্যাটাগরি" : "Category"}</th>}
                 <th style={th}>{t.priceTaka}</th>
@@ -127,10 +127,10 @@ export default function ProductsInventoryView({
                         {p.image ? (
                           <img src={p.image} alt={p.name} style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 10, border: "1px solid rgba(0, 0, 0, 0.08)" }} />
                         ) : (
-                          <div style={{ width: 48, height: 48, backgroundColor: "#f4f4f5", borderRadius: 10 }} />
+                          <div style={{ width: 48, height: 48, backgroundColor: "#e8efe6", borderRadius: 10 }} />
                         )}
                         <div>
-                          <strong style={{ display: "block", color: "#09090b", fontSize: "0.95rem" }}>{p.name}</strong>
+                          <strong style={{ display: "block", color: "#0c2b24", fontSize: "0.95rem" }}>{p.name}</strong>
                           {p.description && <div className="muted small" style={{ fontSize: "0.8rem", marginTop: "0.15rem" }}>{p.description}</div>}
                         </div>
                       </div>
@@ -140,7 +140,7 @@ export default function ProductsInventoryView({
                         {cat || <span style={{ color: "#b45309", background: "#fef3c7", padding: "0.15rem 0.5rem", borderRadius: 6, fontSize: "0.78rem" }}>{bn ? "ক্যাটাগরি নেই" : "No category"}</span>}
                       </td>
                     )}
-                    <td style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "#09090b", fontSize: "0.95rem" }}>
+                    <td style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "#0c2b24", fontSize: "0.95rem" }}>
                       {formatMoney(p.price)}
                       {p.compareAtPrice ? <div className="muted" style={{ fontWeight: 400, fontSize: "0.78rem", textDecoration: "line-through" }}>{formatMoney(p.compareAtPrice)}</div> : null}
                     </td>
@@ -161,7 +161,7 @@ export default function ProductsInventoryView({
                     </td>
                     <td style={{ padding: "1rem 1.25rem", textAlign: "right", whiteSpace: "nowrap" }}>
                       {services && (
-                        <Link href={`/dashboard/products/${encodeURIComponent(p.id)}`} style={{ fontSize: "0.85rem", padding: "0.4rem 0.8rem", borderRadius: 6, background: "rgba(0,0,0,0.05)", color: "#09090b", textDecoration: "none", marginRight: "0.5rem", fontWeight: 500 }}>
+                        <Link href={`/dashboard/products/${encodeURIComponent(p.id)}`} style={{ fontSize: "0.85rem", padding: "0.4rem 0.8rem", borderRadius: 6, background: "rgba(0,0,0,0.05)", color: "#0c2b24", textDecoration: "none", marginRight: "0.5rem", fontWeight: 500 }}>
                           {bn ? "সম্পাদনা" : "Edit"}
                         </Link>
                       )}

@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from "react";
 import type { CategoryChoice } from "@/lib/catalogue/import";
 
-const sel: React.CSSProperties = { padding: "0.75rem 1rem", background: "#fff", border: "1px solid rgba(0,0,0,0.12)", borderRadius: 10, color: "#09090b", fontSize: "0.95rem", width: "100%" };
+const sel: React.CSSProperties = { padding: "0.75rem 1rem", background: "#fff", border: "1px solid rgba(0,0,0,0.12)", borderRadius: 10, color: "#0c2b24", fontSize: "0.95rem", width: "100%" };
 
 /**
  * Department, then sub-category. Submits ONE value (`categoryId`): the sub-category, or the department

@@ -127,7 +127,7 @@ export default function ShopLocationField({ defaults = {} }: { defaults?: ShopLo
       {gpsMsg && <p className="error" style={{ margin: 0, fontSize: "0.88rem" }}>{gpsMsg}</p>}
 
       <div style={{ position: "relative" }}>
-        <div ref={box} aria-label="Map: drag the pin to your shop" style={{ height: 300, borderRadius: 12, border: "1px solid rgba(0,0,0,0.12)", background: "#eef2f6" }} />
+        <div ref={box} aria-label="Map: drag the pin to your shop" style={{ height: 300, borderRadius: 12, border: "1px solid rgba(0,0,0,0.12)", background: "#eaf4ec" }} />
         {mapState === "loading" && <div className="muted" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", pointerEvents: "none" }}>Loading map…</div>}
       </div>
       {mapState === "failed" && (

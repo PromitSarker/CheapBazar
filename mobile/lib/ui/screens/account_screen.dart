@@ -69,7 +69,7 @@ class AccountScreen extends StatelessWidget {
         else ...[
           Card(
             child: ListTile(
-              leading: CircleAvatar(backgroundColor: const Color(0xFF18181B), child: Text(s.user!.name.isEmpty ? '?' : s.user!.name[0].toUpperCase(), style: const TextStyle(color: Colors.white))),
+              leading: CircleAvatar(backgroundColor: const Color(0xFF123B32), child: Text(s.user!.name.isEmpty ? '?' : s.user!.name[0].toUpperCase(), style: const TextStyle(color: Colors.white))),
               title: Text(s.user!.name, style: const TextStyle(fontWeight: FontWeight.w800)),
               subtitle: Text(s.user!.email),
             ),
@@ -82,7 +82,7 @@ class AccountScreen extends StatelessWidget {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(t.t('shop_owner_notice'), style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
-                SelectableText(api.baseUrl, style: const TextStyle(color: Color(0xFF2563EB))),
+                SelectableText(api.baseUrl, style: const TextStyle(color: Color(0xFF1E7A57))),
               ]),
             ),
           ],

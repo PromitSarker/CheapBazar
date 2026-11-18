@@ -62,7 +62,7 @@ class _AuthScreenState extends State<AuthScreen> {
               child: Container(
                 width: 64,
                 height: 64,
-                decoration: BoxDecoration(color: const Color(0xFF18181B), borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(color: const Color(0xFF123B32), borderRadius: BorderRadius.circular(16)),
                 child: const Icon(Icons.shopping_bag, color: Colors.white, size: 34),
               ),
             ),

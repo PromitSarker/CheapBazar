@@ -41,7 +41,7 @@ export default function ImportView({ categories, previewAction, commitAction }: 
     }
   };
 
-  const th: React.CSSProperties = { padding: "0.7rem 0.9rem", fontSize: "0.75rem", color: "#71717a", textTransform: "uppercase", textAlign: "left" };
+  const th: React.CSSProperties = { padding: "0.7rem 0.9rem", fontSize: "0.75rem", color: "#5c6b64", textTransform: "uppercase", textAlign: "left" };
   const td: React.CSSProperties = { padding: "0.7rem 0.9rem", fontSize: "0.88rem", verticalAlign: "top" };
 
   return (
@@ -103,7 +103,7 @@ export default function ImportView({ categories, previewAction, commitAction }: 
                 </form>
               </div>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead><tr style={{ background: "#fafafa" }}><th style={th}>{bn ? "লাইন" : "Line"}</th><th style={th}>{bn ? "পণ্য" : "Product"}</th><th style={th}>{bn ? "ক্যাটাগরি" : "Category"}</th><th style={th}>{bn ? "দাম" : "Price"}</th><th style={th}>{bn ? "অবস্থা" : "Status"}</th></tr></thead>
+                <thead><tr style={{ background: "#f3f8f2" }}><th style={th}>{bn ? "লাইন" : "Line"}</th><th style={th}>{bn ? "পণ্য" : "Product"}</th><th style={th}>{bn ? "ক্যাটাগরি" : "Category"}</th><th style={th}>{bn ? "দাম" : "Price"}</th><th style={th}>{bn ? "অবস্থা" : "Status"}</th></tr></thead>
                 <tbody>
                   {state.rows.map((r) => (
                     <tr key={r.line} style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
@@ -113,7 +113,7 @@ export default function ImportView({ categories, previewAction, commitAction }: 
                       <td style={td}>{r.payload ? formatMoney(r.payload.price) : "—"}</td>
                       <td style={td}>
                         {r.ok && !r.skip && <span style={badge("#dcfce7", "#166534")}>{bn ? "ঠিক আছে" : "OK"}</span>}
-                        {r.ok && r.skip && <span style={badge("#f4f4f5", "#52525b")}>{bn ? "বাদ" : "Skipped"}: {r.skip}</span>}
+                        {r.ok && r.skip && <span style={badge("#e8efe6", "#4f6159")}>{bn ? "বাদ" : "Skipped"}: {r.skip}</span>}
                         {!r.ok && <div style={{ color: "#b91c1c" }}>{r.errors.map((e, i) => <div key={i}>• {e}</div>)}</div>}
                       </td>
                     </tr>

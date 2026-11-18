@@ -102,8 +102,8 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
           width: "100%",
           maxWidth: "460px",
           height: "100%",
-          backgroundColor: "#161618",
-          color: "#f4f4f5",
+          backgroundColor: "#123b32",
+          color: "#e8efe6",
           boxShadow: "-10px 0 30px rgba(0,0,0,0.5)",
           display: "flex",
           flexDirection: "column",
@@ -134,7 +134,7 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
             style={{
               background: "none",
               border: "none",
-              color: "#a1a1aa",
+              color: "#8a9a92",
               fontSize: "1.5rem",
               cursor: "pointer",
               lineHeight: 1,
@@ -149,7 +149,7 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
           <div style={{ padding: "4rem 1rem", textAlign: "center", margin: "auto" }}>
             <div style={{ fontSize: "2.5rem", marginBottom: "1rem", opacity: 0.5 }}>🛍️</div>
             <h3 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>{t.emptyCartTitle}</h3>
-            <p style={{ color: "#a1a1aa", fontSize: "0.85rem", marginBottom: "1.5rem" }}>{t.emptyCartSub}</p>
+            <p style={{ color: "#8a9a92", fontSize: "0.85rem", marginBottom: "1.5rem" }}>{t.emptyCartSub}</p>
             <button onClick={closeCart} className="button" style={{ backgroundColor: "rgba(255,255,255,0.1)" }}>
               {t.continueShopping}
             </button>
@@ -173,7 +173,7 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
                   >
                     <div style={{ flex: 1 }}>
                       <h4 style={{ margin: "0 0 0.25rem 0", fontSize: "0.95rem", fontWeight: 600 }}>{item.name}</h4>
-                      <p style={{ margin: 0, fontSize: "0.8rem", color: "#a1a1aa" }}>
+                      <p style={{ margin: 0, fontSize: "0.8rem", color: "#8a9a92" }}>
                         {formatMoney(item.price)} {t.each}
                       </p>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem" }}>
@@ -238,7 +238,7 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
             </div>
 
             <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "1rem", marginTop: "auto" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.9rem", color: "#a1a1aa" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.9rem", color: "#8a9a92" }}>
                 <span>{t.subtotal}</span>
                 <span>{formatMoney(subtotal)}</span>
               </div>
@@ -254,7 +254,7 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
               >
                 {t.proceedToCheckout} &rarr;
               </button>
-              <p style={{ textAlign: "center", fontSize: "0.75rem", color: "#71717a", marginTop: "0.75rem" }}>
+              <p style={{ textAlign: "center", fontSize: "0.75rem", color: "#5c6b64", marginTop: "0.75rem" }}>
                 {t.stockHoldNotice}
               </p>
             </div>
@@ -297,7 +297,7 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
               )}
 
               <div style={{ marginBottom: "1rem" }}>
-                <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.35rem" }}>
+                <label style={{ display: "block", fontSize: "0.85rem", color: "#c5d0c0", marginBottom: "0.35rem" }}>
                   Your Full Name *
                 </label>
                 <input
@@ -319,7 +319,7 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
               </div>
 
               <div style={{ marginBottom: "1rem" }}>
-                <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.35rem" }}>
+                <label style={{ display: "block", fontSize: "0.85rem", color: "#c5d0c0", marginBottom: "0.35rem" }}>
                   Mobile Number (Bangladesh) *
                 </label>
                 <input
@@ -341,7 +341,7 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
               </div>
 
               <div style={{ marginBottom: "1rem" }}>
-                <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.35rem" }}>
+                <label style={{ display: "block", fontSize: "0.85rem", color: "#c5d0c0", marginBottom: "0.35rem" }}>
                   Delivery Address *
                 </label>
                 <textarea
@@ -364,7 +364,7 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
               </div>
 
               <div style={{ marginBottom: "1.25rem" }}>
-                <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.35rem" }}>
+                <label style={{ display: "block", fontSize: "0.85rem", color: "#c5d0c0", marginBottom: "0.35rem" }}>
                   City / District
                 </label>
                 <select
@@ -374,7 +374,7 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
                     width: "100%",
                     padding: "0.6rem 0.75rem",
                     borderRadius: "6px",
-                    backgroundColor: "#27272a",
+                    backgroundColor: "#24332d",
                     border: "1px solid rgba(255,255,255,0.15)",
                     color: "#fff",
                     fontSize: "0.9rem",
@@ -393,7 +393,7 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
 
               {/* PAYMENT METHOD CHOOSER */}
               <div style={{ marginBottom: "1rem" }}>
-                <label style={{ display: "block", fontSize: "0.85rem", color: "#d4d4d8", marginBottom: "0.5rem" }}>
+                <label style={{ display: "block", fontSize: "0.85rem", color: "#c5d0c0", marginBottom: "0.5rem" }}>
                   Payment Method
                 </label>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -422,7 +422,7 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
                       <div style={{ fontWeight: 600, fontSize: "0.9rem", color: "#fff" }}>
                         SSLCommerz (Online / Instant)
                       </div>
-                      <div style={{ fontSize: "0.78rem", color: "#a1a1aa", marginTop: "0.15rem" }}>
+                      <div style={{ fontSize: "0.78rem", color: "#8a9a92", marginTop: "0.15rem" }}>
                         Cards (VISA, Mastercard), bKash, Nagad, Rocket, Upay & Net Banking.
                       </div>
                     </div>
@@ -453,7 +453,7 @@ export default function CartDrawer({ storeName, storeSlug = "demo-bakery" }: Car
                       <div style={{ fontWeight: 600, fontSize: "0.9rem", color: "#fff" }}>
                         Cash On Delivery (COD)
                       </div>
-                      <div style={{ fontSize: "0.78rem", color: "#a1a1aa", marginTop: "0.15rem" }}>
+                      <div style={{ fontSize: "0.78rem", color: "#8a9a92", marginTop: "0.15rem" }}>
                         Pay cash when courier delivers the package to your door.
                       </div>
                     </div>

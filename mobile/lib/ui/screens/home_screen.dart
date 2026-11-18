@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             width: 30,
             height: 30,
-            decoration: BoxDecoration(color: const Color(0xFF18181B), borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(color: const Color(0xFF123B32), borderRadius: BorderRadius.circular(8)),
             child: const Icon(Icons.shopping_bag, color: Colors.white, size: 18),
           ),
           const SizedBox(width: 10),
@@ -274,7 +274,7 @@ class _SearchBox extends StatelessWidget {
             child: Container(
               height: 48,
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFD4D4D8))),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFC5D0C0))),
               child: Row(children: [
                 const Icon(Icons.search, color: kMuted),
                 const SizedBox(width: 10),
@@ -300,7 +300,7 @@ class _Dots extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 3),
               width: i == index ? 18 : 6,
               height: 6,
-              decoration: BoxDecoration(color: i == index ? kAction : const Color(0xFFD4D4D8), borderRadius: BorderRadius.circular(3)),
+              decoration: BoxDecoration(color: i == index ? kAction : const Color(0xFFC5D0C0), borderRadius: BorderRadius.circular(3)),
             ),
         ]),
       );
@@ -385,7 +385,7 @@ class _StoreTile extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Icon(Icons.storefront_outlined, color: Color(0xFF18181B)),
+              const Icon(Icons.storefront_outlined, color: Color(0xFF123B32)),
               const Spacer(),
               Text(store.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
               Text(t.t('products_count', {'n': '${store.productCount}'}), style: const TextStyle(color: kMuted, fontSize: 12)),

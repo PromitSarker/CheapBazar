@@ -743,7 +743,7 @@ export default function WalletView({
                     }}
                   >
                     {payoutMethods.map((m) => (
-                      <option key={m.id} value={m.id} style={{ background: "#ffffff", color: "#18181b" }}>
+                      <option key={m.id} value={m.id} style={{ background: "#ffffff", color: "#123b32" }}>
                         {m.type === "BANK_TRANSFER"
                           ? `Bank: ${m.bankName} (A/C: ${m.accountNumber})`
                           : `${m.type}: ${m.phoneNumber} (${m.accountType})`}
@@ -820,7 +820,7 @@ export default function WalletView({
                     width: "100%",
                     padding: "0.85rem",
                     fontSize: "1rem",
-                    backgroundColor: withdrawableBalance >= 500 ? "var(--success)" : "#52525b",
+                    backgroundColor: withdrawableBalance >= 500 ? "var(--success)" : "#4f6159",
                     color: "#ffffff",
                     fontWeight: 600,
                   }}
@@ -963,9 +963,9 @@ export default function WalletView({
                         fontSize: "0.9rem",
                       }}
                     >
-                      <option value="PERSONAL" style={{ background: "#ffffff", color: "#18181b" }}>Personal Wallet</option>
-                      <option value="MERCHANT" style={{ background: "#ffffff", color: "#18181b" }}>Merchant Account</option>
-                      <option value="AGENT" style={{ background: "#ffffff", color: "#18181b" }}>Agent Account</option>
+                      <option value="PERSONAL" style={{ background: "#ffffff", color: "#123b32" }}>Personal Wallet</option>
+                      <option value="MERCHANT" style={{ background: "#ffffff", color: "#123b32" }}>Merchant Account</option>
+                      <option value="AGENT" style={{ background: "#ffffff", color: "#123b32" }}>Agent Account</option>
                     </select>
                   </div>
 
