@@ -4,6 +4,7 @@ import { getServerLanguage } from "@/modules/i18n/server";
 import { LanguageProvider } from "@/modules/i18n/LanguageContext";
 import SiteHeader from "@/components/layout/SiteHeader";
 import SiteFooter from "@/components/layout/SiteFooter";
+import ScrollState from "@/components/motion/ScrollState";
 import { servicesEnabled } from "@/lib/bff/client";
 import { unreadCountViaServices } from "@/lib/bff/notifications";
 import { locationPolicy } from "@/lib/bff/location";
@@ -46,6 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={initialLang}>
       <body className={`${outfit.variable} ${bengali.variable}`}>
         <LanguageProvider initialLang={initialLang}>
+          <ScrollState />
           <SiteHeader user={user} marketplace={servicesEnabled()} unread={unread} locationUi={policy?.enabled ? { radiusKm: policy.radiusKm, current: buyerLoc } : null} />
           <main className="site-main">{children}</main>
           <SiteFooter />
