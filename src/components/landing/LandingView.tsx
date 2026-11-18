@@ -6,6 +6,8 @@ import { useLanguage } from "@/modules/i18n/LanguageContext";
 import Icon from "@/components/ui/Icon";
 import SponsoredBanner from "@/components/sponsored/SponsoredBanner";
 import BuyerLocation from "@/components/location/BuyerLocation";
+import ScrollReveal from "@/components/motion/ScrollReveal";
+import CountUp from "@/components/motion/CountUp";
 
 interface StoreItem {
   id: string;
@@ -80,6 +82,7 @@ export default function LandingView({ stores, heroAds = [], locationRequired = f
 
   return (
     <div className="landing">
+      <ScrollReveal />
       {/* =========================================================================
           1. HERO SECTION
           ========================================================================= */}
@@ -108,19 +111,19 @@ export default function LandingView({ stores, heroAds = [], locationRequired = f
         {/* Floating Trust Metrics Bar */}
         <div className="hero-trust-bar">
           <div className="trust-stat-item">
-            <span className="trust-stat-val">{t.statVolumeVal}</span>
+            <span className="trust-stat-val"><CountUp value={t.statVolumeVal} /></span>
             <span className="trust-stat-label">{t.statVolumeLabel}</span>
           </div>
           <div className="trust-stat-item">
-            <span className="trust-stat-val">{t.statSetupVal}</span>
+            <span className="trust-stat-val"><CountUp value={t.statSetupVal} /></span>
             <span className="trust-stat-label">{t.statSetupLabel}</span>
           </div>
           <div className="trust-stat-item">
-            <span className="trust-stat-val">{t.statFreeVal}</span>
+            <span className="trust-stat-val"><CountUp value={t.statFreeVal} /></span>
             <span className="trust-stat-label">{t.statFreeLabel}</span>
           </div>
           <div className="trust-stat-item">
-            <span className="trust-stat-val">{t.statNationwideVal}</span>
+            <span className="trust-stat-val"><CountUp value={t.statNationwideVal} /></span>
             <span className="trust-stat-label">{t.statNationwideLabel}</span>
           </div>
         </div>
@@ -503,6 +506,7 @@ export default function LandingView({ stores, heroAds = [], locationRequired = f
                   className="faq-trigger"
                   onClick={() => toggleFaq(idx)}
                   aria-expanded={isOpen}
+                  aria-controls={`faq-panel-${idx}`}
                 >
                   <span>{item.q}</span>
                   <svg
@@ -514,7 +518,11 @@ export default function LandingView({ stores, heroAds = [], locationRequired = f
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                {isOpen && <div className="faq-body">{item.a}</div>}
+                <div className="faq-body-wrap" id={`faq-panel-${idx}`} role="region" aria-hidden={!isOpen}>
+                  <div className="faq-body-clip">
+                    <div className="faq-body">{item.a}</div>
+                  </div>
+                </div>
               </div>
             );
           })}
