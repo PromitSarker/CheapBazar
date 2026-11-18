@@ -60,7 +60,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             child: Container(
               height: 46,
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFD4D4D8))),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFC5D0C0))),
               child: Row(children: [
                 const Icon(Icons.search, color: kMuted),
                 const SizedBox(width: 10),
@@ -85,7 +85,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     return Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Container(
         width: 96,
-        color: const Color(0xFFF1F1F3),
+        color: const Color(0xFFEAF4EC),
         child: ListView.builder(
           itemCount: cats.length,
           itemBuilder: (_, i) {
@@ -104,7 +104,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     border: Border(left: BorderSide(color: on ? kAction : Colors.transparent, width: 3)),
                   ),
                   child: Column(children: [
-                    Icon(categoryIcon(c.icon), size: 24, color: on ? kAction : const Color(0xFF52525B)),
+                    Icon(categoryIcon(c.icon), size: 24, color: on ? kAction : const Color(0xFF4F6159)),
                     const SizedBox(height: 4),
                     Text(c.name(bn), maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, height: 1.2, fontWeight: on ? FontWeight.w800 : FontWeight.w600)),
                   ]),
@@ -152,7 +152,7 @@ class _CategoriesSkeleton extends StatelessWidget {
   Widget build(BuildContext context) => Row(children: [
         Container(
           width: 96,
-          color: const Color(0xFFF1F1F3),
+          color: const Color(0xFFEAF4EC),
           padding: const EdgeInsets.all(10),
           child: Column(children: [for (var i = 0; i < 7; i++) const Padding(padding: EdgeInsets.only(bottom: 14), child: Skeleton(height: 54, radius: 10))]),
         ),

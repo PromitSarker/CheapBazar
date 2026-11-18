@@ -6,8 +6,8 @@ import { reviewTopUp } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-const th = { padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" } as const;
-const td = { padding: "0.9rem 1.1rem", color: "#334155" } as const;
+const th = { padding: "0.9rem 1.1rem", fontSize: "0.78rem", fontWeight: 700, color: "#4f6159", textTransform: "uppercase", letterSpacing: "0.05em" } as const;
+const td = { padding: "0.9rem 1.1rem", color: "#3b4f46" } as const;
 
 export default async function AdminTopUpsPage({ searchParams }: { searchParams: { error?: string; done?: string } }) {
   await requireRole("ADMIN");
@@ -38,10 +38,10 @@ export default async function AdminTopUpsPage({ searchParams }: { searchParams: 
       {searchParams.error && <p className="error">{searchParams.error}</p>}
       {searchParams.done && <p className="success" style={{ color: "green", marginBottom: "1rem" }}>Top-up {searchParams.done}.</p>}
 
-      <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid #e2e8f0", backgroundColor: "#ffffff", marginBottom: "2rem" }}>
+      <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid #e2e8dc", backgroundColor: "#ffffff", marginBottom: "2rem" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
+            <tr style={{ borderBottom: "1px solid #e2e8dc", background: "#f3f8f2" }}>
               <th style={th}>Payer</th><th style={th}>Amount</th><th style={th}>Method / TrxID</th><th style={th}>Submitted</th><th style={th}>Decision</th>
             </tr>
           </thead>
@@ -50,7 +50,7 @@ export default async function AdminTopUpsPage({ searchParams }: { searchParams: 
               <tr><td colSpan={5} style={{ ...td, textAlign: "center" }}>Nothing is waiting for review.</td></tr>
             )}
             {pending.map((p) => (
-              <tr key={p.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+              <tr key={p.id} style={{ borderBottom: "1px solid #eaf4ec" }}>
                 <td style={td}><strong>{p.storeName}</strong><br /><small>{p.kind}{p.storeSlug ? ` · /store/${p.storeSlug}` : ""}</small></td>
                 <td style={td}><strong>৳{Number(p.amount).toFixed(2)}</strong></td>
                 <td style={td}>{p.method}<br /><code>{p.trxId}</code></td>
@@ -58,7 +58,7 @@ export default async function AdminTopUpsPage({ searchParams }: { searchParams: 
                 <td style={td}>
                   <form action={reviewTopUp} style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
                     <input type="hidden" name="id" value={p.id} />
-                    <input name="note" placeholder="Reason (needed to reject)" style={{ padding: "0.35rem 0.5rem", border: "1px solid #cbd5e1", borderRadius: 6 }} />
+                    <input name="note" placeholder="Reason (needed to reject)" style={{ padding: "0.35rem 0.5rem", border: "1px solid #c5d0c0", borderRadius: 6 }} />
                     <button type="submit" name="decision" value="APPROVE" className="button button-small">Approve</button>
                     <button type="submit" name="decision" value="REJECT" className="button button-small button-outline">Reject</button>
                   </form>
@@ -70,12 +70,12 @@ export default async function AdminTopUpsPage({ searchParams }: { searchParams: 
       </div>
 
       <h3 style={{ marginBottom: "0.75rem" }}>Recently reviewed</h3>
-      <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid #e2e8f0", backgroundColor: "#ffffff" }}>
+      <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid #e2e8dc", backgroundColor: "#ffffff" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.9rem" }}>
           <tbody>
             {recent.length === 0 && <tr><td style={{ ...td, textAlign: "center" }}>No reviewed top-ups yet.</td></tr>}
             {recent.map((p) => (
-              <tr key={p.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+              <tr key={p.id} style={{ borderBottom: "1px solid #eaf4ec" }}>
                 <td style={td}>{p.storeName}<br /><small>{p.kind}</small></td>
                 <td style={td}>৳{Number(p.amount).toFixed(2)}</td>
                 <td style={td}>{p.method} <code>{p.trxId}</code></td>

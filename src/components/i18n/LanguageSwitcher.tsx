@@ -33,7 +33,7 @@ export default function LanguageSwitcher() {
         onClick={() => handleSwitch("en")}
         style={{
           background: lang === "en" ? "#ffffff" : "transparent",
-          color: lang === "en" ? "#09090b" : "var(--text-tertiary)",
+          color: lang === "en" ? "#0c2b24" : "var(--text-tertiary)",
           border: "none",
           borderRadius: "999px",
           padding: "4px 10px",
@@ -51,7 +51,7 @@ export default function LanguageSwitcher() {
         onClick={() => handleSwitch("bn")}
         style={{
           background: lang === "bn" ? "#ffffff" : "transparent",
-          color: lang === "bn" ? "#09090b" : "var(--text-tertiary)",
+          color: lang === "bn" ? "#0c2b24" : "var(--text-tertiary)",
           border: "none",
           borderRadius: "999px",
           padding: "4px 10px",

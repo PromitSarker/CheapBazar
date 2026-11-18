@@ -12,10 +12,10 @@ export interface ProductInitial {
   channel?: string; moq?: number; wholesalePrice?: number | null; tiers?: { minQty: number; unitPrice: number }[];
 }
 
-const input: React.CSSProperties = { padding: "0.75rem 1rem", background: "#fff", border: "1px solid rgba(0,0,0,0.12)", borderRadius: 10, color: "#09090b", fontSize: "0.95rem", width: "100%" };
+const input: React.CSSProperties = { padding: "0.75rem 1rem", background: "#fff", border: "1px solid rgba(0,0,0,0.12)", borderRadius: 10, color: "#0c2b24", fontSize: "0.95rem", width: "100%" };
 const lab: React.CSSProperties = { display: "flex", flexDirection: "column", gap: "0.4rem" };
-const cap: React.CSSProperties = { fontSize: "0.85rem", fontWeight: 600, color: "#27272a" };
-const hint: React.CSSProperties = { fontSize: "0.78rem", color: "#71717a", fontWeight: 400 };
+const cap: React.CSSProperties = { fontSize: "0.85rem", fontWeight: 600, color: "#24332d" };
+const hint: React.CSSProperties = { fontSize: "0.78rem", color: "#5c6b64", fontWeight: 400 };
 
 /** Every manual-entry field for a product. Used by "Add product" and by the edit page. */
 export default function ProductFormFields({ categories, wholesale, initial = {} }: { categories: CategoryChoice[]; wholesale: boolean; initial?: ProductInitial }) {

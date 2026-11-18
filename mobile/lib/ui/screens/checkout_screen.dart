@@ -191,17 +191,17 @@ class OrderSuccessScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const CircleAvatar(radius: 40, backgroundColor: Color(0xFFDCFCE7), child: Icon(Icons.check_rounded, size: 48, color: Color(0xFF16A34A))),
+              const CircleAvatar(radius: 40, backgroundColor: Color(0xFFDCFCE7), child: Icon(Icons.check_rounded, size: 48, color: Color(0xFF1E7A57))),
               const SizedBox(height: 18),
               Text(t.t('order_placed'), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
               const SizedBox(height: 8),
-              Text(t.t('order_placed_hint'), textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF52525B), height: 1.4)),
+              Text(t.t('order_placed_hint'), textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF4F6159), height: 1.4)),
               const SizedBox(height: 22),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(children: [
-                    Text(t.t('order_number'), style: const TextStyle(color: Color(0xFF71717A))),
+                    Text(t.t('order_number'), style: const TextStyle(color: Color(0xFF5C6B64))),
                     const SizedBox(height: 2),
                     SelectableText(order.orderNumber, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 1)),
                     const SizedBox(height: 8),

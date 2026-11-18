@@ -83,9 +83,9 @@ class _ProductPageState extends State<ProductPage> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Icon(Icons.storefront_outlined, size: 18, color: Color(0xFF52525B)),
+                    const Icon(Icons.storefront_outlined, size: 18, color: Color(0xFF4F6159)),
                     const SizedBox(width: 6),
-                    Text(p.storeName, style: const TextStyle(color: Color(0xFF52525B), decoration: TextDecoration.underline)),
+                    Text(p.storeName, style: const TextStyle(color: Color(0xFF4F6159), decoration: TextDecoration.underline)),
                   ]),
                 ),
               ),
@@ -97,11 +97,11 @@ class _ProductPageState extends State<ProductPage> {
             if (!p.locked)
               Text(
                 !p.inStock ? t.t('out_of_stock') : (p.stock > 0 && p.stock <= 5 ? t.t('only_left', {'n': '${p.stock}'}) : t.t('in_stock')),
-                style: TextStyle(color: p.inStock ? const Color(0xFF16A34A) : const Color(0xFFDC2626), fontWeight: FontWeight.w600),
+                style: TextStyle(color: p.inStock ? const Color(0xFF1E7A57) : const Color(0xFFDC2626), fontWeight: FontWeight.w600),
               ),
             if (p.description.trim().isNotEmpty) ...[
               const SizedBox(height: 14),
-              Text(p.description, style: const TextStyle(height: 1.45, color: Color(0xFF3F3F46))),
+              Text(p.description, style: const TextStyle(height: 1.45, color: Color(0xFF3B4F46))),
             ],
           ]),
         ),
@@ -132,7 +132,7 @@ class _ProductPageState extends State<ProductPage> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 child: Row(children: [
                   Container(
-                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFFD4D4D8)), borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFFC5D0C0)), borderRadius: BorderRadius.circular(12)),
                     child: Row(children: [
                       IconButton(onPressed: qty > min ? () => setState(() => qty--) : null, icon: const Icon(Icons.remove)),
                       SizedBox(width: 34, child: Text('$qty', textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
@@ -173,10 +173,10 @@ class _ProductPageState extends State<ProductPage> {
 
   Widget _wholesalePrice(LocaleController t, Product p) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(t.t('wholesale_price'), style: const TextStyle(color: Color(0xFF71717A), fontSize: 12)),
+      Text(t.t('wholesale_price'), style: const TextStyle(color: Color(0xFF5C6B64), fontSize: 12)),
       Money(p.wholesalePrice ?? 0, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
       const SizedBox(height: 4),
-      Text(t.t('min_order_qty', {'n': '${p.moq}'}), style: const TextStyle(color: Color(0xFF52525B))),
+      Text(t.t('min_order_qty', {'n': '${p.moq}'}), style: const TextStyle(color: Color(0xFF4F6159))),
       if (p.tiers.isNotEmpty) ...[
         const SizedBox(height: 10),
         Text(t.t('volume_prices'), style: const TextStyle(fontWeight: FontWeight.w700)),
@@ -198,7 +198,7 @@ class _ProductPageState extends State<ProductPage> {
     final needLogin = reason == 'LOGIN_REQUIRED' || !context.read<SessionController>().loggedIn;
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: const Color(0xFFF4F4F5), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: const Color(0xFFE8EFE6), borderRadius: BorderRadius.circular(12)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           const Icon(Icons.lock_outline),
@@ -249,7 +249,7 @@ class _GalleryState extends State<_Gallery> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(color: kSale, borderRadius: BorderRadius.circular(8)),
-              child: Text(widget.badge!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12)),
+              child: Text(widget.badge!, style: const TextStyle(color: kInk, fontWeight: FontWeight.w800, fontSize: 12)),
             ),
           ),
         if (imgs.length > 1)

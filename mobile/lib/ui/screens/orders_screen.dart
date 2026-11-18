@@ -75,11 +75,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         StatusChip(o.status),
                       ]),
                       const SizedBox(height: 4),
-                      Text(o.orderNumber, style: const TextStyle(color: Color(0xFF71717A), fontSize: 12)),
+                      Text(o.orderNumber, style: const TextStyle(color: Color(0xFF5C6B64), fontSize: 12)),
                       const SizedBox(height: 6),
                       Text(o.items.map((i) => '${i.quantity}× ${i.name}').join(', '), maxLines: 2, overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 8),
-                      Row(children: [Money(o.totalAmount, style: const TextStyle(fontWeight: FontWeight.w800)), const Spacer(), const Icon(Icons.chevron_right, color: Color(0xFFA1A1AA))]),
+                      Row(children: [Money(o.totalAmount, style: const TextStyle(fontWeight: FontWeight.w800)), const Spacer(), const Icon(Icons.chevron_right, color: Color(0xFF8A9A92))]),
                     ]),
                   ),
                 ),
@@ -147,7 +147,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(t.t('track_order'))),
       body: ListView(padding: const EdgeInsets.all(16), children: [
-        Text(t.t('track_hint'), style: const TextStyle(color: Color(0xFF52525B))),
+        Text(t.t('track_hint'), style: const TextStyle(color: Color(0xFF4F6159))),
         const SizedBox(height: 14),
         TextField(controller: _number, textCapitalization: TextCapitalization.characters, decoration: InputDecoration(labelText: t.t('order_number'), hintText: 'ORD-XXXXXXXX')),
         const SizedBox(height: 12),

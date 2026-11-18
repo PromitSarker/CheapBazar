@@ -98,13 +98,13 @@ class _ProScreenState extends State<ProScreen> {
                     Expanded(child: Text(t.t('buyer_pro'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800))),
                   ]),
                   const SizedBox(height: 6),
-                  Text(t.t('buyer_pro_blurb'), style: const TextStyle(color: Color(0xFF52525B))),
+                  Text(t.t('buyer_pro_blurb'), style: const TextStyle(color: Color(0xFF4F6159))),
                   const SizedBox(height: 10),
                   Text(
                     status.active
                         ? t.t('pro_active', {'d': status.currentPeriodEnd == null ? '' : '${status.currentPeriodEnd!.day}/${status.currentPeriodEnd!.month}/${status.currentPeriodEnd!.year}'})
                         : t.t('pro_inactive'),
-                    style: TextStyle(fontWeight: FontWeight.w700, color: status.active ? const Color(0xFF16A34A) : const Color(0xFF71717A)),
+                    style: TextStyle(fontWeight: FontWeight.w700, color: status.active ? const Color(0xFF1E7A57) : const Color(0xFF5C6B64)),
                   ),
                   if (plan != null) ...[
                     const SizedBox(height: 6),
@@ -116,7 +116,7 @@ class _ProScreenState extends State<ProScreen> {
             const SizedBox(height: 16),
             Text(t.t('pro_how'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
             const SizedBox(height: 6),
-            Text(t.t('pro_instructions'), style: const TextStyle(color: Color(0xFF52525B), height: 1.4)),
+            Text(t.t('pro_instructions'), style: const TextStyle(color: Color(0xFF4F6159), height: 1.4)),
             if (instructions.isNotEmpty) ...[
               const SizedBox(height: 10),
               Container(

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 const COLOR: Record<string, string> = {
   CONFIRMED: "var(--text-primary)", PENDING_PAYMENT: "var(--warning)", PROCESSING: "var(--text-primary)", SHIPPED: "#a78bfa",
-  DELIVERED: "var(--success)", CANCELLED: "#94a3b8", REFUSED: "var(--danger)",
+  DELIVERED: "var(--success)", CANCELLED: "#8a9a92", REFUSED: "var(--danger)",
 };
 const LABEL: Record<string, string> = { PENDING_PAYMENT: "Awaiting payment", REFUSED: "Refused at delivery" };
 const day = (v: string) => new Date(v).toISOString().slice(0, 10);

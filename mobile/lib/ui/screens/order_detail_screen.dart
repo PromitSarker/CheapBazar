@@ -80,7 +80,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             Expanded(child: Text(o.storeName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
             StatusChip(o.status),
           ]),
-          if (o.createdAt != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(_fmt(o.createdAt!), style: const TextStyle(color: Color(0xFF71717A)))),
+          if (o.createdAt != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(_fmt(o.createdAt!), style: const TextStyle(color: Color(0xFF5C6B64)))),
           const SizedBox(height: 14),
           if (!terminalBad && stepIndex >= 0)
             Card(
@@ -90,7 +90,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   for (var i = 0; i < _steps.length; i++) ...[
                     Expanded(
                       child: Column(children: [
-                        Icon(i <= stepIndex ? Icons.check_circle : Icons.radio_button_unchecked, color: i <= stepIndex ? const Color(0xFF16A34A) : const Color(0xFFA1A1AA)),
+                        Icon(i <= stepIndex ? Icons.check_circle : Icons.radio_button_unchecked, color: i <= stepIndex ? const Color(0xFF1E7A57) : const Color(0xFF8A9A92)),
                         const SizedBox(height: 4),
                         Text(t.t('status_${_steps[i]}'), textAlign: TextAlign.center, style: TextStyle(fontSize: 11, fontWeight: i == stepIndex ? FontWeight.w800 : FontWeight.w500)),
                       ]),

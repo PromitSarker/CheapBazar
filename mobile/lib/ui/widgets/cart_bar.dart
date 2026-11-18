@@ -19,7 +19,7 @@ class CartBar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
       child: Material(
-        color: kAction,
+        color: kBrand,
         borderRadius: BorderRadius.circular(14),
         elevation: 3,
         child: InkWell(
@@ -28,7 +28,7 @@ class CartBar extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(children: [
-              const Icon(Icons.shopping_bag_outlined, color: Colors.white),
+              const Icon(Icons.shopping_bag_outlined, color: kLime),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -40,9 +40,9 @@ class CartBar extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Flexible(
-                child: Text(t.t('view_bag'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                child: Text(t.t('view_bag'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kLime, fontWeight: FontWeight.w700)),
               ),
-              const Icon(Icons.chevron_right, color: Colors.white),
+              const Icon(Icons.chevron_right, color: kLime),
             ]),
           ),
         ),

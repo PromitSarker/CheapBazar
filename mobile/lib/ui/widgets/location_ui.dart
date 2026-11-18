@@ -116,7 +116,7 @@ class _LocationSheetState extends State<_LocationSheet> {
                       final selected = loc.label == d.id;
                       return ListTile(
                         title: Text(d.name(t.isBn)),
-                        trailing: selected ? const Icon(Icons.check, color: Color(0xFF18181B)) : null,
+                        trailing: selected ? const Icon(Icons.check, color: Color(0xFF123B32)) : null,
                         onTap: () async {
                           await loc.chooseDistrict(d);
                           if (context.mounted) Navigator.pop(context);
@@ -161,7 +161,7 @@ class LocationChip extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 110),
         child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
-      style: TextButton.styleFrom(foregroundColor: loc.hasLocation ? const Color(0xFF18181B) : const Color(0xFFB45309)),
+      style: TextButton.styleFrom(foregroundColor: loc.hasLocation ? const Color(0xFF123B32) : const Color(0xFFB45309)),
     );
   }
 }

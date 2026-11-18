@@ -18,9 +18,9 @@ class NetImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final url = context.read<ApiClient>().absoluteUrl(path);
     final placeholder = Container(
-      color: const Color(0xFFF1F1F3),
+      color: const Color(0xFFEAF4EC),
       alignment: Alignment.center,
-      child: Icon(icon, color: const Color(0xFFA1A1AA), size: 32),
+      child: Icon(icon, color: const Color(0xFF8A9A92), size: 32),
     );
     final child = url.isEmpty
         ? placeholder
@@ -56,12 +56,12 @@ class EmptyState extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(icon, size: 64, color: const Color(0xFFA1A1AA)),
+            Icon(icon, size: 64, color: const Color(0xFF8A9A92)),
             const SizedBox(height: 14),
             Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             if (subtitle != null) ...[
               const SizedBox(height: 6),
-              Text(subtitle!, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF71717A))),
+              Text(subtitle!, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF5C6B64))),
             ],
             if (action != null) ...[const SizedBox(height: 18), action!],
           ]),
@@ -88,9 +88,9 @@ class StatusChip extends StatelessWidget {
   static Color colorFor(String s) {
     switch (s) {
       case 'DELIVERED':
-        return const Color(0xFF16A34A);
+        return const Color(0xFF1E7A57);
       case 'SHIPPED':
-        return const Color(0xFF2563EB);
+        return const Color(0xFF1E7A57);
       case 'CANCELLED':
       case 'REFUSED':
         return const Color(0xFFDC2626);
@@ -98,7 +98,7 @@ class StatusChip extends StatelessWidget {
       case 'PLACING':
         return const Color(0xFFD97706);
       default:
-        return const Color(0xFF52525B);
+        return const Color(0xFF4F6159);
     }
   }
 

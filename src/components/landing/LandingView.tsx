@@ -362,7 +362,7 @@ export default function LandingView({ stores, heroAds = [], locationRequired = f
                         padding: "3px 8px",
                         borderRadius: "99px",
                         background: s.template === "modern" ? "rgba(59, 130, 246, 0.1)" : "rgba(0, 0, 0, 0.05)",
-                        color: s.template === "modern" ? "#2563eb" : "#4b5563",
+                        color: s.template === "modern" ? "#1e7a57" : "#4f6159",
                       }}
                     >
                       {s.template}
@@ -387,10 +387,10 @@ export default function LandingView({ stores, heroAds = [], locationRequired = f
                             key={idx}
                             style={{
                               fontSize: "0.75rem",
-                              background: "#f1f5f9",
+                              background: "#eaf4ec",
                               padding: "2px 6px",
                               borderRadius: "4px",
-                              color: "#334155",
+                              color: "#3b4f46",
                             }}
                           >
                             {p.name} ({formatTaka(p.price, language)})
@@ -406,7 +406,7 @@ export default function LandingView({ stores, heroAds = [], locationRequired = f
                       paddingTop: "0.75rem",
                       fontSize: "0.85rem",
                       fontWeight: 600,
-                      color: "#2563eb",
+                      color: "#1e7a57",
                     }}
                   >
                     {t.visitStore}
@@ -531,7 +531,7 @@ export default function LandingView({ stores, heroAds = [], locationRequired = f
           <Link href="/signup" className="button">
             {t.finalCtaButton}
           </Link>
-          <span className="small" style={{ color: "#94a3b8", marginTop: "0.5rem" }}>
+          <span className="small" style={{ color: "#8a9a92", marginTop: "0.5rem" }}>
             {t.noCreditCard}
           </span>
         </div>

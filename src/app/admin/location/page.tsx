@@ -37,7 +37,7 @@ export default async function AdminLocationPage({ searchParams }: { searchParams
       {searchParams.error && <p className="error">{searchParams.error}</p>}
       {searchParams.done && <p style={{ color: "green", marginBottom: "1rem" }}>{searchParams.done}.</p>}
 
-      <form action={saveRange} className="card" style={{ padding: "1.25rem", maxWidth: 520, border: "1px solid #e2e8f0", background: "#fff", display: "flex", flexDirection: "column", gap: "1rem" }}>
+      <form action={saveRange} className="card" style={{ padding: "1.25rem", maxWidth: 520, border: "1px solid #e2e8dc", background: "#fff", display: "flex", flexDirection: "column", gap: "1rem" }}>
         <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", fontWeight: 600 }}>
           <input type="checkbox" name="enabled" defaultChecked={policy.enabled} style={{ width: 18, height: 18 }} />
           Only show shops within the range below
@@ -47,13 +47,13 @@ export default async function AdminLocationPage({ searchParams }: { searchParams
           <legend style={{ fontWeight: 600, marginBottom: "0.5rem", padding: 0 }}>Range</legend>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
             {PRESETS.map((km) => (
-              <label key={km} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "0.4rem 0.75rem", border: "1px solid #cbd5e1", borderRadius: 8, cursor: "pointer" }}>
+              <label key={km} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "0.4rem 0.75rem", border: "1px solid #c5d0c0", borderRadius: 8, cursor: "pointer" }}>
                 <input type="radio" name="preset" value={String(km)} defaultChecked={policy.radiusKm === km} /> {km} km
               </label>
             ))}
-            <label style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "0.4rem 0.75rem", border: "1px solid #cbd5e1", borderRadius: 8 }}>
+            <label style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "0.4rem 0.75rem", border: "1px solid #c5d0c0", borderRadius: 8 }}>
               <input type="radio" name="preset" value="custom" defaultChecked={!isPreset} /> Custom
-              <input name="custom" type="number" min={1} max={500} step="0.5" defaultValue={isPreset ? "" : policy.radiusKm} placeholder="km" style={{ width: 80, padding: "0.25rem 0.4rem", border: "1px solid #cbd5e1", borderRadius: 6 }} />
+              <input name="custom" type="number" min={1} max={500} step="0.5" defaultValue={isPreset ? "" : policy.radiusKm} placeholder="km" style={{ width: 80, padding: "0.25rem 0.4rem", border: "1px solid #c5d0c0", borderRadius: 6 }} />
             </label>
           </div>
           <small className="muted" style={{ display: "block", marginTop: "0.5rem" }}>Straight-line distance, from 1 to 500 km.</small>

@@ -28,7 +28,7 @@ export default function ProductEditView({
           <ProductFormFields categories={categories} wholesale={wholesale} initial={initial} />
           <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
             <button type="submit" className="button glow-button" style={{ padding: "0.75rem 1.75rem", borderRadius: 10 }}>{bn ? "সংরক্ষণ করুন" : "Save changes"}</button>
-            <Link href="/dashboard/products" className="button" style={{ background: "#fff", color: "#09090b", border: "1px solid rgba(0,0,0,0.15)", padding: "0.75rem 1.5rem", borderRadius: 10 }}>{bn ? "বাতিল" : "Cancel"}</Link>
+            <Link href="/dashboard/products" className="button" style={{ background: "#fff", color: "#0c2b24", border: "1px solid rgba(0,0,0,0.15)", padding: "0.75rem 1.5rem", borderRadius: 10 }}>{bn ? "বাতিল" : "Cancel"}</Link>
           </div>
         </form>
       </div>

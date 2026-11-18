@@ -42,7 +42,7 @@ class CategoryTile extends StatelessWidget {
               maxLines: 2,
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12, height: 1.2, fontWeight: FontWeight.w600, color: dim ? kMuted : const Color(0xFF27272A)),
+              style: TextStyle(fontSize: 12, height: 1.2, fontWeight: FontWeight.w600, color: dim ? kMuted : const Color(0xFF24332D)),
             ),
           ]),
         ),
