@@ -76,11 +76,11 @@ class _BootState extends State<_Boot> {
             backgroundColor: const Color(0xFF123B32),
             body: Center(
               child: Column(mainAxisSize: MainAxisSize.min, children: const [
-                Icon(Icons.shopping_bag, color: Color(0xFFC9F36A), size: 64),
+                Icon(Icons.shopping_bag, color: Color(0xFFBFE5CC), size: 64),
                 SizedBox(height: 14),
                 Text('Cheap-Bazar', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800)),
                 SizedBox(height: 22),
-                SizedBox(width: 26, height: 26, child: CircularProgressIndicator(color: Color(0xFFC9F36A), strokeWidth: 2.4)),
+                SizedBox(width: 26, height: 26, child: CircularProgressIndicator(color: Color(0xFFBFE5CC), strokeWidth: 2.4)),
               ]),
             ),
           );
