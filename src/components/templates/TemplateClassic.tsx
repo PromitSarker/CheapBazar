@@ -4,13 +4,13 @@ import React from "react";
 import { CartProvider, useCart } from "@/components/cart/CartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { useLanguage } from "@/modules/i18n/LanguageContext";
-import { CartButton, SponsoredSlot, StockNote, StoreLogo, themeStyle, type ProductVM, type SponsoredVM, type StoreBrand } from "./StoreBits";
+import { CartButton, SponsoredSlot, StockNote, StoreLogo, themeStyle, type ProductVM, type NetworkAdVM, type SponsoredVM, type StoreBrand } from "./StoreBits";
 
 /**
  * Classic: centred, editorial. Logo above the name (fixed), cart top-right,
  * products as a single quiet list.
  */
-function ClassicContent({ store, products, sponsored }: { store: StoreBrand; products: ProductVM[]; sponsored?: SponsoredVM | null }) {
+function ClassicContent({ store, products, sponsored, network }: { store: StoreBrand; products: ProductVM[]; sponsored?: SponsoredVM | null; network?: NetworkAdVM }) {
   const { addToCart } = useCart();
   const { t, formatMoney } = useLanguage();
 
@@ -27,7 +27,7 @@ function ClassicContent({ store, products, sponsored }: { store: StoreBrand; pro
         </div>
       </header>
 
-      <SponsoredSlot sponsored={sponsored} notice={t.featuredNotice} />
+      <SponsoredSlot network={network} sponsored={sponsored} notice={t.featuredNotice} />
 
       <main className="tpl-body">
         {products.length === 0 ? (
@@ -67,7 +67,7 @@ function ClassicContent({ store, products, sponsored }: { store: StoreBrand; pro
   );
 }
 
-export default function TemplateClassic(props: { store: StoreBrand; products: ProductVM[]; sponsored?: SponsoredVM | null }) {
+export default function TemplateClassic(props: { store: StoreBrand; products: ProductVM[]; sponsored?: SponsoredVM | null; network?: NetworkAdVM }) {
   return (
     <CartProvider>
       <ClassicContent {...props} />

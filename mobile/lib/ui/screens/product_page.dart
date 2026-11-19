@@ -9,6 +9,7 @@ import '../../state/session.dart';
 import '../../state/catalog.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/network_ad.dart';
 import '../widgets/product_card.dart';
 import 'browse_screen.dart';
 import 'auth_screen.dart';
@@ -73,7 +74,7 @@ class _ProductPageState extends State<ProductPage> {
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(p.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(p.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
             if (p.subtitle.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 2), child: Text(p.subtitle, style: const TextStyle(color: kMuted, fontSize: 14))),
             _Breadcrumb(categoryId: p.categoryId),
             const SizedBox(height: 4),
@@ -105,10 +106,11 @@ class _ProductPageState extends State<ProductPage> {
             ],
           ]),
         ),
+        const NetworkAd(placement: 'product'),
         if (_similar.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Text(t.t('similar_products'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            child: Text(t.t('similar_products'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           ),
           SizedBox(
             height: shelfHeight(context, 150),
@@ -159,10 +161,10 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Widget _retailPrice(LocaleController t, Product p) {
-    if (!p.onSale) return Money(p.price, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800));
+    if (!p.onSale) return Money(p.price, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700));
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        Money(p.price, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+        Money(p.price, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
         const SizedBox(width: 10),
         Money(p.compareAtPrice!, style: const TextStyle(fontSize: 16, color: kMuted, decoration: TextDecoration.lineThrough)),
       ]),
@@ -174,7 +176,7 @@ class _ProductPageState extends State<ProductPage> {
   Widget _wholesalePrice(LocaleController t, Product p) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(t.t('wholesale_price'), style: const TextStyle(color: Color(0xFF5C6B64), fontSize: 12)),
-      Money(p.wholesalePrice ?? 0, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+      Money(p.wholesalePrice ?? 0, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
       const SizedBox(height: 4),
       Text(t.t('min_order_qty', {'n': '${p.moq}'}), style: const TextStyle(color: Color(0xFF4F6159))),
       if (p.tiers.isNotEmpty) ...[
@@ -249,7 +251,7 @@ class _GalleryState extends State<_Gallery> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(color: kSale, borderRadius: BorderRadius.circular(8)),
-              child: Text(widget.badge!, style: const TextStyle(color: kInk, fontWeight: FontWeight.w800, fontSize: 12)),
+              child: Text(widget.badge!, style: const TextStyle(color: kInk, fontWeight: FontWeight.w700, fontSize: 12)),
             ),
           ),
         if (imgs.length > 1)

@@ -96,7 +96,7 @@ class _FilterSheetState extends State<_FilterSheet> {
         child: SingleChildScrollView(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             Row(children: [
-              Expanded(child: Text(t.t('filters'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800))),
+              Expanded(child: Text(t.t('filters'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700))),
               TextButton(
                 onPressed: () {
                   _min.clear();

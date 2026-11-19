@@ -50,6 +50,7 @@ class _ShellState extends State<Shell> {
       bottomNavigationBar: Column(mainAxisSize: MainAxisSize.min, children: [
         // The sticky bag strip only while browsing (Home, Categories); the Bag tab already shows everything.
         if (_index <= 1) CartBar(onTap: () => _goTo(2)),
+        const Divider(height: 1),
         NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),

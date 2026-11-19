@@ -8,7 +8,7 @@ import '../theme.dart';
 import 'common.dart';
 
 /// Height of everything under the square image (name, subtitle, price, action) at normal text size.
-const double _kInfoHeight = 144;
+const double _kInfoHeight = 138;
 
 String _kmText(double km, bool bn) {
   final s = km < 10 ? km.toStringAsFixed(1) : km.round().toString();
@@ -43,14 +43,20 @@ class ProductCard extends StatelessWidget {
     final p = product;
     final t = context.watch<LocaleController>();
     final sub = p.subtitle;
+    // Borderless card: the photo carries it, text sits straight on the page background.
     return Card(
-      clipBehavior: Clip.antiAlias,
+      color: Colors.transparent,
+      clipBehavior: Clip.none,
+      shape: const RoundedRectangleBorder(),
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           AspectRatio(
             aspectRatio: 1,
-            child: Stack(fit: StackFit.expand, children: [
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(fit: StackFit.expand, children: [
               NetImage(p.image),
               if (p.onSale && p.inStock)
                 Positioned(top: 8, left: 8, child: _Badge(t.t('off_pct', {'n': toBnIf(t.isBn, '${p.discountPct}')}))),
@@ -60,13 +66,14 @@ class ProductCard extends StatelessWidget {
                   alignment: Alignment.center,
                   child: Text(t.t('out_of_stock'), style: const TextStyle(color: Color(0xFF3B4F46), fontWeight: FontWeight.w700)),
                 ),
-            ]),
+              ]),
+            ),
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+              padding: const EdgeInsets.fromLTRB(2, 8, 2, 4),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600, height: 1.2, fontSize: 13.5)),
+                Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w500, height: 1.25, fontSize: 13.5)),
                 if (sub.isNotEmpty)
                   Padding(padding: const EdgeInsets.only(top: 2), child: Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kMuted, fontSize: 12)))
                 else if (showStore && p.storeName.isNotEmpty)
@@ -92,7 +99,7 @@ class ProductCard extends StatelessWidget {
     }
     if (p.wholesale) {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        Money(p.wholesalePrice ?? 0, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+        Money(p.wholesalePrice ?? 0, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
         Text(t.t('min_order_qty', {'n': '${p.moq}'}), style: const TextStyle(color: kMuted, fontSize: 11)),
       ]);
     }
@@ -101,7 +108,7 @@ class ProductCard extends StatelessWidget {
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,
         child: Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
-          Money(p.price, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+          Money(p.price, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
           if (p.onSale) ...[
             const SizedBox(width: 6),
             Money(p.compareAtPrice!, style: const TextStyle(color: kMuted, fontSize: 12, decoration: TextDecoration.lineThrough)),
@@ -123,7 +130,7 @@ class _Badge extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
         decoration: BoxDecoration(color: kSale, borderRadius: BorderRadius.circular(6)),
-        child: Text(text, style: const TextStyle(color: kInk, fontSize: 11, fontWeight: FontWeight.w800)),
+        child: Text(text, style: const TextStyle(color: kInk, fontSize: 11, fontWeight: FontWeight.w700)),
       );
 }
 
@@ -149,11 +156,11 @@ class AddControl extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             minimumSize: const Size(0, 40),
             padding: EdgeInsets.zero,
-            backgroundColor: kBrand,
-            foregroundColor: Colors.white,
-            side: const BorderSide(color: kBrand, width: 1.2),
+            backgroundColor: Colors.white,
+            foregroundColor: kBrand,
+            side: const BorderSide(color: kBrand, width: 1),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+            textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
           child: Text(t.t('add')),
         ),
@@ -161,11 +168,11 @@ class AddControl extends StatelessWidget {
     }
     return Container(
       height: 40,
-      decoration: BoxDecoration(color: kSoftMint, border: Border.all(color: kBrand, width: 1.2), borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(color: kMint, border: Border.all(color: kBrand, width: 1), borderRadius: BorderRadius.circular(10)),
       child: Row(children: [
         _StepButton(icon: Icons.remove, label: t.t('remove_one'), onTap: () => cart.decrement(product.id)),
         Expanded(
-          child: Text(toBnIf(t.isBn, '$qty'), textAlign: TextAlign.center, style: const TextStyle(color: kBrand, fontWeight: FontWeight.w800, fontSize: 15)),
+          child: Text(toBnIf(t.isBn, '$qty'), textAlign: TextAlign.center, style: const TextStyle(color: kBrand, fontWeight: FontWeight.w700, fontSize: 15)),
         ),
         _StepButton(icon: Icons.add, label: t.t('add_one'), onTap: qty < max ? () => cart.add(product) : null),
       ]),

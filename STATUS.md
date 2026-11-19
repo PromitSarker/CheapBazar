@@ -14,6 +14,12 @@ HTTPS, rate-limit fix, backups, reboot persistence, firewall first. The cutover 
 
 Admin picks how far buyers can see shops (`/admin/location`, default OFF); sellers must pin their shop at sign-up (web onboarding) and can edit it in Settings; the website and the Flutter app ask buyers for their location. Built and tested (see the 2026-11-16 entry in `WORK_LOG.md` for details, decisions and the go-live steps). **Order matters when going live: deploy, publish the new APK, ask the existing sellers to add a pin, THEN switch the limit on.**
 
+## Added 2026-11-19: Google ads + calmer app UI (branch `feat/adsense-minimal-ui`)
+
+Seller-booked ads first, Google (AdSense on the website, AdMob in the app) fills the rest, nothing if unconfigured. **Needs real credentials
+before it earns anything** - everything is placeholder/off until then: `ADSENSE_CLIENT` + `ADSENSE_SLOT_*`, `ADMOB_ENABLED` + `ADMOB_BANNER_*`,
+the AdMob app id in `mobile/android/app/src/main/AndroidManifest.xml` (currently Google's test id), `SUPPORT_EMAIL`. Details in `WORK_LOG.md`.
+
 ## Moved 2026-11-15: new server 103.228.38.77
 
 Everything (web app, 8 services, the 8 databases, uploads, secrets, release signing key copy) moved from 103.228.38.69 to **103.228.38.77**

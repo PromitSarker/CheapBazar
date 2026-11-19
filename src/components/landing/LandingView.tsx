@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLanguage } from "@/modules/i18n/LanguageContext";
 import Icon from "@/components/ui/Icon";
 import SponsoredBanner from "@/components/sponsored/SponsoredBanner";
+import AdsenseUnit from "@/components/ads/AdsenseUnit";
 import BuyerLocation from "@/components/location/BuyerLocation";
 import ScrollReveal from "@/components/motion/ScrollReveal";
 import CountUp from "@/components/motion/CountUp";
@@ -21,8 +22,10 @@ interface StoreItem {
   distanceKm?: number;
 }
 
-export default function LandingView({ stores, heroAds = [], locationRequired = false, locationRadiusKm = null }: {
+export default function LandingView({ stores, heroAds = [], networkAd = null, locationRequired = false, locationRadiusKm = null }: {
   stores: StoreItem[]; heroAds?: { headline: string; imageUrl: string; targetUrl: string }[];
+  /** An AdSense unit that fills the hero spot when no seller has booked it (null = AdSense not configured). */
+  networkAd?: { client: string; slot: string } | null;
   /** The admin's range limit is on and the visitor has not shared a location yet. */
   locationRequired?: boolean; locationRadiusKm?: number | null;
 }) {
@@ -238,6 +241,12 @@ export default function LandingView({ stores, heroAds = [], locationRequired = f
           {heroAds.slice(0, 3).map((a, i) => (
             <SponsoredBanner key={i} ad={a} label={language === "bn" ? "স্পনসরড" : "Sponsored"} accent="#f59e0b" />
           ))}
+        </section>
+      )}
+
+      {heroAds.length === 0 && networkAd && (
+        <section style={{ maxWidth: 760, margin: "0 auto 1.5rem", padding: "0 1rem" }}>
+          <AdsenseUnit client={networkAd.client} slot={networkAd.slot} />
         </section>
       )}
 

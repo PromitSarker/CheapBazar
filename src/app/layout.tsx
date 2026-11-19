@@ -9,6 +9,8 @@ import { servicesEnabled } from "@/lib/bff/client";
 import { unreadCountViaServices } from "@/lib/bff/notifications";
 import { locationPolicy } from "@/lib/bff/location";
 import { getBuyerLocation } from "@/lib/location";
+import AdsenseLoader from "@/components/ads/AdsenseLoader";
+import { adsenseConfig } from "@/lib/adnetwork";
 import { Outfit, Noto_Sans_Bengali } from "next/font/google";
 import "./globals.css";
 
@@ -16,15 +18,20 @@ const outfit = Outfit({ subsets: ["latin"], display: "swap", variable: "--font-l
 // Outfit has no Bengali glyphs; without this the browser falls back to an arbitrary system font.
 const bengali = Noto_Sans_Bengali({ subsets: ["bengali"], display: "swap", variable: "--font-bn" });
 
-export const metadata: Metadata = {
-  title: "Cheap-Bazar — Create your own store",
-  description: "Spin up a storefront in minutes. Built-in templates, simple inventory management in Bangladeshi Taka.",
-  applicationName: "Cheap-Bazar",
-  icons: {
-    icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
-    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
-  },
-};
+export function generateMetadata(): Metadata {
+  const { client } = adsenseConfig();
+  return {
+    title: "Cheap-Bazar — Create your own store",
+    description: "Spin up a storefront in minutes. Built-in templates, simple inventory management in Bangladeshi Taka.",
+    applicationName: "Cheap-Bazar",
+    icons: {
+      icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+      apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+    },
+    // AdSense site verification: proves to Google that this site belongs to the publisher account.
+    ...(client ? { other: { "google-adsense-account": client } } : {}),
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#123b32",
@@ -42,6 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // The buyer's location chip is only shown while the admin's range limit is on (and never to admins/sellers).
   const policy = servicesEnabled() && user?.role !== "ADMIN" && user?.role !== "SELLER" ? await locationPolicy() : null;
   const buyerLoc = policy?.enabled ? getBuyerLocation() : null;
+  const adsenseClient = adsenseConfig().client;
 
   return (
     <html lang={initialLang}>
@@ -51,6 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SiteHeader user={user} marketplace={servicesEnabled()} unread={unread} locationUi={policy?.enabled ? { radiusKm: policy.radiusKm, current: buyerLoc } : null} />
           <main className="site-main">{children}</main>
           <SiteFooter />
+          {adsenseClient && <AdsenseLoader client={adsenseClient} />}
         </LanguageProvider>
       </body>
     </html>

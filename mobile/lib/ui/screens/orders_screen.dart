@@ -71,7 +71,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     padding: const EdgeInsets.all(14),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
-                        Expanded(child: Text(o.storeName, style: const TextStyle(fontWeight: FontWeight.w800))),
+                        Expanded(child: Text(o.storeName, style: const TextStyle(fontWeight: FontWeight.w700))),
                         StatusChip(o.status),
                       ]),
                       const SizedBox(height: 4),
@@ -79,7 +79,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       const SizedBox(height: 6),
                       Text(o.items.map((i) => '${i.quantity}× ${i.name}').join(', '), maxLines: 2, overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 8),
-                      Row(children: [Money(o.totalAmount, style: const TextStyle(fontWeight: FontWeight.w800)), const Spacer(), const Icon(Icons.chevron_right, color: Color(0xFF8A9A92))]),
+                      Row(children: [Money(o.totalAmount, style: const TextStyle(fontWeight: FontWeight.w700)), const Spacer(), const Icon(Icons.chevron_right, color: Color(0xFF8A9A92))]),
                     ]),
                   ),
                 ),

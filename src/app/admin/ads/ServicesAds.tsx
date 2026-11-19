@@ -1,5 +1,6 @@
 import { adminBookingsViaServices } from "@/lib/bff/ads";
 import { reviewAd } from "./actions";
+import AdNetworkPanel from "./AdNetworkPanel";
 
 const th = { padding: "0.85rem 1rem" } as const;
 const td = { padding: "0.85rem 1rem" } as const;
@@ -17,6 +18,8 @@ export default async function ServicesAds({ error, done }: { error?: string; don
         </div>
         <span className="hero-badge" style={{ margin: 0 }}>{pending.length} Awaiting Approval</span>
       </div>
+
+      <AdNetworkPanel />
 
       {error && <p className="error">{error}</p>}
       {done && <p className="success" style={{ color: "green" }}>Ad {done}.</p>}

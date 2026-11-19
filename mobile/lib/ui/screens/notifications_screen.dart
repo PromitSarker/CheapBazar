@@ -74,7 +74,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 return ListTile(
                   tileColor: n.read ? null : const Color(0xFFEAF4EC),
                   leading: Icon(n.read ? Icons.notifications_none : Icons.notifications_active, color: n.read ? const Color(0xFF8A9A92) : const Color(0xFF1E7A57)),
-                  title: Text(n.title, style: TextStyle(fontWeight: n.read ? FontWeight.w500 : FontWeight.w800)),
+                  title: Text(n.title, style: TextStyle(fontWeight: n.read ? FontWeight.w500 : FontWeight.w700)),
                   subtitle: Text(n.body),
                   onTap: () => _open(n),
                 );

@@ -77,7 +77,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         onRefresh: _refresh,
         child: ListView(padding: const EdgeInsets.all(16), children: [
           Row(children: [
-            Expanded(child: Text(o.storeName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+            Expanded(child: Text(o.storeName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700))),
             StatusChip(o.status),
           ]),
           if (o.createdAt != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(_fmt(o.createdAt!), style: const TextStyle(color: Color(0xFF5C6B64)))),
@@ -92,7 +92,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       child: Column(children: [
                         Icon(i <= stepIndex ? Icons.check_circle : Icons.radio_button_unchecked, color: i <= stepIndex ? const Color(0xFF1E7A57) : const Color(0xFF8A9A92)),
                         const SizedBox(height: 4),
-                        Text(t.t('status_${_steps[i]}'), textAlign: TextAlign.center, style: TextStyle(fontSize: 11, fontWeight: i == stepIndex ? FontWeight.w800 : FontWeight.w500)),
+                        Text(t.t('status_${_steps[i]}'), textAlign: TextAlign.center, style: TextStyle(fontSize: 11, fontWeight: i == stepIndex ? FontWeight.w700 : FontWeight.w500)),
                       ]),
                     ),
                   ],
@@ -116,7 +116,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(t.t('items'), style: const TextStyle(fontWeight: FontWeight.w800)),
+                Text(t.t('items'), style: const TextStyle(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
                 for (final i in o.items)
                   Padding(
@@ -130,7 +130,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 Row(children: [
                   Text(t.t('total'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   const Spacer(),
-                  Money(o.totalAmount, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                  Money(o.totalAmount, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                 ]),
               ]),
             ),
@@ -141,7 +141,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(t.t('delivery_to'), style: const TextStyle(fontWeight: FontWeight.w800)),
+                  Text(t.t('delivery_to'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
                   Text('${o.buyerName}\n${o.buyerPhone}\n${o.shippingAddress}, ${o.shippingCity}'),
                 ]),

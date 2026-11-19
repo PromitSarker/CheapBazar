@@ -67,7 +67,7 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            Text(_register ? t.t('join') : t.t('welcome_back'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+            Text(_register ? t.t('join') : t.t('welcome_back'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
             const SizedBox(height: 24),
             if (_register) ...[
               TextFormField(

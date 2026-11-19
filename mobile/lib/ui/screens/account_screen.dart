@@ -70,7 +70,7 @@ class AccountScreen extends StatelessWidget {
           Card(
             child: ListTile(
               leading: CircleAvatar(backgroundColor: const Color(0xFF123B32), child: Text(s.user!.name.isEmpty ? '?' : s.user!.name[0].toUpperCase(), style: const TextStyle(color: Colors.white))),
-              title: Text(s.user!.name, style: const TextStyle(fontWeight: FontWeight.w800)),
+              title: Text(s.user!.name, style: const TextStyle(fontWeight: FontWeight.w700)),
               subtitle: Text(s.user!.email),
             ),
           ),

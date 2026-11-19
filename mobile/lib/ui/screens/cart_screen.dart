@@ -52,7 +52,7 @@ class _GroupCard extends StatelessWidget {
           Row(children: [
             const Icon(Icons.storefront_outlined, size: 20),
             const SizedBox(width: 8),
-            Expanded(child: Text(group.storeName, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16))),
+            Expanded(child: Text(group.storeName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16))),
             if (wholesale)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -66,7 +66,7 @@ class _GroupCard extends StatelessWidget {
           Row(children: [
             Text(t.t('subtotal'), style: const TextStyle(color: Color(0xFF4F6159))),
             const Spacer(),
-            Money(group.total, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            Money(group.total, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           ]),
           const SizedBox(height: 12),
           FilledButton(

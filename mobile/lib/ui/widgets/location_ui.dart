@@ -70,7 +70,7 @@ class _LocationSheetState extends State<_LocationSheet> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
-            child: Text(t.t('loc_title'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+            child: Text(t.t('loc_title'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
@@ -210,7 +210,7 @@ class LocationPrompt extends StatelessWidget {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Icon(Icons.place_outlined, size: 56, color: kMuted),
           const SizedBox(height: 14),
-          Text(t.t('loc_prompt_title'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800)),
+          Text(t.t('loc_prompt_title'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Text(
             message ?? (r != null ? t.t('loc_prompt_range', {'km': _km(r)}) : t.t('loc_prompt_plain')),

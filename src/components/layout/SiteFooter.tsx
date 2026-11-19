@@ -86,6 +86,10 @@ export default function SiteFooter() {
 
       <div className="footer-bottom-bar">
         <span>© 2026 {t.brand}. {language === "bn" ? "সর্বস্বত্ব সংরক্ষিত।" : "All rights reserved."}</span>
+        <span className="footer-legal">
+          <Link href="/about">{language === "bn" ? "আমাদের সম্পর্কে" : "About & contact"}</Link>
+          <Link href="/privacy">{language === "bn" ? "গোপনীয়তা নীতি" : "Privacy policy"}</Link>
+        </span>
       </div>
     </footer>
   );

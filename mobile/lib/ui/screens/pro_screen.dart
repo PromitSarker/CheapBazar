@@ -95,7 +95,7 @@ class _ProScreenState extends State<ProScreen> {
                   Row(children: [
                     const Icon(Icons.workspace_premium, size: 30, color: Color(0xFFD97706)),
                     const SizedBox(width: 10),
-                    Expanded(child: Text(t.t('buyer_pro'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800))),
+                    Expanded(child: Text(t.t('buyer_pro'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700))),
                   ]),
                   const SizedBox(height: 6),
                   Text(t.t('buyer_pro_blurb'), style: const TextStyle(color: Color(0xFF4F6159))),
@@ -114,7 +114,7 @@ class _ProScreenState extends State<ProScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            Text(t.t('pro_how'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            Text(t.t('pro_how'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
             const SizedBox(height: 6),
             Text(t.t('pro_instructions'), style: const TextStyle(color: Color(0xFF4F6159), height: 1.4)),
             if (instructions.isNotEmpty) ...[
@@ -143,7 +143,7 @@ class _ProScreenState extends State<ProScreen> {
             FilledButton(onPressed: _busy ? null : () => _submit(t), child: _busy ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white)) : Text(t.t('submit_payment'))),
             if (payments.isNotEmpty) ...[
               const SizedBox(height: 22),
-              Text(t.t('recent_payments'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+              Text(t.t('recent_payments'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
               for (final p in payments)
                 Card(

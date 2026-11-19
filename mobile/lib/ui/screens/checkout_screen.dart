@@ -116,7 +116,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(g.storeName, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                Text(g.storeName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                 const SizedBox(height: 8),
                 for (final l in g.lines)
                   Padding(
@@ -130,13 +130,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Row(children: [
                   Text(t.t('total'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   const Spacer(),
-                  Money(g.total, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                  Money(g.total, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                 ]),
               ]),
             ),
           ),
           const SizedBox(height: 18),
-          Text(t.t('your_details'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          Text(t.t('your_details'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           TextFormField(controller: _name, textCapitalization: TextCapitalization.words, decoration: InputDecoration(labelText: t.t('full_name')), validator: required, autofillHints: const [AutofillHints.name]),
           const SizedBox(height: 12),
@@ -193,7 +193,7 @@ class OrderSuccessScreen extends StatelessWidget {
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               const CircleAvatar(radius: 40, backgroundColor: Color(0xFFDCFCE7), child: Icon(Icons.check_rounded, size: 48, color: Color(0xFF1E7A57))),
               const SizedBox(height: 18),
-              Text(t.t('order_placed'), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+              Text(t.t('order_placed'), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
               Text(t.t('order_placed_hint'), textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF4F6159), height: 1.4)),
               const SizedBox(height: 22),
@@ -203,7 +203,7 @@ class OrderSuccessScreen extends StatelessWidget {
                   child: Column(children: [
                     Text(t.t('order_number'), style: const TextStyle(color: Color(0xFF5C6B64))),
                     const SizedBox(height: 2),
-                    SelectableText(order.orderNumber, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 1)),
+                    SelectableText(order.orderNumber, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 1)),
                     const SizedBox(height: 8),
                     Money(order.totalAmount, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                   ]),

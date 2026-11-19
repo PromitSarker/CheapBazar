@@ -20,11 +20,11 @@ class CartBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
       child: Material(
         color: kBrand,
-        borderRadius: BorderRadius.circular(14),
-        elevation: 3,
+        borderRadius: BorderRadius.circular(12),
+        elevation: 0,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(children: [
@@ -35,7 +35,7 @@ class CartBar extends StatelessWidget {
                   '${t.t('items_n', {'n': toBnIf(t.isBn, '${cart.count}')})} · ${formatMoney(cart.total, bn: t.isBn)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
                 ),
               ),
               const SizedBox(width: 8),

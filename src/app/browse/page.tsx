@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { servicesEnabled } from "@/lib/bff/client";
 import { searchViaServices, marketplaceAds, type BrowseItem, type Tab } from "@/lib/bff/browse";
-import SponsoredBanner from "@/components/sponsored/SponsoredBanner";
+import AdSlot from "@/components/ads/AdSlot";
 import WholesaleOrder from "@/components/browse/WholesaleOrder";
 import LocationGate from "@/components/location/LocationGate";
 import { getBuyerLocation, locQuery } from "@/lib/location";
@@ -48,7 +48,7 @@ export default async function BrowsePage({ searchParams }: { searchParams: Recor
         <Link href={href({ tab: "wholesale", store: undefined, page: undefined })} className={`button button-small ${tab === "wholesale" ? "glow-button" : "button-outline"}`}>Wholesale (Pro)</Link>
       </nav>
 
-      {top.slice(0, 1).map((a, i) => <SponsoredBanner key={i} ad={a} label="Sponsored" accent="#c2410c" />)}
+      <AdSlot sold={top} placement="browse" max={1} accent="var(--link)" />
 
       <form method="get" action="/browse" className="toolbar">
         <input type="hidden" name="tab" value={tab} />
@@ -134,7 +134,7 @@ export default async function BrowsePage({ searchParams }: { searchParams: Recor
               </ul>
             </div>
           )}
-          {side.slice(0, 2).map((a, i) => <SponsoredBanner key={i} ad={a} label="Sponsored" accent="var(--link)" />)}
+          <AdSlot sold={side} placement="browse_side" max={2} accent="var(--link)" />
         </aside>
       </div>
     </div>

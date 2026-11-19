@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'api/api_client.dart';
+import 'state/ads.dart';
 import 'state/cart.dart';
 import 'state/catalog.dart';
 import 'state/l10n.dart';
@@ -22,8 +23,9 @@ Future<void> main() async {
 }
 
 class CheapBazarApp extends StatelessWidget {
-  CheapBazarApp({super.key, required this.api, required this.session, required this.cart, required this.locale, CatalogController? catalog, LocationController? location})
+  CheapBazarApp({super.key, required this.api, required this.session, required this.cart, required this.locale, CatalogController? catalog, LocationController? location, AdsController? ads})
       : catalog = catalog ?? CatalogController(api),
+        ads = ads ?? AdsController(api),
         location = location ?? LocationController(api);
   final ApiClient api;
   final SessionController session;
@@ -31,6 +33,7 @@ class CheapBazarApp extends StatelessWidget {
   final LocaleController locale;
   final CatalogController catalog;
   final LocationController location;
+  final AdsController ads;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +45,7 @@ class CheapBazarApp extends StatelessWidget {
         ChangeNotifierProvider<LocaleController>.value(value: locale),
         ChangeNotifierProvider<CatalogController>.value(value: catalog),
         ChangeNotifierProvider<LocationController>.value(value: location),
+        ChangeNotifierProvider<AdsController>.value(value: ads),
       ],
       child: Consumer<LocaleController>(
         builder: (context, l, _) => MaterialApp(
@@ -65,6 +69,13 @@ class _Boot extends StatefulWidget {
 
 class _BootState extends State<_Boot> {
   late final Future<void> _ready = context.read<SessionController>().bootstrap();
+
+  @override
+  void initState() {
+    super.initState();
+    // Never awaited: ads must not delay or break app start.
+    WidgetsBinding.instance.addPostFrameCallback((_) => context.read<AdsController>().load());
+  }
 
   @override
   Widget build(BuildContext context) {

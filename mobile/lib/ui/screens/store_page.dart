@@ -60,7 +60,7 @@ class _StorePageState extends State<StorePage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                        Text(name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                         Text(t.t('products_count', {'n': '${products.length}'}), style: const TextStyle(color: Color(0xFF5C6B64))),
                       ]),
                     ),

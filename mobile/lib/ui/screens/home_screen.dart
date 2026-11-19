@@ -11,6 +11,7 @@ import '../theme.dart';
 import '../widgets/category_tile.dart';
 import '../widgets/common.dart';
 import '../widgets/location_ui.dart';
+import '../widgets/network_ad.dart';
 import '../widgets/product_card.dart';
 import '../widgets/skeleton.dart';
 import 'auth_screen.dart';
@@ -100,16 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final session = context.watch<SessionController>();
     return Scaffold(
       appBar: AppBar(
-        title: Row(children: [
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(color: const Color(0xFF123B32), borderRadius: BorderRadius.circular(8)),
-            child: const Icon(Icons.shopping_bag, color: Colors.white, size: 18),
-          ),
-          const SizedBox(width: 10),
-          Text(t.t('app_name')),
-        ]),
+        title: Text(t.t('app_name')),
         actions: [
           IconButton(
             tooltip: t.t('notifications'),
@@ -170,7 +162,11 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 4),
       ],
       if (d.categories.isNotEmpty) ..._categorySection(context, d.categories, t),
-      for (final s in d.shelves) ..._shelf(context, s, bn, t),
+      for (var i = 0; i < d.shelves.length; i++) ...[
+        ..._shelf(context, d.shelves[i], bn, t),
+        // One Google ad, after the second shelf (or the last one if there are fewer). Seller banners stay at the top.
+        if (i == (d.shelves.length < 2 ? d.shelves.length - 1 : 1)) const NetworkAd(placement: 'home'),
+      ],
       if (d.stores.isNotEmpty) ...[
         _sectionTitle(t.t('stores')),
         SizedBox(
@@ -252,7 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _sectionTitle(String title, {Widget? action}) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
         child: Row(children: [
-          Expanded(child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+          Expanded(child: Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -0.2))),
           ?action,
         ]),
       );
@@ -274,7 +270,7 @@ class _SearchBox extends StatelessWidget {
             child: Container(
               height: 48,
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFC5D0C0))),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: kLine)),
               child: Row(children: [
                 const Icon(Icons.search, color: kMuted),
                 const SizedBox(width: 10),
@@ -359,7 +355,7 @@ class _AdTile extends StatelessWidget {
               left: 8,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(10)),
+                decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(6)),
                 child: Text(t.t('sponsored'), style: const TextStyle(color: Colors.white, fontSize: 10)),
               ),
             ),

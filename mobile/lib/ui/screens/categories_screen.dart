@@ -106,7 +106,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   child: Column(children: [
                     Icon(categoryIcon(c.icon), size: 24, color: on ? kAction : const Color(0xFF4F6159)),
                     const SizedBox(height: 4),
-                    Text(c.name(bn), maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, height: 1.2, fontWeight: on ? FontWeight.w800 : FontWeight.w600)),
+                    Text(c.name(bn), maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, height: 1.2, fontWeight: on ? FontWeight.w700 : FontWeight.w600)),
                   ]),
                 ),
               ),
@@ -117,7 +117,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       Expanded(
         child: ListView(padding: const EdgeInsets.fromLTRB(12, 4, 12, 24), children: [
           Row(children: [
-            Expanded(child: Text(sel.name(bn), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800))),
+            Expanded(child: Text(sel.name(bn), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700))),
             TextButton(onPressed: () => _open(categoryId: sel.id, title: sel.name(bn)), child: Text(t.t('view_all'))),
           ]),
           if (sel.children.isEmpty)

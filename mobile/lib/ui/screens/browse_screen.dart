@@ -12,6 +12,7 @@ import '../../state/recent_searches.dart';
 import '../../state/session.dart';
 import '../theme.dart';
 import '../widgets/cart_bar.dart';
+import '../widgets/network_ad.dart';
 import '../widgets/common.dart';
 import '../widgets/location_ui.dart';
 import '../widgets/filter_sheet.dart';
@@ -469,6 +470,7 @@ class BrowseScreenState extends State<BrowseScreen> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
             sliver: SliverToBoxAdapter(child: Text(t.t('products_count', {'n': toBnIf(t.isBn, '$_total')}), style: const TextStyle(color: kMuted))),
           ),
+          const SliverToBoxAdapter(child: NetworkAd(placement: 'browse')),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
             sliver: SliverGrid.builder(
