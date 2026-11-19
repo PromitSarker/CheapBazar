@@ -1,17 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/models.dart';
 import '../../state/catalog.dart';
 import '../../state/l10n.dart';
-import '../category_icons.dart';
 import '../theme.dart';
-import '../widgets/category_tile.dart';
 import '../widgets/common.dart';
-import '../widgets/product_card.dart' show toBnIf;
 import '../widgets/skeleton.dart';
+import '../widgets/zen_category_card.dart';
 import 'browse_screen.dart';
 
-/// Departments on the left, the selected department's sub-categories on the right.
+void _openListing(BuildContext context, {String? categoryId, String? title, bool wholesale = false, bool search = false}) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => BrowseScreen(categoryId: categoryId, title: title, autofocus: search, initialTab: wholesale ? 'wholesale' : 'retail')),
+  );
+}
+
+/// A department with sub-categories opens a second grid; a leaf category opens its listing.
+void openCategory(BuildContext context, ShopCategory c) {
+  final bn = context.read<LocaleController>().isBn;
+  if (c.children.isEmpty) {
+    _openListing(context, categoryId: c.id, title: c.name(bn));
+  } else {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => SubCategoriesScreen(parent: c)));
+  }
+}
+
+/// Categories tab: the departments as a calm two-column grid of soft cards.
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
   @override
@@ -19,8 +35,6 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
-  String? _selectedId;
-
   @override
   void initState() {
     super.initState();
@@ -29,23 +43,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     });
   }
 
-  void _open({String? categoryId, String? title, bool wholesale = false, bool search = false}) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => BrowseScreen(categoryId: categoryId, title: title, autofocus: search, initialTab: wholesale ? 'wholesale' : 'retail')),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = context.watch<LocaleController>();
     final catalog = context.watch<CatalogController>();
     return Scaffold(
+      backgroundColor: kWarmWhite,
       appBar: AppBar(
         title: Text(t.t('categories')),
         actions: [
           TextButton.icon(
-            onPressed: () => _open(wholesale: true, title: t.t('wholesale')),
+            onPressed: () => _openListing(context, wholesale: true, title: t.t('wholesale')),
             icon: const Icon(Icons.inventory_2_outlined, size: 18),
             label: Text(t.t('wholesale')),
           ),
@@ -53,14 +61,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       ),
       body: Column(children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
           child: InkWell(
-            onTap: () => _open(search: true),
-            borderRadius: BorderRadius.circular(12),
+            onTap: () => _openListing(context, search: true),
+            borderRadius: BorderRadius.circular(14),
             child: Container(
               height: 46,
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFC5D0C0))),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFDDE3D6))),
               child: Row(children: [
                 const Icon(Icons.search, color: kMuted),
                 const SizedBox(width: 10),
@@ -76,96 +84,50 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   Widget _body(BuildContext context, LocaleController t, CatalogController catalog) {
     if (!catalog.loaded && catalog.error != null) return ErrorRetry(message: catalog.error!, onRetry: () => catalog.load(force: true));
-    if (!catalog.loaded) return const _CategoriesSkeleton();
+    if (!catalog.loaded) return const ZenCategoriesSkeleton();
     final cats = catalog.categories;
     if (cats.isEmpty) return EmptyState(icon: Icons.category_outlined, title: t.t('no_products_here'), subtitle: t.t('no_products_here_hint'));
-    final sel = cats.firstWhere((c) => c.id == _selectedId, orElse: () => cats.first);
-    final bn = t.isBn;
-
-    return Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Container(
-        width: 96,
-        color: const Color(0xFFEAF4EC),
-        child: ListView.builder(
-          itemCount: cats.length,
-          itemBuilder: (_, i) {
-            final c = cats[i];
-            final on = c.id == sel.id;
-            return Semantics(
-              button: true,
-              selected: on,
-              label: c.name(bn),
-              child: InkWell(
-                onTap: () => setState(() => _selectedId = c.id),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
-                  decoration: BoxDecoration(
-                    color: on ? Colors.white : Colors.transparent,
-                    border: Border(left: BorderSide(color: on ? kAction : Colors.transparent, width: 3)),
-                  ),
-                  child: Column(children: [
-                    Icon(categoryIcon(c.icon), size: 24, color: on ? kAction : const Color(0xFF4F6159)),
-                    const SizedBox(height: 4),
-                    Text(c.name(bn), maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, height: 1.2, fontWeight: on ? FontWeight.w800 : FontWeight.w600)),
-                  ]),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-      Expanded(
-        child: ListView(padding: const EdgeInsets.fromLTRB(12, 4, 12, 24), children: [
-          Row(children: [
-            Expanded(child: Text(sel.name(bn), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800))),
-            TextButton(onPressed: () => _open(categoryId: sel.id, title: sel.name(bn)), child: Text(t.t('view_all'))),
-          ]),
-          if (sel.children.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 24),
-              child: EmptyState(
-                icon: categoryIcon(sel.icon),
-                title: sel.count > 0 ? t.t('products_count', {'n': toBnIf(bn, '${sel.count}')}) : t.t('no_products_here'),
-                subtitle: sel.count > 0 ? null : t.t('no_products_here_hint'),
-                action: sel.count > 0 ? FilledButton(onPressed: () => _open(categoryId: sel.id, title: sel.name(bn)), child: Text(t.t('view_all'))) : null,
-              ),
-            )
-          else
-            GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 0.78,
-              children: [
-                for (final s in sel.children) CategoryTile.of(context, s, dimEmpty: true, onTap: () => _open(categoryId: s.id, title: s.name(bn))),
-              ],
-            ),
-        ]),
-      ),
-    ]);
+    return SingleChildScrollView(child: ZenCategoryGrid(items: cats, onOpen: (c) => openCategory(context, c)));
   }
 }
 
-class _CategoriesSkeleton extends StatelessWidget {
-  const _CategoriesSkeleton();
+/// Second level: the department's sub-categories in the same grid, with an "All" card first.
+class SubCategoriesScreen extends StatelessWidget {
+  const SubCategoriesScreen({super.key, required this.parent});
+  final ShopCategory parent;
+
   @override
-  Widget build(BuildContext context) => Row(children: [
-        Container(
-          width: 96,
-          color: const Color(0xFFEAF4EC),
-          padding: const EdgeInsets.all(10),
-          child: Column(children: [for (var i = 0; i < 7; i++) const Padding(padding: EdgeInsets.only(bottom: 14), child: Skeleton(height: 54, radius: 10))]),
+  Widget build(BuildContext context) {
+    final t = context.watch<LocaleController>();
+    final bn = t.isBn;
+    return Scaffold(
+      backgroundColor: kWarmWhite,
+      appBar: AppBar(title: Text(parent.name(bn))),
+      body: SingleChildScrollView(
+        child: ZenCategoryGrid(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+          items: parent.children,
+          leading: (h) => ZenAllCard(label: '${t.t('view_all')} · ${parent.name(bn)}', height: h, onTap: () => _openListing(context, categoryId: parent.id, title: parent.name(bn))),
+          onOpen: (c) => openCategory(context, c),
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: GridView.count(
-              crossAxisCount: 3,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 0.9,
-              children: [for (var i = 0; i < 9; i++) const Center(child: Skeleton(width: 58, height: 58, radius: 29))],
-            ),
-          ),
-        ),
-      ]);
+      ),
+    );
+  }
+}
+
+class ZenCategoriesSkeleton extends StatelessWidget {
+  const ZenCategoriesSkeleton({super.key});
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
+        final w = (box.maxWidth - 32 - ZenCategoryGrid.gap) / 2;
+        Widget card(double r) => Padding(padding: const EdgeInsets.only(bottom: ZenCategoryGrid.gap), child: Skeleton(height: w * r, radius: 20));
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(child: Column(children: [card(ZenCategoryGrid.tallRatio), card(ZenCategoryGrid.shortRatio), card(ZenCategoryGrid.tallRatio)])),
+            const SizedBox(width: ZenCategoryGrid.gap),
+            Expanded(child: Column(children: [card(ZenCategoryGrid.shortRatio), card(ZenCategoryGrid.tallRatio), card(ZenCategoryGrid.shortRatio)])),
+          ]),
+        );
+      });
 }

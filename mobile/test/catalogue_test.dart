@@ -15,6 +15,7 @@ import 'package:cheapbazar/state/cart.dart';
 import 'package:cheapbazar/state/l10n.dart';
 import 'package:cheapbazar/state/session.dart';
 import 'package:cheapbazar/ui/widgets/product_card.dart';
+import 'package:cheapbazar/ui/widgets/zen_category_card.dart';
 
 http.Response j(Object body, [int s = 200]) => http.Response(jsonEncode(body), s, headers: {'content-type': 'application/json; charset=utf-8'});
 
@@ -284,21 +285,41 @@ void main() {
       expect(find.textContaining('View bag'), findsNothing, reason: 'no strip on the Bag tab itself');
     });
 
-    testWidgets('categories tab: pick a department, then a sub-category', (tester) async {
+    testWidgets('categories tab: two-column card grid; a department opens its sub-categories, a sub-category its listing', (tester) async {
       await boot(tester);
       await tester.tap(find.text('Categories').last); // the nav tab
       await tester.pumpAndSettle();
+      // both departments show as cards, side by side (staggered heights, same top row)
+      expect(find.text('Grocery & Food'), findsOneWidget);
       expect(find.text('Fashion'), findsOneWidget);
-      expect(find.text('Fruits'), findsOneWidget, reason: 'first department selected by default');
-      await tester.tap(find.text('Fashion'));
+      final a = tester.getRect(find.byType(ZenCategoryCard).at(0)), b = tester.getRect(find.byType(ZenCategoryCard).at(1));
+      expect(a.top, b.top, reason: 'first row starts level');
+      expect(a.left < b.left, true);
+      expect(a.height > b.height, true, reason: 'tall card beside a short one');
+      expect(a.width, b.width);
+      // the whole card is tappable: tap near its bottom-left corner, away from the label
+      await tester.tapAt(a.bottomLeft + const Offset(6, -6));
       await tester.pumpAndSettle();
-      expect(find.text('No products here yet'), findsOneWidget);
-      await tester.tap(find.text('Grocery & Food'));
-      await tester.pumpAndSettle();
+      expect(find.text('Fruits'), findsOneWidget);
+      expect(find.textContaining('View all'), findsOneWidget);
       await tester.tap(find.text('Rice & Oil'));
       await tester.pumpAndSettle();
       expect(requests.last, contains('category=rice'));
       expect(find.text('Miniket Rice'), findsWidgets);
+    });
+
+    testWidgets('categories tab: an empty leaf department opens its (empty) listing', (tester) async {
+      await boot(tester);
+      await tester.tap(find.text('Categories').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Fashion'));
+      await tester.pumpAndSettle();
+      expect(requests.last, contains('category=fashion'));
+    });
+
+    test('category cutout image is parsed; absent means empty (tinted icon fallback)', () {
+      expect(ShopCategory.fromJson({...categories.first, 'imageUrl': '/uploads/c/food.png'}).imageUrl, '/uploads/c/food.png');
+      expect(ShopCategory.fromJson(categories.first).imageUrl, '');
     });
 
     testWidgets('an older server (no categories/shelves) still shows products on Home', (tester) async {
