@@ -4,7 +4,7 @@ class AppConfig {
   static const String baseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://cheapbazar.org');
   static const String apiPrefix = '/api/m/v1';
   // Keep both in sync with `version:` in pubspec.yaml (test/app_update_test.dart fails if they drift).
-  static const String version = '1.2.1';
-  static const int build = 4;
+  static const String version = '1.2.2';
+  static const int build = 5;
   static const String sellerSiteHint = 'the Cheap-Bazar website';
 }
