@@ -1,6 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import '../theme.dart';
+import '../icons.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -116,7 +118,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(g.storeName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                Text(g.storeName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
                 const SizedBox(height: 8),
                 for (final l in g.lines)
                   Padding(
@@ -128,15 +130,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 const Divider(height: 20),
                 Row(children: [
-                  Text(t.t('total'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  Text(t.t('total'), style: const TextStyle(fontWeight: FontWeight.w600)),
                   const Spacer(),
-                  Money(g.total, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                  Money(g.total, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
                 ]),
               ]),
             ),
           ),
           const SizedBox(height: 18),
-          Text(t.t('your_details'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text(t.t('your_details'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 10),
           TextFormField(controller: _name, textCapitalization: TextCapitalization.words, decoration: InputDecoration(labelText: t.t('full_name')), validator: required, autofillHints: const [AutofillHints.name]),
           const SizedBox(height: 12),
@@ -156,17 +158,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: const Color(0xFFF0FDF4), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFBBF7D0))),
+            decoration: BoxDecoration(color: const Color(0xFFEEF1E6), borderRadius: BorderRadius.circular(kRadius), border: Border.all(color: const Color(0xFFC9D3B3))),
             child: Row(children: [
-              const Icon(Icons.payments_outlined, color: Color(0xFF15803D)),
+              const Icon(Zi.payments, color: Color(0xFF56653F)),
               const SizedBox(width: 10),
-              Expanded(child: Text(t.t('cod_note'), style: const TextStyle(color: Color(0xFF166534), fontWeight: FontWeight.w600))),
+              Expanded(child: Text(t.t('cod_note'), style: const TextStyle(color: Color(0xFF3F5030), fontWeight: FontWeight.w600))),
             ]),
           ),
           const SizedBox(height: 18),
           FilledButton(
             onPressed: _busy ? null : _submit,
-            child: _busy ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white)) : Text('${t.t('place_order')} · ${formatMoney(g.total, bn: t.isBn)}'),
+            child: _busy ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: kSurface)) : Text('${t.t('place_order')} · ${formatMoney(g.total, bn: t.isBn)}'),
           ),
         ]),
       ),
@@ -191,21 +193,21 @@ class OrderSuccessScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const CircleAvatar(radius: 40, backgroundColor: Color(0xFFDCFCE7), child: Icon(Icons.check_rounded, size: 48, color: Color(0xFF1E7A57))),
+              const CircleAvatar(radius: 40, backgroundColor: Color(0xFFE1E7D3), child: Icon(Zi.check, size: 48, color: Color(0xFF56653F))),
               const SizedBox(height: 18),
-              Text(t.t('order_placed'), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700)),
+              Text(t.t('order_placed'), style: serif(26)),
               const SizedBox(height: 8),
-              Text(t.t('order_placed_hint'), textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF4F6159), height: 1.4)),
+              Text(t.t('order_placed_hint'), textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF55514A), height: 1.4)),
               const SizedBox(height: 22),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(children: [
-                    Text(t.t('order_number'), style: const TextStyle(color: Color(0xFF5C6B64))),
+                    Text(t.t('order_number'), style: const TextStyle(color: Color(0xFF6B665C))),
                     const SizedBox(height: 2),
-                    SelectableText(order.orderNumber, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                    SelectableText(order.orderNumber, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: 1)),
                     const SizedBox(height: 8),
-                    Money(order.totalAmount, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                    Money(order.totalAmount, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                   ]),
                 ),
               ),

@@ -1,36 +1,38 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
-/// ShopCategory icons are stored as Material icon KEYS by the admin (no image uploads needed).
-/// Unknown keys fall back to a generic tag so a new key never crashes the grid.
+import 'icons.dart';
+
+/// ShopCategory icons are stored as Material-style icon KEYS by the admin (no image uploads needed); we draw them with Phosphor.
+/// Unknown keys fall back to a generic glyph so a new key never crashes the grid.
 const Map<String, IconData> _icons = {
-  'local_grocery_store': Icons.local_grocery_store_outlined,
-  'checkroom': Icons.checkroom_outlined,
-  'devices': Icons.devices_outlined,
-  'home': Icons.home_outlined,
-  'face': Icons.face_retouching_natural_outlined,
-  'child_care': Icons.child_care_outlined,
-  'menu_book': Icons.menu_book_outlined,
-  'sports_soccer': Icons.sports_soccer_outlined,
-  'card_giftcard': Icons.card_giftcard_outlined,
-  'build': Icons.build_outlined,
-  'more_horiz': Icons.more_horiz,
-  'category': Icons.category_outlined,
-  'label_outline': Icons.label_outline,
-  'pets': Icons.pets_outlined,
-  'restaurant': Icons.restaurant_outlined,
-  'shopping_bag': Icons.shopping_bag_outlined,
-  'watch': Icons.watch_outlined,
-  'phone_android': Icons.phone_android_outlined,
-  'weekend': Icons.weekend_outlined,
-  'park': Icons.park_outlined,
-  'local_florist': Icons.local_florist_outlined,
-  'toys': Icons.toys_outlined,
-  'directions_car': Icons.directions_car_outlined,
-  'fitness_center': Icons.fitness_center_outlined,
-  'music_note': Icons.music_note_outlined,
-  'brush': Icons.brush_outlined,
-  'cake': Icons.cake_outlined,
-  'local_cafe': Icons.local_cafe_outlined,
+  'local_grocery_store': Zi.grocery,
+  'checkroom': Zi.fashion,
+  'devices': Zi.devices,
+  'home': Zi.home,
+  'face': Zi.beauty,
+  'child_care': Zi.baby,
+  'menu_book': Zi.books,
+  'sports_soccer': Zi.sports,
+  'card_giftcard': Zi.gift,
+  'build': Zi.tools,
+  'more_horiz': Zi.more,
+  'category': Zi.categories,
+  'label_outline': Zi.offer,
+  'pets': Zi.pets,
+  'restaurant': Zi.food,
+  'shopping_bag': Zi.bag,
+  'watch': Zi.watch,
+  'phone_android': Zi.phone,
+  'weekend': Zi.furniture,
+  'park': Zi.garden,
+  'local_florist': Zi.flower,
+  'toys': Zi.toys,
+  'directions_car': Zi.car,
+  'fitness_center': Zi.fitness,
+  'music_note': Zi.music,
+  'brush': Zi.art,
+  'cake': Zi.cake,
+  'local_cafe': Zi.cafe,
 };
 
-IconData categoryIcon(String key) => _icons[key] ?? Icons.category_outlined;
+IconData categoryIcon(String key) => _icons[key] ?? Zi.categories;

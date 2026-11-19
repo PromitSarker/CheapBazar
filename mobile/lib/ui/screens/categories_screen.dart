@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../state/catalog.dart';
@@ -46,7 +47,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         actions: [
           TextButton.icon(
             onPressed: () => _open(wholesale: true, title: t.t('wholesale')),
-            icon: const Icon(Icons.inventory_2_outlined, size: 18),
+            icon: const Icon(Zi.pack, size: 18),
             label: Text(t.t('wholesale')),
           ),
         ],
@@ -56,13 +57,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
           child: InkWell(
             onTap: () => _open(search: true),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(kRadius),
             child: Container(
               height: 46,
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFC5D0C0))),
+              decoration: BoxDecoration(color: kSurface, borderRadius: BorderRadius.circular(kRadius), border: Border.all(color: const Color(0xFFCFC6B3))),
               child: Row(children: [
-                const Icon(Icons.search, color: kMuted),
+                const Icon(Zi.search, color: kMuted),
                 const SizedBox(width: 10),
                 Expanded(child: Text(t.t('search_hint'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kMuted))),
               ]),
@@ -78,14 +79,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     if (!catalog.loaded && catalog.error != null) return ErrorRetry(message: catalog.error!, onRetry: () => catalog.load(force: true));
     if (!catalog.loaded) return const _CategoriesSkeleton();
     final cats = catalog.categories;
-    if (cats.isEmpty) return EmptyState(icon: Icons.category_outlined, title: t.t('no_products_here'), subtitle: t.t('no_products_here_hint'));
+    if (cats.isEmpty) return EmptyState(icon: Zi.categories, title: t.t('no_products_here'), subtitle: t.t('no_products_here_hint'));
     final sel = cats.firstWhere((c) => c.id == _selectedId, orElse: () => cats.first);
     final bn = t.isBn;
 
     return Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Container(
         width: 96,
-        color: const Color(0xFFEAF4EC),
+        color: const Color(0xFFEFE9DB),
         child: ListView.builder(
           itemCount: cats.length,
           itemBuilder: (_, i) {
@@ -100,13 +101,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
                   decoration: BoxDecoration(
-                    color: on ? Colors.white : Colors.transparent,
+                    color: on ? kSurface : Colors.transparent,
                     border: Border(left: BorderSide(color: on ? kAction : Colors.transparent, width: 3)),
                   ),
                   child: Column(children: [
-                    Icon(categoryIcon(c.icon), size: 24, color: on ? kAction : const Color(0xFF4F6159)),
+                    Icon(categoryIcon(c.icon), size: 24, color: on ? kAction : const Color(0xFF55514A)),
                     const SizedBox(height: 4),
-                    Text(c.name(bn), maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, height: 1.2, fontWeight: on ? FontWeight.w700 : FontWeight.w600)),
+                    Text(c.name(bn), maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, height: 1.2, fontWeight: on ? FontWeight.w600 : FontWeight.w600)),
                   ]),
                 ),
               ),
@@ -117,7 +118,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       Expanded(
         child: ListView(padding: const EdgeInsets.fromLTRB(12, 4, 12, 24), children: [
           Row(children: [
-            Expanded(child: Text(sel.name(bn), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700))),
+            Expanded(child: Text(sel.name(bn), style: serif(17))),
             TextButton(onPressed: () => _open(categoryId: sel.id, title: sel.name(bn)), child: Text(t.t('view_all'))),
           ]),
           if (sel.children.isEmpty)
@@ -152,7 +153,7 @@ class _CategoriesSkeleton extends StatelessWidget {
   Widget build(BuildContext context) => Row(children: [
         Container(
           width: 96,
-          color: const Color(0xFFEAF4EC),
+          color: const Color(0xFFEFE9DB),
           padding: const EdgeInsets.all(10),
           child: Column(children: [for (var i = 0; i < 7; i++) const Padding(padding: EdgeInsets.only(bottom: 14), child: Skeleton(height: 54, radius: 10))]),
         ),

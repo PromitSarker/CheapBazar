@@ -1,7 +1,6 @@
 // Renders screens to PNG with real fonts for eyeballing the design (not part of the normal suite: skipped unless PREVIEW_DIR is set).
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
@@ -15,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:cheapbazar/api/api_client.dart';
 import 'package:cheapbazar/main.dart';
+import 'package:cheapbazar/models/models.dart';
 import 'package:cheapbazar/state/cart.dart';
 import 'package:cheapbazar/state/l10n.dart';
 import 'package:cheapbazar/state/session.dart';
@@ -28,7 +28,8 @@ Map<String, dynamic> item(String id, String name, num price, {num? was, int pct 
 
 Future<void> loadFont(String family, String file) async {
   final root = Platform.environment['FLUTTER_ROOT'] ?? '${Platform.environment['HOME']}/dev/flutter';
-  final bytes = await File('$root/bin/cache/artifacts/material_fonts/$file').readAsBytes();
+  final path = file.startsWith('assets/') ? file : '$root/bin/cache/artifacts/material_fonts/$file';
+  final bytes = await File(path).readAsBytes();
   final loader = FontLoader(family)..addFont(Future.value(ByteData.view(Uint8List.fromList(bytes).buffer)));
   await loader.load();
 }
@@ -41,6 +42,10 @@ void main() {
       await loadFont('Roboto', 'Roboto-Regular.ttf');
       await loadFont('Roboto', 'Roboto-Bold.ttf');
       await loadFont('MaterialIcons', 'MaterialIcons-Regular.otf');
+      await loadFont('Newsreader', 'assets/fonts/Newsreader.ttf');
+      await loadFont('NotoSerifBengali', 'assets/fonts/NotoSerifBengali.ttf');
+      await loadFont('PhosphorLight', 'assets/fonts/Phosphor-Light.ttf');
+      await loadFont('PhosphorRegular', 'assets/fonts/Phosphor-Regular.ttf');
     });
     SharedPreferences.setMockInitialValues({});
     FlutterSecureStorage.setMockInitialValues({});
@@ -50,7 +55,7 @@ void main() {
       item('p3', 'Fresh Milk 1L', 95, brand: 'Pran', unit: '1 L'),
       item('p4', 'Brown Eggs (12 pcs)', 150, was: 170, pct: 12, unit: '12 pcs'),
     ];
-    cat(String id, String en, String icon) => {'id': id, 'parentId': null, 'slug': id, 'nameEn': en, 'nameBn': en, 'icon': icon, 'count': 4, 'children': <Object>[]};
+    cat(String id, String en, String icon) => {'id': id, 'parentId': null, 'slug': id, 'nameEn': en, 'nameBn': 'শ্রেণি', 'icon': icon, 'count': 4, 'children': <Object>[]};
     final cats = [cat('a', 'Grocery', 'local_grocery_store'), cat('b', 'Fruits', 'eco'), cat('c', 'Dairy', 'egg'), cat('d', 'Fashion', 'checkroom'), cat('e', 'Home', 'home'), cat('f', 'Beauty', 'spa'), cat('g', 'Tech', 'devices')];
     final client = MockClient((req) async {
       final path = req.url.path.replaceFirst('/api/m/v1', '');
@@ -70,13 +75,30 @@ void main() {
     tester.view.devicePixelRatio = 3;
     final key = GlobalKey();
     final cart = CartController();
-    await tester.pumpWidget(RepaintBoundary(key: key, child: CheapBazarApp(api: api, session: SessionController(api), cart: cart, locale: LocaleController())));
+    cart.add(Product.fromBrowse(items[0]));
+    final locale = LocaleController();
+    await tester.pumpWidget(RepaintBoundary(key: key, child: CheapBazarApp(api: api, session: SessionController(api), cart: cart, locale: locale)));
     for (var i = 0; i < 8; i++) { await tester.pump(const Duration(milliseconds: 300)); }
-    await tester.runAsync(() async {
-      final b = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      final img = await b.toImage(pixelRatio: 1);
-      final data = await img.toByteData(format: ui.ImageByteFormat.png);
-      await File('$dir/home.png').writeAsBytes(data!.buffer.asUint8List());
-    });
+    Future<void> shot(String name) => tester.runAsync(() async {
+          final b = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          final img = await b.toImage(pixelRatio: 1);
+          final data = await img.toByteData(format: ui.ImageByteFormat.png);
+          await File('$dir/$name.png').writeAsBytes(data!.buffer.asUint8List());
+        });
+    await shot('home_en');
+    Future<void> settle() async { for (var i = 0; i < 6; i++) { await tester.pump(const Duration(milliseconds: 250)); } }
+    await tester.tap(find.text('Red Apple (Kashmiri)').first);
+    await settle();
+    await shot('product');
+    await tester.pageBack();
+    await settle();
+    for (final tab in ['Categories', 'Bag', 'Account']) {
+      await tester.tap(find.text(tab).last);
+      await settle();
+      await shot('tab_${tab.toLowerCase()}');
+    }
+    await locale.set('bn');
+    for (var i = 0; i < 4; i++) { await tester.pump(const Duration(milliseconds: 300)); }
+    await shot('home_bn');
   }, skip: dir == null);
 }

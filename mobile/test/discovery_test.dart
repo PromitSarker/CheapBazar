@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cheapbazar/ui/icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -122,7 +123,7 @@ void main() {
       await openBrowse(tester);
       expect(find.text('Miniket Rice'), findsWidgets);
 
-      await tester.tap(find.byIcon(Icons.tune));
+      await tester.tap(find.byIcon(Zi.filter));
       await tester.pumpAndSettle();
       expect(find.text('Filters'), findsOneWidget);
       expect(find.text('Orchard (1)'), findsOneWidget);
@@ -148,7 +149,7 @@ void main() {
     testWidgets('filter sheet: reversed price range is swapped, not rejected; reset clears everything', (tester) async {
       await boot(tester);
       await openBrowse(tester);
-      await tester.tap(find.byIcon(Icons.tune));
+      await tester.tap(find.byIcon(Zi.filter));
       await tester.pumpAndSettle();
       await tester.enterText(find.widgetWithText(TextField, 'Min'), '300');
       await tester.enterText(find.widgetWithText(TextField, 'Max'), '100');
@@ -158,7 +159,7 @@ void main() {
       expect(q, contains('min=100.0'));
       expect(q, contains('max=300.0'));
 
-      await tester.tap(find.byIcon(Icons.tune));
+      await tester.tap(find.byIcon(Zi.filter));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Reset'));
       await tester.pumpAndSettle();

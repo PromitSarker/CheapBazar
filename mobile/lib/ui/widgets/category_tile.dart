@@ -26,15 +26,15 @@ class CategoryTile extends StatelessWidget {
       label: label,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(kRadius),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
               width: 58,
               height: 58,
-              decoration: const BoxDecoration(color: kActionSoft, shape: BoxShape.circle),
-              child: Icon(icon, color: dim ? const Color(0xFF9CA3AF) : kAction, size: 26),
+              decoration: const BoxDecoration(shape: BoxShape.circle, border: Border.fromBorderSide(BorderSide(color: kLineStrong))),
+              child: Icon(icon, color: dim ? const Color(0xFF9C9686) : kBrand, size: 26),
             ),
             const SizedBox(height: 6),
             Text(
@@ -42,7 +42,7 @@ class CategoryTile extends StatelessWidget {
               maxLines: 2,
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12, height: 1.2, fontWeight: FontWeight.w600, color: dim ? kMuted : const Color(0xFF24332D)),
+              style: TextStyle(fontSize: 12, height: 1.2, fontWeight: FontWeight.w400, color: dim ? kMuted : kInk),
             ),
           ]),
         ),

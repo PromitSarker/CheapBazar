@@ -11,6 +11,7 @@ import '../../state/location.dart';
 import '../../state/recent_searches.dart';
 import '../../state/session.dart';
 import '../theme.dart';
+import '../icons.dart';
 import '../widgets/cart_bar.dart';
 import '../widgets/network_ad.dart';
 import '../widgets/common.dart';
@@ -239,11 +240,11 @@ class BrowseScreenState extends State<BrowseScreen> {
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
               hintText: cur != null ? t.t('search_in', {'name': cur.name(bn)}) : t.t('search_hint'),
-              prefixIcon: const Icon(Icons.search),
+              prefixIcon: const Icon(Zi.search),
               suffixIcon: _search.text.isEmpty
                   ? null
                   : IconButton(
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(Zi.close),
                       tooltip: t.t('clear'),
                       onPressed: () {
                         _search.clear();
@@ -260,7 +261,7 @@ class BrowseScreenState extends State<BrowseScreen> {
               child: SegmentedButton<String>(
                 segments: [
                   ButtonSegment(value: 'retail', label: Text(t.t('retail'))),
-                  ButtonSegment(value: 'wholesale', label: Text(t.t('wholesale')), icon: const Icon(Icons.inventory_2_outlined, size: 16)),
+                  ButtonSegment(value: 'wholesale', label: Text(t.t('wholesale')), icon: const Icon(Zi.pack, size: 16)),
                 ],
                 selected: {_tab},
                 showSelectedIcon: false,
@@ -277,11 +278,11 @@ class BrowseScreenState extends State<BrowseScreen> {
             Badge(
               isLabelVisible: _filters.activeCount > 0,
               label: Text('${_filters.activeCount}'),
-              child: IconButton(tooltip: t.t('filters'), icon: const Icon(Icons.tune), onPressed: _openFilters),
+              child: IconButton(tooltip: t.t('filters'), icon: const Icon(Zi.filter), onPressed: _openFilters),
             ),
             PopupMenuButton<String>(
               tooltip: t.t('sort'),
-              icon: const Icon(Icons.sort),
+              icon: const Icon(Zi.sort),
               onSelected: (v) {
                 setState(() => _sort = v);
                 _fetch();
@@ -315,7 +316,7 @@ class BrowseScreenState extends State<BrowseScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
           child: Row(children: [
-            Expanded(child: Text(t.t('recent_searches'), style: const TextStyle(fontWeight: FontWeight.w700))),
+            Expanded(child: Text(t.t('recent_searches'), style: const TextStyle(fontWeight: FontWeight.w600))),
             TextButton(
               onPressed: () async {
                 await RecentSearches.clear();
@@ -326,11 +327,11 @@ class BrowseScreenState extends State<BrowseScreen> {
           ]),
         ),
         for (final r in _recents)
-          ListTile(leading: const Icon(Icons.history, color: kMuted), title: Text(r), dense: true, onTap: () => _submit(r)),
+          ListTile(leading: const Icon(Zi.history, color: kMuted), title: Text(r), dense: true, onTap: () => _submit(r)),
       ] else ...[
         for (final c in _suggestCats)
           ListTile(
-            leading: const Icon(Icons.category_outlined, color: kAction),
+            leading: const Icon(Zi.categories, color: kAction),
             title: Text(_search.text.trim()),
             subtitle: Text(t.t('in_category', {'name': bn && c.nameBn.isNotEmpty ? c.nameBn : c.nameEn})),
             dense: true,
@@ -342,7 +343,7 @@ class BrowseScreenState extends State<BrowseScreen> {
             },
           ),
         for (final s in _suggestions)
-          ListTile(leading: const Icon(Icons.search, color: kMuted), title: Text(s), dense: true, onTap: () => _submit(s)),
+          ListTile(leading: const Icon(Zi.search, color: kMuted), title: Text(s), dense: true, onTap: () => _submit(s)),
       ],
     ]);
   }
@@ -369,7 +370,7 @@ class BrowseScreenState extends State<BrowseScreen> {
               padding: const EdgeInsets.only(right: 8),
               child: FilterChip(
                 label: Text(t.t('on_sale')),
-                avatar: const Icon(Icons.local_offer_outlined, size: 16),
+                avatar: const Icon(Zi.offer, size: 16),
                 selected: _filters.onSale,
                 showCheckmark: false,
                 selectedColor: kActionSoft,
@@ -448,7 +449,7 @@ class BrowseScreenState extends State<BrowseScreen> {
                       child: Container(
                         color: Colors.black54,
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        child: Text('${t.t('sponsored')} · ${_ads.first.headline}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                        child: Text('${t.t('sponsored')} · ${_ads.first.headline}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kSurface, fontSize: 12)),
                       ),
                     ),
                   ]),
@@ -460,7 +461,7 @@ class BrowseScreenState extends State<BrowseScreen> {
           SliverFillRemaining(
             hasScrollBody: false,
             child: EmptyState(
-              icon: Icons.search_off,
+              icon: Zi.noResults,
               title: _categoryId != null || _filters.activeCount > 0 ? t.t('no_products_here') : t.t('no_results'),
               subtitle: _categoryId != null || _filters.activeCount > 0 ? t.t('no_products_here_hint') : null,
             ),
@@ -494,10 +495,10 @@ class BrowseScreenState extends State<BrowseScreen> {
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       child: Container(
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: kLine)),
+        decoration: BoxDecoration(color: kSurface, borderRadius: BorderRadius.circular(kRadius), border: Border.all(color: kLine)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            const Icon(Icons.lock_outline),
+            const Icon(Zi.lock),
             const SizedBox(width: 8),
             Expanded(child: Text(needLogin ? t.t('wholesale_locked_login') : t.t('wholesale_locked_pro'), style: const TextStyle(fontWeight: FontWeight.w600))),
           ]),

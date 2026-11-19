@@ -5,10 +5,11 @@ import 'package:provider/provider.dart';
 import '../../api/api_client.dart';
 import '../../state/l10n.dart';
 import '../theme.dart';
+import '../icons.dart';
 
 /// Network image with a neutral placeholder; relative `/uploads/..` paths resolve against the server.
 class NetImage extends StatelessWidget {
-  const NetImage(this.path, {super.key, this.fit = BoxFit.cover, this.radius = 0, this.icon = Icons.image_outlined});
+  const NetImage(this.path, {super.key, this.fit = BoxFit.cover, this.radius = 0, this.icon = Zi.image});
   final String? path;
   final BoxFit fit;
   final double radius;
@@ -18,9 +19,9 @@ class NetImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final url = context.read<ApiClient>().absoluteUrl(path);
     final placeholder = Container(
-      color: const Color(0xFFEAF4EC),
+      color: const Color(0xFFEFE9DB),
       alignment: Alignment.center,
-      child: Icon(icon, color: const Color(0xFF8A9A92), size: 32),
+      child: Icon(icon, color: const Color(0xFF9C9686), size: 32),
     );
     final child = url.isEmpty
         ? placeholder
@@ -41,7 +42,7 @@ class Money extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bn = context.watch<LocaleController>().isBn;
-    return Text(formatMoney(value, bn: bn), style: style ?? const TextStyle(fontWeight: FontWeight.w700));
+    return Text(formatMoney(value, bn: bn), style: style ?? const TextStyle(fontWeight: FontWeight.w600));
   }
 }
 
@@ -56,12 +57,12 @@ class EmptyState extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(icon, size: 64, color: const Color(0xFF8A9A92)),
+            Icon(icon, size: 64, color: const Color(0xFF9C9686)),
             const SizedBox(height: 14),
-            Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            Text(title, textAlign: TextAlign.center, style: serif(18)),
             if (subtitle != null) ...[
               const SizedBox(height: 6),
-              Text(subtitle!, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF5C6B64))),
+              Text(subtitle!, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF6B665C))),
             ],
             if (action != null) ...[const SizedBox(height: 18), action!],
           ]),
@@ -75,7 +76,7 @@ class ErrorRetry extends StatelessWidget {
   final VoidCallback onRetry;
   @override
   Widget build(BuildContext context) => EmptyState(
-        icon: Icons.wifi_off_rounded,
+        icon: Zi.offline,
         title: message,
         action: SizedBox(width: 180, child: OutlinedButton(onPressed: onRetry, child: Text(context.tr('retry')))),
       );
@@ -88,17 +89,17 @@ class StatusChip extends StatelessWidget {
   static Color colorFor(String s) {
     switch (s) {
       case 'DELIVERED':
-        return const Color(0xFF1E7A57);
+        return const Color(0xFF56653F);
       case 'SHIPPED':
-        return const Color(0xFF1E7A57);
+        return const Color(0xFF56653F);
       case 'CANCELLED':
       case 'REFUSED':
-        return const Color(0xFFDC2626);
+        return const Color(0xFFB3382C);
       case 'PENDING_PAYMENT':
       case 'PLACING':
         return const Color(0xFFD97706);
       default:
-        return const Color(0xFF4F6159);
+        return const Color(0xFF55514A);
     }
   }
 
@@ -108,7 +109,7 @@ class StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(color: c.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
-      child: Text(context.tr('status_$status'), style: TextStyle(color: c, fontSize: 12, fontWeight: FontWeight.w700)),
+      child: Text(context.tr('status_$status'), style: TextStyle(color: c, fontSize: 12, fontWeight: FontWeight.w600)),
     );
   }
 }
@@ -119,7 +120,7 @@ void showSnack(BuildContext context, String message, {bool error = false}) {
   m.showSnackBar(SnackBar(
     content: Text(message),
     behavior: SnackBarBehavior.floating,
-    backgroundColor: error ? const Color(0xFFB91C1C) : kBrand,
+    backgroundColor: error ? const Color(0xFFB3382C) : kBrand,
   ));
 }
 

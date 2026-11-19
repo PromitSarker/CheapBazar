@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme.dart';
+import '../icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../api/api_client.dart';
@@ -59,7 +61,7 @@ class _ProScreenState extends State<ProScreen> {
       return Scaffold(
         appBar: AppBar(title: Text(t.t('buyer_pro'))),
         body: EmptyState(
-          icon: Icons.workspace_premium_outlined,
+          icon: Zi.pro,
           title: t.t('buyer_pro'),
           subtitle: t.t('buyer_pro_blurb'),
           action: SizedBox(
@@ -93,35 +95,35 @@ class _ProScreenState extends State<ProScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
-                    const Icon(Icons.workspace_premium, size: 30, color: Color(0xFFD97706)),
+                    const Icon(Zi.proOn, size: 30, color: Color(0xFFD97706)),
                     const SizedBox(width: 10),
-                    Expanded(child: Text(t.t('buyer_pro'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700))),
+                    Expanded(child: Text(t.t('buyer_pro'), style: serif(20))),
                   ]),
                   const SizedBox(height: 6),
-                  Text(t.t('buyer_pro_blurb'), style: const TextStyle(color: Color(0xFF4F6159))),
+                  Text(t.t('buyer_pro_blurb'), style: const TextStyle(color: Color(0xFF55514A))),
                   const SizedBox(height: 10),
                   Text(
                     status.active
                         ? t.t('pro_active', {'d': status.currentPeriodEnd == null ? '' : '${status.currentPeriodEnd!.day}/${status.currentPeriodEnd!.month}/${status.currentPeriodEnd!.year}'})
                         : t.t('pro_inactive'),
-                    style: TextStyle(fontWeight: FontWeight.w700, color: status.active ? const Color(0xFF1E7A57) : const Color(0xFF5C6B64)),
+                    style: TextStyle(fontWeight: FontWeight.w600, color: status.active ? const Color(0xFF56653F) : const Color(0xFF6B665C)),
                   ),
                   if (plan != null) ...[
                     const SizedBox(height: 6),
-                    Text(t.t('pro_price', {'p': formatMoney(plan.price, bn: t.isBn), 'n': '${plan.periodDays}'}), style: const TextStyle(fontWeight: FontWeight.w700)),
+                    Text(t.t('pro_price', {'p': formatMoney(plan.price, bn: t.isBn), 'n': '${plan.periodDays}'}), style: const TextStyle(fontWeight: FontWeight.w600)),
                   ],
                 ]),
               ),
             ),
             const SizedBox(height: 16),
-            Text(t.t('pro_how'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            Text(t.t('pro_how'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
-            Text(t.t('pro_instructions'), style: const TextStyle(color: Color(0xFF4F6159), height: 1.4)),
+            Text(t.t('pro_instructions'), style: const TextStyle(color: Color(0xFF55514A), height: 1.4)),
             if (instructions.isNotEmpty) ...[
               const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: const Color(0xFFFFFBEB), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFFDE68A))),
+                decoration: BoxDecoration(color: const Color(0xFFFFFBEB), borderRadius: BorderRadius.circular(kRadius), border: Border.all(color: const Color(0xFFFDE68A))),
                 child: SelectableText(instructions, style: const TextStyle(fontWeight: FontWeight.w600)),
               ),
             ],
@@ -140,10 +142,10 @@ class _ProScreenState extends State<ProScreen> {
             const SizedBox(height: 12),
             TextField(controller: _trx, textCapitalization: TextCapitalization.characters, decoration: InputDecoration(labelText: t.t('trx_id'))),
             const SizedBox(height: 14),
-            FilledButton(onPressed: _busy ? null : () => _submit(t), child: _busy ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white)) : Text(t.t('submit_payment'))),
+            FilledButton(onPressed: _busy ? null : () => _submit(t), child: _busy ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: kSurface)) : Text(t.t('submit_payment'))),
             if (payments.isNotEmpty) ...[
               const SizedBox(height: 22),
-              Text(t.t('recent_payments'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              Text(t.t('recent_payments'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               for (final p in payments)
                 Card(

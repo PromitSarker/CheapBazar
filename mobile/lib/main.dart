@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'api/api_client.dart';
@@ -13,6 +15,12 @@ import 'ui/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // The bundled heading fonts are SIL OFL: show their licences in the app's "licences" page.
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks(['Newsreader'], await rootBundle.loadString('assets/fonts/OFL-Newsreader.txt'));
+    yield LicenseEntryWithLineBreaks(['Phosphor Icons'], await rootBundle.loadString('assets/fonts/MIT-Phosphor.txt'));
+    yield LicenseEntryWithLineBreaks(['Noto Serif Bengali'], await rootBundle.loadString('assets/fonts/OFL-NotoSerifBengali.txt'));
+  });
   final api = ApiClient();
   final session = SessionController(api);
   final cart = CartController();
@@ -84,14 +92,12 @@ class _BootState extends State<_Boot> {
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
           return Scaffold(
-            backgroundColor: const Color(0xFF123B32),
+            backgroundColor: kWarmWhite,
             body: Center(
-              child: Column(mainAxisSize: MainAxisSize.min, children: const [
-                Icon(Icons.shopping_bag, color: Color(0xFFBFE5CC), size: 64),
-                SizedBox(height: 14),
-                Text('Cheap-Bazar', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800)),
-                SizedBox(height: 22),
-                SizedBox(width: 26, height: 26, child: CircularProgressIndicator(color: Color(0xFFBFE5CC), strokeWidth: 2.4)),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Text('Cheap-Bazar', style: serif(34, weight: 500)),
+                const SizedBox(height: 22),
+                const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: kAccent, strokeWidth: 1.6)),
               ]),
             ),
           );

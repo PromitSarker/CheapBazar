@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme.dart';
+import '../icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../state/cart.dart';
@@ -21,7 +23,7 @@ class CartScreen extends StatelessWidget {
       appBar: AppBar(title: Text(t.t('bag'))),
       body: groups.isEmpty
           ? EmptyState(
-              icon: Icons.shopping_bag_outlined,
+              icon: Zi.bag,
               title: t.t('bag_empty'),
               subtitle: t.t('bag_empty_hint'),
               action: SizedBox(width: 220, child: FilledButton(onPressed: goToShop, child: Text(t.t('start_shopping')))),
@@ -50,23 +52,23 @@ class _GroupCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            const Icon(Icons.storefront_outlined, size: 20),
+            const Icon(Zi.store, size: 20),
             const SizedBox(width: 8),
-            Expanded(child: Text(group.storeName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16))),
+            Expanded(child: Text(group.storeName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16))),
             if (wholesale)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: const Color(0xFFEAF4EC), borderRadius: BorderRadius.circular(10)),
-                child: Text(t.t('wholesale'), style: const TextStyle(color: Color(0xFF123B32), fontSize: 11, fontWeight: FontWeight.w700)),
+                decoration: BoxDecoration(color: const Color(0xFFEFE9DB), borderRadius: BorderRadius.circular(kRadius)),
+                child: Text(t.t('wholesale'), style: const TextStyle(color: Color(0xFF3B4733), fontSize: 11, fontWeight: FontWeight.w600)),
               ),
           ]),
           const Divider(height: 22),
           for (final l in group.lines) _LineRow(line: l),
           const SizedBox(height: 8),
           Row(children: [
-            Text(t.t('subtotal'), style: const TextStyle(color: Color(0xFF4F6159))),
+            Text(t.t('subtotal'), style: const TextStyle(color: Color(0xFF55514A))),
             const Spacer(),
-            Money(group.total, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            Money(group.total, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
           ]),
           const SizedBox(height: 12),
           FilledButton(
@@ -106,21 +108,21 @@ class _LineRow extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(line.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 2),
-            Money(line.effectiveUnit, style: const TextStyle(color: Color(0xFF4F6159))),
+            Money(line.effectiveUnit, style: const TextStyle(color: Color(0xFF55514A))),
             Row(children: [
               IconButton(
                 visualDensity: VisualDensity.compact,
                 onPressed: line.quantity > min ? () => cart.setQuantity(line, line.quantity - 1) : null,
-                icon: const Icon(Icons.remove_circle_outline),
+                icon: const Icon(Zi.removeCircle),
               ),
-              Text('${line.quantity}', style: const TextStyle(fontWeight: FontWeight.w700)),
+              Text('${line.quantity}', style: const TextStyle(fontWeight: FontWeight.w600)),
               IconButton(
                 visualDensity: VisualDensity.compact,
                 onPressed: line.quantity < line.maxStock ? () => cart.setQuantity(line, line.quantity + 1) : null,
-                icon: const Icon(Icons.add_circle_outline),
+                icon: const Icon(Zi.addCircle),
               ),
               const Spacer(),
-              IconButton(visualDensity: VisualDensity.compact, onPressed: () => cart.remove(line), icon: const Icon(Icons.delete_outline, color: Color(0xFFDC2626))),
+              IconButton(visualDensity: VisualDensity.compact, onPressed: () => cart.remove(line), icon: const Icon(Zi.delete, color: Color(0xFFB3382C))),
             ]),
           ]),
         ),

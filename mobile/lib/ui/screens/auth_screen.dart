@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme.dart';
+import '../icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../state/l10n.dart';
@@ -62,12 +64,12 @@ class _AuthScreenState extends State<AuthScreen> {
               child: Container(
                 width: 64,
                 height: 64,
-                decoration: BoxDecoration(color: const Color(0xFF123B32), borderRadius: BorderRadius.circular(16)),
-                child: const Icon(Icons.shopping_bag, color: Colors.white, size: 34),
+                decoration: BoxDecoration(color: const Color(0xFF3B4733), borderRadius: BorderRadius.circular(16)),
+                child: const Icon(Zi.bagOn, color: kSurface, size: 34),
               ),
             ),
             const SizedBox(height: 16),
-            Text(_register ? t.t('join') : t.t('welcome_back'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+            Text(_register ? t.t('join') : t.t('welcome_back'), textAlign: TextAlign.center, style: serif(24)),
             const SizedBox(height: 24),
             if (_register) ...[
               TextFormField(
@@ -94,7 +96,7 @@ class _AuthScreenState extends State<AuthScreen> {
               decoration: InputDecoration(
                 labelText: t.t('password'),
                 helperText: _register ? t.t('password_hint') : null,
-                suffixIcon: IconButton(icon: Icon(_hide ? Icons.visibility_outlined : Icons.visibility_off_outlined), onPressed: () => setState(() => _hide = !_hide)),
+                suffixIcon: IconButton(icon: Icon(_hide ? Zi.show : Zi.hide), onPressed: () => setState(() => _hide = !_hide)),
               ),
               validator: (v) => (v ?? '').length >= (_register ? 8 : 1) ? null : t.t('password_hint'),
               onFieldSubmitted: (_) => _submit(),
@@ -102,7 +104,7 @@ class _AuthScreenState extends State<AuthScreen> {
             const SizedBox(height: 20),
             FilledButton(
               onPressed: _busy ? null : _submit,
-              child: _busy ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white)) : Text(_register ? t.t('register') : t.t('login')),
+              child: _busy ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: kSurface)) : Text(_register ? t.t('register') : t.t('login')),
             ),
             const SizedBox(height: 8),
             TextButton(onPressed: () => setState(() => _register = !_register), child: Text(_register ? t.t('have_account') : t.t('no_account'))),

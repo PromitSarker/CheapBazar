@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme.dart';
+import '../icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../api/api_client.dart';
@@ -52,7 +54,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
             return ListView(children: [SizedBox(height: 420, child: ErrorRetry(message: errorText(snap.error!), onRetry: () => setState(() => _future = _load())))]);
           }
           final orders = snap.data!;
-          if (orders.isEmpty) return ListView(children: [SizedBox(height: 420, child: EmptyState(icon: Icons.receipt_long_outlined, title: t.t('no_orders')))]);
+          if (orders.isEmpty) return ListView(children: [SizedBox(height: 420, child: EmptyState(icon: Zi.orders, title: t.t('no_orders')))]);
           return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: orders.length + 1,
@@ -62,7 +64,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               final o = orders[i];
               return Card(
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(kRadius),
                   onTap: () async {
                     await Navigator.push(context, MaterialPageRoute(builder: (_) => OrderDetailScreen(order: o)));
                     if (mounted) setState(() => _future = _load());
@@ -71,15 +73,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     padding: const EdgeInsets.all(14),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
-                        Expanded(child: Text(o.storeName, style: const TextStyle(fontWeight: FontWeight.w700))),
+                        Expanded(child: Text(o.storeName, style: const TextStyle(fontWeight: FontWeight.w600))),
                         StatusChip(o.status),
                       ]),
                       const SizedBox(height: 4),
-                      Text(o.orderNumber, style: const TextStyle(color: Color(0xFF5C6B64), fontSize: 12)),
+                      Text(o.orderNumber, style: const TextStyle(color: Color(0xFF6B665C), fontSize: 12)),
                       const SizedBox(height: 6),
                       Text(o.items.map((i) => '${i.quantity}× ${i.name}').join(', '), maxLines: 2, overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 8),
-                      Row(children: [Money(o.totalAmount, style: const TextStyle(fontWeight: FontWeight.w700)), const Spacer(), const Icon(Icons.chevron_right, color: Color(0xFF8A9A92))]),
+                      Row(children: [Money(o.totalAmount, style: const TextStyle(fontWeight: FontWeight.w600)), const Spacer(), const Icon(Zi.chevron, color: Color(0xFF9C9686))]),
                     ]),
                   ),
                 ),
@@ -94,14 +96,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Widget _guest(LocaleController t) {
     return ListView(padding: const EdgeInsets.all(16), children: [
       EmptyState(
-        icon: Icons.receipt_long_outlined,
+        icon: Zi.orders,
         title: t.t('login_to_see_orders'),
         action: SizedBox(width: 200, child: FilledButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen())), child: Text(t.t('login')))),
       ),
       const SizedBox(height: 8),
       OutlinedButton.icon(
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TrackOrderScreen())),
-        icon: const Icon(Icons.local_shipping_outlined),
+        icon: const Icon(Zi.shipping),
         label: Text(t.t('track_order')),
       ),
     ]);
@@ -147,13 +149,13 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(t.t('track_order'))),
       body: ListView(padding: const EdgeInsets.all(16), children: [
-        Text(t.t('track_hint'), style: const TextStyle(color: Color(0xFF4F6159))),
+        Text(t.t('track_hint'), style: const TextStyle(color: Color(0xFF55514A))),
         const SizedBox(height: 14),
         TextField(controller: _number, textCapitalization: TextCapitalization.characters, decoration: InputDecoration(labelText: t.t('order_number'), hintText: 'ORD-XXXXXXXX')),
         const SizedBox(height: 12),
         TextField(controller: _phone, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: t.t('phone'))),
         const SizedBox(height: 18),
-        FilledButton(onPressed: _busy ? null : _go, child: _busy ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white)) : Text(t.t('track'))),
+        FilledButton(onPressed: _busy ? null : _go, child: _busy ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: kSurface)) : Text(t.t('track'))),
       ]),
     );
   }

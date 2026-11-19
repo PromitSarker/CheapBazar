@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme.dart';
+import '../icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../api/api_client.dart';
@@ -48,7 +50,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         content: Text(t.t('cancel_confirm')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(t.t('keep_order'))),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(t.t('cancel_order'), style: const TextStyle(color: Color(0xFFDC2626)))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(t.t('cancel_order'), style: const TextStyle(color: Color(0xFFB3382C)))),
         ],
       ),
     );
@@ -77,10 +79,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         onRefresh: _refresh,
         child: ListView(padding: const EdgeInsets.all(16), children: [
           Row(children: [
-            Expanded(child: Text(o.storeName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700))),
+            Expanded(child: Text(o.storeName, style: serif(18))),
             StatusChip(o.status),
           ]),
-          if (o.createdAt != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(_fmt(o.createdAt!), style: const TextStyle(color: Color(0xFF5C6B64)))),
+          if (o.createdAt != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(_fmt(o.createdAt!), style: const TextStyle(color: Color(0xFF6B665C)))),
           const SizedBox(height: 14),
           if (!terminalBad && stepIndex >= 0)
             Card(
@@ -90,9 +92,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   for (var i = 0; i < _steps.length; i++) ...[
                     Expanded(
                       child: Column(children: [
-                        Icon(i <= stepIndex ? Icons.check_circle : Icons.radio_button_unchecked, color: i <= stepIndex ? const Color(0xFF1E7A57) : const Color(0xFF8A9A92)),
+                        Icon(i <= stepIndex ? Zi.checkCircle : Zi.radioOff, color: i <= stepIndex ? const Color(0xFF56653F) : const Color(0xFF9C9686)),
                         const SizedBox(height: 4),
-                        Text(t.t('status_${_steps[i]}'), textAlign: TextAlign.center, style: TextStyle(fontSize: 11, fontWeight: i == stepIndex ? FontWeight.w700 : FontWeight.w500)),
+                        Text(t.t('status_${_steps[i]}'), textAlign: TextAlign.center, style: TextStyle(fontSize: 11, fontWeight: i == stepIndex ? FontWeight.w600 : FontWeight.w500)),
                       ]),
                     ),
                   ],
@@ -116,7 +118,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(t.t('items'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                Text(t.t('items'), style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 for (final i in o.items)
                   Padding(
@@ -128,9 +130,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ),
                 const Divider(height: 20),
                 Row(children: [
-                  Text(t.t('total'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  Text(t.t('total'), style: const TextStyle(fontWeight: FontWeight.w600)),
                   const Spacer(),
-                  Money(o.totalAmount, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                  Money(o.totalAmount, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                 ]),
               ]),
             ),
@@ -141,7 +143,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(t.t('delivery_to'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  Text(t.t('delivery_to'), style: const TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   Text('${o.buyerName}\n${o.buyerPhone}\n${o.shippingAddress}, ${o.shippingCity}'),
                 ]),
@@ -152,7 +154,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             const SizedBox(height: 18),
             OutlinedButton(
               onPressed: _busy ? null : _cancel,
-              style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFDC2626)),
+              style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFB3382C)),
               child: Text(t.t('cancel_order')),
             ),
           ],

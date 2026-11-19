@@ -58,6 +58,10 @@ Only the App ID (item 5) is baked into the APK, so it needs one rebuild and publ
 
 Minimum to start earning on the website: **1 + at least one of 2-4b**. Everything else can follow.
 
+## Not credentials, but for your info
+
+- The new Zen look uses open-licence assets only (Phosphor Icons MIT, Newsreader + Noto Serif Bengali OFL), so **nothing to buy or sign up for**.
+
 ## Other things on your side (no credentials, only your actions)
 
 - Add the site in AdSense and wait for Google's approval (can take days).

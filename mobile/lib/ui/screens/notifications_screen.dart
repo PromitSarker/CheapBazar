@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../api/api_client.dart';
@@ -65,16 +66,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             if (snap.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
             if (snap.hasError) return ListView(children: [SizedBox(height: 420, child: ErrorRetry(message: errorText(snap.error!), onRetry: () => setState(() => _future = _load(t.lang))))]);
             final items = snap.data!;
-            if (items.isEmpty) return ListView(children: [SizedBox(height: 420, child: EmptyState(icon: Icons.notifications_none_rounded, title: t.t('no_notifications')))]);
+            if (items.isEmpty) return ListView(children: [SizedBox(height: 420, child: EmptyState(icon: Zi.bell, title: t.t('no_notifications')))]);
             return ListView.separated(
               itemCount: items.length,
               separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (_, i) {
                 final n = items[i];
                 return ListTile(
-                  tileColor: n.read ? null : const Color(0xFFEAF4EC),
-                  leading: Icon(n.read ? Icons.notifications_none : Icons.notifications_active, color: n.read ? const Color(0xFF8A9A92) : const Color(0xFF1E7A57)),
-                  title: Text(n.title, style: TextStyle(fontWeight: n.read ? FontWeight.w500 : FontWeight.w700)),
+                  tileColor: n.read ? null : const Color(0xFFEFE9DB),
+                  leading: Icon(n.read ? Zi.bell : Zi.bellOn, color: n.read ? const Color(0xFF9C9686) : const Color(0xFF56653F)),
+                  title: Text(n.title, style: TextStyle(fontWeight: n.read ? FontWeight.w500 : FontWeight.w600)),
                   subtitle: Text(n.body),
                   onTap: () => _open(n),
                 );

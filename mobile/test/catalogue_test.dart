@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cheapbazar/ui/icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:provider/provider.dart';
@@ -134,49 +135,49 @@ void main() {
       expect(find.text('৳100.00'), findsWidgets);
       expect(find.text('৳80.00'), findsWidgets);
       expect(find.text('Orchard · 1 kg'), findsWidgets);
-      expect(find.text('ADD'), findsNWidgets(2));
+      expect(find.text('Add'), findsNWidgets(2));
     });
 
     testWidgets('ADD -> stepper -> + / - -> back to ADD', (tester) async {
       final cart = await pump(tester, Product.fromBrowse(apple));
-      expect(find.text('ADD'), findsNWidgets(2));
-      await tester.tap(find.text('ADD').first);
+      expect(find.text('Add'), findsNWidgets(2));
+      await tester.tap(find.text('Add').first);
       await tester.pumpAndSettle();
       expect(cart.quantityOf('p1'), 1);
-      expect(find.text('ADD'), findsNothing, reason: 'both cards show the same product, so both become steppers');
-      expect(find.byIcon(Icons.remove), findsNWidgets(2));
+      expect(find.text('Add'), findsNothing, reason: 'both cards show the same product, so both become steppers');
+      expect(find.byIcon(Zi.remove), findsNWidgets(2));
 
-      await tester.tap(find.byIcon(Icons.add).first);
+      await tester.tap(find.byIcon(Zi.add).first);
       await tester.pumpAndSettle();
       expect(cart.quantityOf('p1'), 2);
       expect(find.text('2'), findsNWidgets(2));
 
-      await tester.tap(find.byIcon(Icons.remove).first);
-      await tester.tap(find.byIcon(Icons.remove).first);
+      await tester.tap(find.byIcon(Zi.remove).first);
+      await tester.tap(find.byIcon(Zi.remove).first);
       await tester.pumpAndSettle();
       expect(cart.isEmpty, true);
-      expect(find.text('ADD'), findsNWidgets(2));
+      expect(find.text('Add'), findsNWidgets(2));
     });
 
     testWidgets('the + stops at the stock limit', (tester) async {
       final cart = await pump(tester, Product.fromBrowse(item('p9', 'Last Ones', 50, stock: 2)));
-      await tester.tap(find.text('ADD').first);
+      await tester.tap(find.text('Add').first);
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.add).first);
+      await tester.tap(find.byIcon(Zi.add).first);
       await tester.pumpAndSettle();
       expect(cart.quantityOf('p9'), 2);
-      await tester.tap(find.byIcon(Icons.add).first);
+      await tester.tap(find.byIcon(Zi.add).first);
       await tester.pumpAndSettle();
       expect(cart.quantityOf('p9'), 2, reason: 'cannot exceed stock');
     });
 
     testWidgets('out of stock and wholesale cards have no ADD button', (tester) async {
       await pump(tester, Product.fromBrowse(item('p3', 'Gone', 10, stock: 0)));
-      expect(find.text('ADD'), findsNothing);
+      expect(find.text('Add'), findsNothing);
       expect(find.text('Out of stock'), findsWidgets);
 
       await pump(tester, Product.fromBrowse({...item('p4', 'Flour', 0), 'wholesalePrice': 300, 'moq': 10, 'tiers': []}, wholesale: true));
-      expect(find.text('ADD'), findsNothing);
+      expect(find.text('Add'), findsNothing);
       expect(find.textContaining('10'), findsWidgets, reason: 'shows the minimum order quantity');
     });
 
@@ -272,11 +273,11 @@ void main() {
     testWidgets('sticky bag bar appears after ADD and opens the Bag tab', (tester) async {
       final (cart, _) = await boot(tester);
       expect(find.textContaining('View bag'), findsNothing);
-      await tester.tap(find.text('ADD').first);
+      await tester.tap(find.text('Add').first);
       await tester.pumpAndSettle();
       expect(cart.count, 1);
       expect(find.textContaining('View bag'), findsOneWidget);
-      expect(find.textContaining('1 items'), findsOneWidget);
+      expect(find.textContaining('1 item'), findsOneWidget);
 
       await tester.tap(find.textContaining('View bag'));
       await tester.pumpAndSettle();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../state/cart.dart';
@@ -55,15 +56,15 @@ class _ShellState extends State<Shell> {
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: [
-          NavigationDestination(icon: const Icon(Icons.home_outlined), selectedIcon: const Icon(Icons.home), label: t.t('home')),
-          NavigationDestination(icon: const Icon(Icons.grid_view_outlined), selectedIcon: const Icon(Icons.grid_view_rounded), label: t.t('categories')),
+          NavigationDestination(icon: const Icon(Zi.home), selectedIcon: const Icon(Zi.homeOn), label: t.t('home')),
+          NavigationDestination(icon: const Icon(Zi.categories), selectedIcon: const Icon(Zi.categoriesOn), label: t.t('categories')),
           NavigationDestination(
-            icon: Badge(isLabelVisible: cart.count > 0, label: Text('${cart.count}'), child: const Icon(Icons.shopping_bag_outlined)),
-            selectedIcon: Badge(isLabelVisible: cart.count > 0, label: Text('${cart.count}'), child: const Icon(Icons.shopping_bag)),
+            icon: Badge(isLabelVisible: cart.count > 0, label: Text('${cart.count}'), child: const Icon(Zi.bag)),
+            selectedIcon: Badge(isLabelVisible: cart.count > 0, label: Text('${cart.count}'), child: const Icon(Zi.bagOn)),
             label: t.t('bag'),
           ),
-          NavigationDestination(icon: const Icon(Icons.receipt_long_outlined), selectedIcon: const Icon(Icons.receipt_long), label: t.t('orders')),
-          NavigationDestination(icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person), label: t.t('account')),
+          NavigationDestination(icon: const Icon(Zi.orders), selectedIcon: const Icon(Zi.ordersOn), label: t.t('orders')),
+          NavigationDestination(icon: const Icon(Zi.account), selectedIcon: const Icon(Zi.accountOn), label: t.t('account')),
         ],
       ),
       ]),

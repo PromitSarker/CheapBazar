@@ -8,6 +8,7 @@ import '../../api/api_client.dart';
 import '../../state/app_update.dart';
 import '../../state/l10n.dart';
 import '../theme.dart';
+import '../icons.dart';
 import 'common.dart';
 
 /// Account > "Check for updates". When a newer APK is published it downloads it inside the app (with progress
@@ -76,11 +77,11 @@ class _UpdateTileState extends State<UpdateTile> {
   Widget build(BuildContext context) {
     final t = context.watch<LocaleController>();
     return ListTile(
-      leading: const Icon(Icons.system_update_alt),
+      leading: const Icon(Zi.download),
       title: Text(t.t('check_update')),
       trailing: _busy
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-          : const Icon(Icons.chevron_right),
+          : const Icon(Zi.chevron),
       onTap: _busy ? null : _check,
     );
   }
