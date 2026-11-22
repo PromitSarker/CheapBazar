@@ -125,12 +125,13 @@ class Product {
 
 /// A department or sub-category (admin-managed). [count] = products currently listed in it.
 class ShopCategory {
-  ShopCategory({required this.id, required this.parentId, required this.nameEn, required this.nameBn, required this.icon, required this.count, this.children = const []});
+  ShopCategory({required this.id, required this.parentId, required this.nameEn, required this.nameBn, required this.icon, required this.count, this.imageUrl = '', this.children = const []});
   final String id;
   final String? parentId;
   final String nameEn;
   final String nameBn;
   final String icon; // Material icon key, see category_icons.dart
+  final String imageUrl; // optional cutout photo (absolute or /uploads path); empty = tinted icon fallback
   final int count;
   final List<ShopCategory> children;
 
@@ -143,6 +144,7 @@ class ShopCategory {
         nameBn: _s(j['nameBn']),
         icon: _s(j['icon']),
         count: _i(j['count']),
+        imageUrl: _s(j['imageUrl'] ?? j['image']),
         children: ((j['children'] as List?) ?? const []).map((e) => ShopCategory.fromJson((e as Map).cast<String, dynamic>())).toList(),
       );
 }
