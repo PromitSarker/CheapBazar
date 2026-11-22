@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../state/l10n.dart';
 import '../../state/location.dart';
 import '../theme.dart';
+import '../icons.dart';
 
 String _failText(LocaleController t, LocationException e) => switch (e.code) {
       'disabled' => t.t('loc_gps_off'),
@@ -70,7 +71,7 @@ class _LocationSheetState extends State<_LocationSheet> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
-            child: Text(t.t('loc_title'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+            child: Text(t.t('loc_title'), style: serif(20)),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
@@ -86,8 +87,8 @@ class _LocationSheetState extends State<_LocationSheet> {
               child: FilledButton.icon(
                 onPressed: _busy ? null : _gps,
                 icon: _busy
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.my_location),
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: kSurface))
+                    : const Icon(Zi.locate),
                 label: Text(_busy ? t.t('loc_finding') : t.t('loc_use_gps')),
               ),
             ),
@@ -95,7 +96,7 @@ class _LocationSheetState extends State<_LocationSheet> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-              child: Text(_error!, style: const TextStyle(color: Color(0xFFDC2626), height: 1.3)),
+              child: Text(_error!, style: const TextStyle(color: Color(0xFFB3382C), height: 1.3)),
             ),
           const Padding(padding: EdgeInsets.fromLTRB(20, 16, 20, 6), child: Divider(height: 1)),
           Padding(
@@ -103,7 +104,7 @@ class _LocationSheetState extends State<_LocationSheet> {
             child: TextField(
               controller: _filter,
               onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: t.t('loc_search_district'), isDense: true),
+              decoration: InputDecoration(prefixIcon: const Icon(Zi.search), hintText: t.t('loc_search_district'), isDense: true),
             ),
           ),
           Expanded(
@@ -116,7 +117,7 @@ class _LocationSheetState extends State<_LocationSheet> {
                       final selected = loc.label == d.id;
                       return ListTile(
                         title: Text(d.name(t.isBn)),
-                        trailing: selected ? const Icon(Icons.check, color: Color(0xFF123B32)) : null,
+                        trailing: selected ? const Icon(Zi.check, color: Color(0xFF3B4733)) : null,
                         onTap: () async {
                           await loc.chooseDistrict(d);
                           if (context.mounted) Navigator.pop(context);
@@ -156,12 +157,12 @@ class LocationChip extends StatelessWidget {
     final label = loc.shortLabel(t.isBn, nearMe: t.t('loc_near_me'), notSet: t.t('loc_set'));
     return TextButton.icon(
       onPressed: () => showLocationSheet(context),
-      icon: const Icon(Icons.place_outlined, size: 18),
+      icon: const Icon(Zi.place, size: 18),
       label: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 110),
         child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
-      style: TextButton.styleFrom(foregroundColor: loc.hasLocation ? const Color(0xFF123B32) : const Color(0xFFB45309)),
+      style: TextButton.styleFrom(foregroundColor: loc.hasLocation ? const Color(0xFF3B4733) : const Color(0xFFB45309)),
     );
   }
 }
@@ -181,13 +182,13 @@ class LocationBar extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 12, 4),
         child: Row(children: [
-          const Icon(Icons.place_outlined, size: 18),
+          const Icon(Zi.place, size: 18),
           const SizedBox(width: 6),
-          Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700))),
+          Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600))),
           if (loc.radiusKm != null)
             Text('  ·  ${t.t('loc_within', {'km': _km(loc.radiusKm!)})}', style: const TextStyle(color: kMuted, fontSize: 13)),
           const Spacer(),
-          const Icon(Icons.keyboard_arrow_down, color: kMuted),
+          const Icon(Zi.chevronDown, color: kMuted),
         ]),
       ),
     );
@@ -208,9 +209,9 @@ class LocationPrompt extends StatelessWidget {
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(28),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.place_outlined, size: 56, color: kMuted),
+          const Icon(Zi.place, size: 56, color: kMuted),
           const SizedBox(height: 14),
-          Text(t.t('loc_prompt_title'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800)),
+          Text(t.t('loc_prompt_title'), textAlign: TextAlign.center, style: serif(19)),
           const SizedBox(height: 8),
           Text(
             message ?? (r != null ? t.t('loc_prompt_range', {'km': _km(r)}) : t.t('loc_prompt_plain')),
@@ -218,7 +219,7 @@ class LocationPrompt extends StatelessWidget {
             style: const TextStyle(color: kMuted, height: 1.4),
           ),
           const SizedBox(height: 18),
-          FilledButton.icon(onPressed: () => showLocationSheet(context), icon: const Icon(Icons.my_location), label: Text(t.t('loc_set_btn'))),
+          FilledButton.icon(onPressed: () => showLocationSheet(context), icon: const Icon(Zi.locate), label: Text(t.t('loc_set_btn'))),
         ]),
       ),
     );

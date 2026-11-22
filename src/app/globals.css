@@ -1826,3 +1826,35 @@ html[data-scrolled="1"] .header-wrapper { box-shadow: 0 8px 20px -14px rgba(18, 
   .faq-body { opacity: 1; transform: none; }
   .button:hover, .feature-box:hover, .step-card:hover, .testimonial-card:hover, .card:hover { transform: none !important; }
 }
+
+
+/* ==========================================================================
+   AD NETWORK + LEGAL PAGES. Quiet by design: a hairline frame, a tiny "Ad" tag,
+   and the whole box disappears when Google has nothing to show.
+   ========================================================================== */
+.ad-network {
+  position: relative;
+  margin: 1.25rem 0;
+  padding: 1.35rem 0.75rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  min-height: 0;
+  overflow: hidden;
+}
+.ad-network .ad-tag {
+  position: absolute; top: 0.35rem; left: 0.75rem;
+  font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary);
+}
+.ad-network:has(ins[data-ad-status="unfilled"]) { display: none; }
+.ad-network ins.adsbygoogle[data-ad-status="unfilled"] { display: none !important; }
+
+.footer-legal { display: inline-flex; gap: 1.25rem; }
+.footer-legal a { color: inherit; text-decoration: underline; text-underline-offset: 3px; opacity: .9; }
+
+.legal { max-width: 720px; margin: 0 auto; padding: 2rem 1rem 3rem; line-height: 1.7; }
+.legal h1 { font-size: 2rem; margin-bottom: .25rem; }
+.legal h2 { font-size: 1.15rem; margin: 1.75rem 0 .4rem; }
+.legal ul { padding-left: 1.2rem; }
+.legal li { margin: .35rem 0; }
+.legal a { color: var(--link); }

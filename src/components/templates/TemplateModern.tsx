@@ -4,13 +4,13 @@ import React from "react";
 import { CartProvider, useCart } from "@/components/cart/CartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { useLanguage } from "@/modules/i18n/LanguageContext";
-import { CartButton, SponsoredSlot, StockNote, StoreLogo, themeStyle, type ProductVM, type SponsoredVM, type StoreBrand } from "./StoreBits";
+import { CartButton, SponsoredSlot, StockNote, StoreLogo, themeStyle, type ProductVM, type NetworkAdVM, type SponsoredVM, type StoreBrand } from "./StoreBits";
 
 /**
  * Modern: left-aligned bar with the logo and name (fixed), cart on the right,
  * a short intro line, then a product grid.
  */
-function ModernContent({ store, products, sponsored }: { store: StoreBrand; products: ProductVM[]; sponsored?: SponsoredVM | null }) {
+function ModernContent({ store, products, sponsored, network }: { store: StoreBrand; products: ProductVM[]; sponsored?: SponsoredVM | null; network?: NetworkAdVM }) {
   const { addToCart } = useCart();
   const { t, formatMoney } = useLanguage();
 
@@ -28,7 +28,7 @@ function ModernContent({ store, products, sponsored }: { store: StoreBrand; prod
         <h1>{t.modernTagline}</h1>
       </section>
 
-      <SponsoredSlot sponsored={sponsored} notice={t.flashDealNotice} />
+      <SponsoredSlot network={network} sponsored={sponsored} notice={t.flashDealNotice} />
 
       <main className="tpl-body">
         {products.length === 0 ? (
@@ -68,7 +68,7 @@ function ModernContent({ store, products, sponsored }: { store: StoreBrand; prod
   );
 }
 
-export default function TemplateModern(props: { store: StoreBrand; products: ProductVM[]; sponsored?: SponsoredVM | null }) {
+export default function TemplateModern(props: { store: StoreBrand; products: ProductVM[]; sponsored?: SponsoredVM | null; network?: NetworkAdVM }) {
   return (
     <CartProvider>
       <ModernContent {...props} />

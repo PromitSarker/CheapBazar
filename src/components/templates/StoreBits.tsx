@@ -4,6 +4,7 @@ import React from "react";
 import { useCart } from "@/components/cart/CartContext";
 import { useLanguage } from "@/modules/i18n/LanguageContext";
 import SponsoredBanner from "@/components/sponsored/SponsoredBanner";
+import AdsenseUnit from "@/components/ads/AdsenseUnit";
 import { themeOrDefault } from "@/lib/storefront-theme";
 
 export type SponsoredVM = { headline: string; imageUrl: string; targetUrl: string };
@@ -41,7 +42,9 @@ export function CartButton({ label }: { label: string }) {
 }
 
 /** undefined = legacy placeholder; null = no ad; object = a real paid banner. */
-export function SponsoredSlot({ sponsored, notice }: { sponsored?: SponsoredVM | null; notice: string }) {
+export type NetworkAdVM = { client: string; slot: string } | null;
+
+export function SponsoredSlot({ sponsored, notice, network = null }: { sponsored?: SponsoredVM | null; notice: string; network?: NetworkAdVM }) {
   const { t } = useLanguage();
   if (sponsored === undefined) {
     return (
@@ -50,7 +53,7 @@ export function SponsoredSlot({ sponsored, notice }: { sponsored?: SponsoredVM |
       </div>
     );
   }
-  if (!sponsored) return null;
+  if (!sponsored) return network ? <AdsenseUnit client={network.client} slot={network.slot} /> : null;
   return <SponsoredBanner ad={sponsored} label={t.sponsored} accent="var(--store-accent)" />;
 }
 

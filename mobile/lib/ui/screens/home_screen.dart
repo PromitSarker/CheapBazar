@@ -8,9 +8,11 @@ import '../../state/l10n.dart';
 import '../../state/location.dart';
 import '../../state/session.dart';
 import '../theme.dart';
+import '../icons.dart';
 import '../widgets/category_tile.dart';
 import '../widgets/common.dart';
 import '../widgets/location_ui.dart';
+import '../widgets/network_ad.dart';
 import '../widgets/product_card.dart';
 import '../widgets/skeleton.dart';
 import 'auth_screen.dart';
@@ -100,16 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final session = context.watch<SessionController>();
     return Scaffold(
       appBar: AppBar(
-        title: Row(children: [
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(color: const Color(0xFF123B32), borderRadius: BorderRadius.circular(8)),
-            child: const Icon(Icons.shopping_bag, color: Colors.white, size: 18),
-          ),
-          const SizedBox(width: 10),
-          Text(t.t('app_name')),
-        ]),
+        title: Text(t.t('app_name')),
         actions: [
           IconButton(
             tooltip: t.t('notifications'),
@@ -125,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Badge(
               isLabelVisible: session.unread > 0,
               label: Text('${session.unread > 99 ? '99+' : session.unread}'),
-              child: const Icon(Icons.notifications_none_rounded),
+              child: const Icon(Zi.bell),
             ),
           ),
         ],
@@ -170,7 +163,11 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 4),
       ],
       if (d.categories.isNotEmpty) ..._categorySection(context, d.categories, t),
-      for (final s in d.shelves) ..._shelf(context, s, bn, t),
+      for (var i = 0; i < d.shelves.length; i++) ...[
+        ..._shelf(context, d.shelves[i], bn, t),
+        // One Google ad, after the second shelf (or the last one if there are fewer). Seller banners stay at the top.
+        if (i == (d.shelves.length < 2 ? d.shelves.length - 1 : 1)) const NetworkAd(placement: 'home'),
+      ],
       if (d.stores.isNotEmpty) ...[
         _sectionTitle(t.t('stores')),
         SizedBox(
@@ -198,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
-      if (d.stores.isEmpty && d.items.isEmpty && !hasShelves) SizedBox(height: 320, child: EmptyState(icon: Icons.storefront_outlined, title: t.t('no_products_here'), subtitle: t.t('no_products_here_hint'))),
+      if (d.stores.isEmpty && d.items.isEmpty && !hasShelves) SizedBox(height: 320, child: EmptyState(icon: Zi.store, title: t.t('no_products_here'), subtitle: t.t('no_products_here_hint'))),
     ]);
   }
 
@@ -219,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             for (final c in shown)
               CategoryTile.of(context, c, onTap: () => _openBrowse(categoryId: c.id, title: c.name(t.isBn))),
-            CategoryTile(label: t.t('all'), icon: Icons.apps_rounded, onTap: widget.goToCategories),
+            CategoryTile(label: t.t('all'), icon: Zi.all, onTap: widget.goToCategories),
           ],
         ),
       ),
@@ -252,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _sectionTitle(String title, {Widget? action}) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
         child: Row(children: [
-          Expanded(child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+          Expanded(child: Text(title, style: serif(17))),
           ?action,
         ]),
       );
@@ -270,13 +267,13 @@ class _SearchBox extends StatelessWidget {
           label: hint,
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(kRadius),
             child: Container(
               height: 48,
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFC5D0C0))),
+              decoration: BoxDecoration(color: kSurface, borderRadius: BorderRadius.circular(kRadius), border: Border.all(color: kLine)),
               child: Row(children: [
-                const Icon(Icons.search, color: kMuted),
+                const Icon(Zi.search, color: kMuted),
                 const SizedBox(width: 10),
                 Expanded(child: Text(hint, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kMuted))),
               ]),
@@ -300,7 +297,7 @@ class _Dots extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 3),
               width: i == index ? 18 : 6,
               height: 6,
-              decoration: BoxDecoration(color: i == index ? kAction : const Color(0xFFC5D0C0), borderRadius: BorderRadius.circular(3)),
+              decoration: BoxDecoration(color: i == index ? kAction : const Color(0xFFCFC6B3), borderRadius: BorderRadius.circular(3)),
             ),
         ]),
       );
@@ -351,7 +348,7 @@ class _AdTile extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.fromLTRB(12, 18, 12, 10),
                 decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Colors.black87])),
-                child: Text(ad.headline, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+                child: Text(ad.headline, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kSurface, fontWeight: FontWeight.w600, fontSize: 15)),
               ),
             ),
             Positioned(
@@ -359,8 +356,8 @@ class _AdTile extends StatelessWidget {
               left: 8,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(10)),
-                child: Text(t.t('sponsored'), style: const TextStyle(color: Colors.white, fontSize: 10)),
+                decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(6)),
+                child: Text(t.t('sponsored'), style: const TextStyle(color: kSurface, fontSize: 10)),
               ),
             ),
           ]),
@@ -380,14 +377,14 @@ class _StoreTile extends StatelessWidget {
       width: 170,
       child: Card(
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(kRadius),
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StorePage(slug: store.slug, title: store.name))),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Icon(Icons.storefront_outlined, color: Color(0xFF123B32)),
+              const Icon(Zi.store, color: Color(0xFF3B4733)),
               const Spacer(),
-              Text(store.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
+              Text(store.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
               Text(t.t('products_count', {'n': '${store.productCount}'}), style: const TextStyle(color: kMuted, fontSize: 12)),
             ]),
           ),

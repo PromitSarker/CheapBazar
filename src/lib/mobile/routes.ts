@@ -14,6 +14,7 @@ import { categoriesWithCounts, homeShelves } from "@/lib/bff/catalog";
 import { myOrdersViaServices, cancelMyOrderViaServices } from "@/lib/bff/orders";
 import { inboxViaServices, markReadViaServices, unreadCountViaServices } from "@/lib/bff/notifications";
 import { sponsoredForStorefront } from "@/lib/bff/ads";
+import { admobConfig } from "@/lib/adnetwork";
 import { locationPolicy, storeVisibility, visibilityMessage } from "@/lib/bff/location";
 import { DISTRICTS, parseCoords, type Coords } from "../../../packages/geo";
 import { ApiError, MobileRouter, needUser, str, type Ctx } from "./core";
@@ -140,6 +141,15 @@ router.post("/me/delete", async (ctx) => {
 
 /** Public category tree (admin-managed) with live product counts. */
 router.get("/categories", async (ctx) => ({ categories: await categoriesWithCounts(locOf(ctx)) }));
+
+/**
+ * Third-party ad config for the app (AdMob). Ad unit ids live on the server so they can be set or switched off
+ * without shipping a new APK. `enabled:false` (the default) means the app never initialises the ads SDK.
+ */
+router.get("/ads/config", async () => {
+  const c = admobConfig();
+  return { admob: { enabled: c.enabled, testUnits: c.testUnits, banners: c.banners } };
+});
 
 router.get("/home", async (ctx) => {
   const user = await ctx.user().catch(() => null);

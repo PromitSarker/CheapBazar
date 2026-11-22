@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.2.2+5
+version: 1.3.0+6
 
 environment:
   sdk: ^3.13.7
@@ -44,6 +44,7 @@ dependencies:
   crypto: ^3.0.8
   open_filex: ^5.0.0
   geolocator: ^14.1.2
+  google_mobile_ads: ^9.2.0
 
 dev_dependencies:
   flutter_test:
@@ -66,6 +67,26 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # Zen/craft look: a quiet serif for headings (Newsreader for Latin, Noto Serif Bengali for Bangla; both SIL OFL,
+  # licences in assets/fonts and registered in main.dart). Body text stays on the system font.
+  assets:
+    - assets/fonts/OFL-Newsreader.txt
+    - assets/fonts/OFL-NotoSerifBengali.txt
+    - assets/fonts/MIT-Phosphor.txt
+  fonts:
+    - family: Newsreader
+      fonts:
+        - asset: assets/fonts/Newsreader.ttf
+    - family: NotoSerifBengali
+      fonts:
+        - asset: assets/fonts/NotoSerifBengali.ttf
+    - family: PhosphorLight
+      fonts:
+        - asset: assets/fonts/Phosphor-Light.ttf
+    - family: PhosphorRegular
+      fonts:
+        - asset: assets/fonts/Phosphor-Regular.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

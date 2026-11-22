@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cheapbazar/ui/icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -72,7 +73,7 @@ void main() {
     // open a product from Home and add 2 to the bag
     await tester.tap(find.text('Sourdough').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(find.byIcon(Zi.add));
     await tester.pump();
     await tester.tap(find.text('Add to bag'));
     await tester.pumpAndSettle();

@@ -8,7 +8,9 @@ import '../../state/l10n.dart';
 import '../../state/session.dart';
 import '../../state/catalog.dart';
 import '../theme.dart';
+import '../icons.dart';
 import '../widgets/common.dart';
+import '../widgets/network_ad.dart';
 import '../widgets/product_card.dart';
 import 'browse_screen.dart';
 import 'auth_screen.dart';
@@ -73,7 +75,7 @@ class _ProductPageState extends State<ProductPage> {
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(p.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(p.name, style: serif(22)),
             if (p.subtitle.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 2), child: Text(p.subtitle, style: const TextStyle(color: kMuted, fontSize: 14))),
             _Breadcrumb(categoryId: p.categoryId),
             const SizedBox(height: 4),
@@ -83,9 +85,9 @@ class _ProductPageState extends State<ProductPage> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Icon(Icons.storefront_outlined, size: 18, color: Color(0xFF4F6159)),
+                    const Icon(Zi.store, size: 18, color: Color(0xFF55514A)),
                     const SizedBox(width: 6),
-                    Text(p.storeName, style: const TextStyle(color: Color(0xFF4F6159), decoration: TextDecoration.underline)),
+                    Text(p.storeName, style: const TextStyle(color: Color(0xFF55514A), decoration: TextDecoration.underline)),
                   ]),
                 ),
               ),
@@ -97,18 +99,19 @@ class _ProductPageState extends State<ProductPage> {
             if (!p.locked)
               Text(
                 !p.inStock ? t.t('out_of_stock') : (p.stock > 0 && p.stock <= 5 ? t.t('only_left', {'n': '${p.stock}'}) : t.t('in_stock')),
-                style: TextStyle(color: p.inStock ? const Color(0xFF1E7A57) : const Color(0xFFDC2626), fontWeight: FontWeight.w600),
+                style: TextStyle(color: p.inStock ? const Color(0xFF56653F) : const Color(0xFFB3382C), fontWeight: FontWeight.w600),
               ),
             if (p.description.trim().isNotEmpty) ...[
               const SizedBox(height: 14),
-              Text(p.description, style: const TextStyle(height: 1.45, color: Color(0xFF3B4F46))),
+              Text(p.description, style: const TextStyle(height: 1.45, color: Color(0xFF4A463F))),
             ],
           ]),
         ),
+        const NetworkAd(placement: 'product'),
         if (_similar.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Text(t.t('similar_products'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            child: Text(t.t('similar_products'), style: serif(18)),
           ),
           SizedBox(
             height: shelfHeight(context, 150),
@@ -132,11 +135,11 @@ class _ProductPageState extends State<ProductPage> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 child: Row(children: [
                   Container(
-                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFFC5D0C0)), borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFFCFC6B3)), borderRadius: BorderRadius.circular(kRadius)),
                     child: Row(children: [
-                      IconButton(onPressed: qty > min ? () => setState(() => qty--) : null, icon: const Icon(Icons.remove)),
-                      SizedBox(width: 34, child: Text('$qty', textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
-                      IconButton(onPressed: qty < max ? () => setState(() => qty++) : null, icon: const Icon(Icons.add)),
+                      IconButton(onPressed: qty > min ? () => setState(() => qty--) : null, icon: const Icon(Zi.remove)),
+                      SizedBox(width: 34, child: Text('$qty', textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600))),
+                      IconButton(onPressed: qty < max ? () => setState(() => qty++) : null, icon: const Icon(Zi.add)),
                     ]),
                   ),
                   const SizedBox(width: 12),
@@ -147,7 +150,7 @@ class _ProductPageState extends State<ProductPage> {
                         showSnack(context, t.t('added_to_bag'));
                         Navigator.pop(context);
                       },
-                      icon: const Icon(Icons.shopping_bag_outlined),
+                      icon: const Icon(Zi.bag),
                       label: Text(t.t('add_to_bag')),
                     ),
                   ),
@@ -159,27 +162,27 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Widget _retailPrice(LocaleController t, Product p) {
-    if (!p.onSale) return Money(p.price, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800));
+    if (!p.onSale) return Money(p.price, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600));
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        Money(p.price, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+        Money(p.price, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: kClay)),
         const SizedBox(width: 10),
         Money(p.compareAtPrice!, style: const TextStyle(fontSize: 16, color: kMuted, decoration: TextDecoration.lineThrough)),
       ]),
       const SizedBox(height: 4),
-      Text(t.t('you_save', {'amt': formatMoney(p.compareAtPrice! - p.price, bn: t.isBn)}), style: const TextStyle(color: kAction, fontWeight: FontWeight.w700)),
+      Text(t.t('you_save', {'amt': formatMoney(p.compareAtPrice! - p.price, bn: t.isBn)}), style: const TextStyle(color: kAction, fontWeight: FontWeight.w600)),
     ]);
   }
 
   Widget _wholesalePrice(LocaleController t, Product p) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(t.t('wholesale_price'), style: const TextStyle(color: Color(0xFF5C6B64), fontSize: 12)),
-      Money(p.wholesalePrice ?? 0, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+      Text(t.t('wholesale_price'), style: const TextStyle(color: Color(0xFF6B665C), fontSize: 12)),
+      Money(p.wholesalePrice ?? 0, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
       const SizedBox(height: 4),
-      Text(t.t('min_order_qty', {'n': '${p.moq}'}), style: const TextStyle(color: Color(0xFF4F6159))),
+      Text(t.t('min_order_qty', {'n': '${p.moq}'}), style: const TextStyle(color: Color(0xFF55514A))),
       if (p.tiers.isNotEmpty) ...[
         const SizedBox(height: 10),
-        Text(t.t('volume_prices'), style: const TextStyle(fontWeight: FontWeight.w700)),
+        Text(t.t('volume_prices'), style: const TextStyle(fontWeight: FontWeight.w600)),
         for (final tier in p.tiers)
           Padding(
             padding: const EdgeInsets.only(top: 4),
@@ -198,10 +201,10 @@ class _ProductPageState extends State<ProductPage> {
     final needLogin = reason == 'LOGIN_REQUIRED' || !context.read<SessionController>().loggedIn;
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: const Color(0xFFE8EFE6), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: const Color(0xFFEAE4D5), borderRadius: BorderRadius.circular(kRadius)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Icon(Icons.lock_outline),
+          const Icon(Zi.lock),
           const SizedBox(width: 8),
           Expanded(child: Text(needLogin ? t.t('wholesale_locked_login') : t.t('wholesale_locked_pro'), style: const TextStyle(fontWeight: FontWeight.w600))),
         ]),
@@ -248,8 +251,8 @@ class _GalleryState extends State<_Gallery> {
             left: 12,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(color: kSale, borderRadius: BorderRadius.circular(8)),
-              child: Text(widget.badge!, style: const TextStyle(color: kInk, fontWeight: FontWeight.w800, fontSize: 12)),
+              decoration: BoxDecoration(color: kSale, borderRadius: BorderRadius.circular(4)),
+              child: Text(widget.badge!, style: const TextStyle(color: kClay, fontWeight: FontWeight.w600, fontSize: 12, letterSpacing: 0.2)),
             ),
           ),
         if (imgs.length > 1)
@@ -263,7 +266,7 @@ class _GalleryState extends State<_Gallery> {
                   margin: const EdgeInsets.symmetric(horizontal: 3),
                   width: k == _i ? 16 : 6,
                   height: 6,
-                  decoration: BoxDecoration(color: k == _i ? Colors.white : Colors.white60, borderRadius: BorderRadius.circular(3)),
+                  decoration: BoxDecoration(color: k == _i ? kSurface : Colors.white60, borderRadius: BorderRadius.circular(3)),
                 ),
             ]),
           ),
@@ -285,7 +288,7 @@ class _Breadcrumb extends StatelessWidget {
       padding: const EdgeInsets.only(top: 6),
       child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: [
         for (var i = 0; i < trail.length; i++) ...[
-          if (i > 0) const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Icon(Icons.chevron_right, size: 16, color: kMuted)),
+          if (i > 0) const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Icon(Zi.chevron, size: 16, color: kMuted)),
           InkWell(
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BrowseScreen(categoryId: trail[i].id, title: trail[i].name(bn)))),
             child: Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(trail[i].name(bn), style: const TextStyle(color: kAction, fontWeight: FontWeight.w600, fontSize: 13))),

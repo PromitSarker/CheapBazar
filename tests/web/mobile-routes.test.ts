@@ -134,3 +134,20 @@ test("mobile API: a shop outside the buyer's range is 403 on its page and cannot
   assert.equal((await get("/stores/far?lat=23.81&lng=90.41")).status, 200);
   for (const s of [idn, led, cat, agg]) s.close();
 });
+
+test("mobile API: /ads/config is off by default, and exposes only valid banner ids when switched on", async () => {
+  const saved = { ...process.env };
+  for (const k of Object.keys(process.env)) if (k.startsWith("ADMOB_")) delete process.env[k];
+  const off = await (await get("/ads/config")).json();
+  assert.deepEqual(off, { admob: { enabled: false, testUnits: false, banners: { home: null, browse: null, product: null } } });
+
+  process.env.ADMOB_ENABLED = "true";
+  process.env.ADMOB_BANNER_HOME = "ca-app-pub-1234567890123456/1234567890";
+  process.env.ADMOB_BANNER_BROWSE = "<script>";
+  const on = await (await get("/ads/config")).json();
+  assert.equal(on.admob.enabled, true);
+  assert.equal(on.admob.banners.home, "ca-app-pub-1234567890123456/1234567890");
+  assert.equal(on.admob.banners.browse, null);
+  for (const k of Object.keys(process.env)) if (k.startsWith("ADMOB_")) delete process.env[k];
+  Object.assign(process.env, saved);
+});

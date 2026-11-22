@@ -3,6 +3,7 @@ import LandingView from "@/components/landing/LandingView";
 import { servicesEnabled } from "@/lib/bff/client";
 import { storeDirectoryWithLocation, marketplaceAds } from "@/lib/bff/browse";
 import { getBuyerLocation } from "@/lib/location";
+import { webUnit } from "@/lib/adnetwork";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ export default async function LandingPage() {
       storeDirectoryWithLocation(8, getBuyerLocation()).catch(() => null),
       marketplaceAds("HOME_HERO"),
     ]);
-    return <LandingView stores={dir?.stores ?? []} heroAds={heroAds} locationRequired={!!dir?.location.required} locationRadiusKm={dir?.location.radiusKm ?? null} />;
+    return <LandingView stores={dir?.stores ?? []} heroAds={heroAds} networkAd={webUnit("home")} locationRequired={!!dir?.location.required} locationRadiusKm={dir?.location.radiusKm ?? null} />;
   }
   const stores = await prisma.store.findMany({
     take: 8,

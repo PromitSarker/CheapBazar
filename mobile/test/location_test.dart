@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cheapbazar/ui/icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -193,7 +194,7 @@ void main() {
       await boot(tester, rangeOn: false);
       expect(find.text('Shops near you'), findsNothing);
       expect(find.text('Set location'), findsNothing);
-      expect(find.byIcon(Icons.place_outlined), findsNothing);
+      expect(find.byIcon(Zi.place), findsNothing);
     });
   });
 }

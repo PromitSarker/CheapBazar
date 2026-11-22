@@ -4,6 +4,7 @@ import TemplateClassic from "@/components/templates/TemplateClassic";
 import TemplateModern from "@/components/templates/TemplateModern";
 import { servicesEnabled } from "@/lib/bff/client";
 import { sponsoredForStorefront } from "@/lib/bff/ads";
+import { webUnit } from "@/lib/adnetwork";
 import { headers } from "next/headers";
 import { isMarketplaceHost } from "@/lib/hosts";
 import { getBuyerLocation } from "@/lib/location";
@@ -48,6 +49,8 @@ export default async function StorefrontPage({ params }: { params: { slug: strin
   const Template = store.template === "modern" ? TemplateModern : TemplateClassic;
   // Services path: show a real paid banner (or none). Legacy path keeps the old placeholder.
   const sponsored = servicesEnabled() ? await sponsoredForStorefront(store.id) : undefined;
-  return <Template store={store} products={products} sponsored={sponsored} />;
+  // Network (AdSense) ads only on the marketplace's own host: a seller's custom domain is not covered by our ads.txt / AdSense site.
+  const networkAd = servicesEnabled() && isMarketplaceHost(headers().get("host")) ? webUnit("store") : null;
+  return <Template store={store} products={products} sponsored={sponsored} network={networkAd} />;
 }
 

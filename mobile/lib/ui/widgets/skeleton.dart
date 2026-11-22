@@ -26,7 +26,7 @@ class _SkeletonState extends State<Skeleton> with SingleTickerProviderStateMixin
       child: Container(
         width: widget.width,
         height: widget.height,
-        decoration: BoxDecoration(color: const Color(0xFFDDE8DF), borderRadius: BorderRadius.circular(widget.radius)),
+        decoration: BoxDecoration(color: const Color(0xFFE3DCCD), borderRadius: BorderRadius.circular(widget.radius)),
       ),
     );
   }

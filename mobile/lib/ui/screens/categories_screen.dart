@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/models.dart';
@@ -54,7 +55,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         actions: [
           TextButton.icon(
             onPressed: () => _openListing(context, wholesale: true, title: t.t('wholesale')),
-            icon: const Icon(Icons.inventory_2_outlined, size: 18),
+            icon: const Icon(Zi.pack, size: 18),
             label: Text(t.t('wholesale')),
           ),
         ],
@@ -64,13 +65,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
           child: InkWell(
             onTap: () => _openListing(context, search: true),
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(kRadius),
             child: Container(
               height: 46,
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFDDE3D6))),
+              decoration: BoxDecoration(color: kSurface, borderRadius: BorderRadius.circular(kRadius), border: Border.all(color: const Color(0xFFCFC6B3))),
               child: Row(children: [
-                const Icon(Icons.search, color: kMuted),
+                const Icon(Zi.search, color: kMuted),
                 const SizedBox(width: 10),
                 Expanded(child: Text(t.t('search_hint'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kMuted))),
               ]),
@@ -86,7 +87,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     if (!catalog.loaded && catalog.error != null) return ErrorRetry(message: catalog.error!, onRetry: () => catalog.load(force: true));
     if (!catalog.loaded) return const ZenCategoriesSkeleton();
     final cats = catalog.categories;
-    if (cats.isEmpty) return EmptyState(icon: Icons.category_outlined, title: t.t('no_products_here'), subtitle: t.t('no_products_here_hint'));
+    if (cats.isEmpty) return EmptyState(icon: Zi.categories, title: t.t('no_products_here'), subtitle: t.t('no_products_here_hint'));
     return SingleChildScrollView(child: ZenCategoryGrid(items: cats, onOpen: (c) => openCategory(context, c)));
   }
 }

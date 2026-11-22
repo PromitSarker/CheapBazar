@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../state/l10n.dart';
 import '../category_icons.dart';
+import '../icons.dart';
 import '../theme.dart';
 import 'common.dart' show NetImage;
 import 'product_card.dart' show toBnIf;
@@ -147,7 +148,7 @@ class ZenAllCard extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16, height: 1.25, fontWeight: FontWeight.w700, color: kInk)),
-                  const Align(alignment: Alignment.bottomRight, child: Icon(Icons.arrow_forward, color: kAccent)),
+                  const Align(alignment: Alignment.bottomRight, child: Icon(Zi.chevron, color: kAccent)),
                 ]),
               ),
             ),

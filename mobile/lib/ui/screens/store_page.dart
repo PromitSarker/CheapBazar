@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme.dart';
+import '../icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../api/api_client.dart';
@@ -56,12 +58,12 @@ class _StorePageState extends State<StorePage> {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
                   child: Row(children: [
-                    const CircleAvatar(radius: 24, backgroundColor: Color(0xFF123B32), child: Icon(Icons.storefront, color: Colors.white)),
+                    const CircleAvatar(radius: 24, backgroundColor: Color(0xFF3B4733), child: Icon(Zi.store, color: kSurface)),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-                        Text(t.t('products_count', {'n': '${products.length}'}), style: const TextStyle(color: Color(0xFF5C6B64))),
+                        Text(name, style: serif(20)),
+                        Text(t.t('products_count', {'n': '${products.length}'}), style: const TextStyle(color: Color(0xFF6B665C))),
                       ]),
                     ),
                   ]),
@@ -73,8 +75,8 @@ class _StorePageState extends State<StorePage> {
                     padding: const EdgeInsets.all(16),
                     child: Container(
                       padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: const Color(0xFFFEF2F2), borderRadius: BorderRadius.circular(10)),
-                      child: Text(t.t('store_not_accepting'), style: const TextStyle(color: Color(0xFFB91C1C), fontWeight: FontWeight.w600)),
+                      decoration: BoxDecoration(color: const Color(0xFFF6E6E2), borderRadius: BorderRadius.circular(kRadius)),
+                      child: Text(t.t('store_not_accepting'), style: const TextStyle(color: Color(0xFFB3382C), fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ),
@@ -95,7 +97,7 @@ class _StorePageState extends State<StorePage> {
                             child: Container(
                               padding: const EdgeInsets.fromLTRB(10, 14, 10, 8),
                               decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Colors.black87])),
-                              child: Text('${t.t('sponsored')} · ${banner.headline}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                              child: Text('${t.t('sponsored')} · ${banner.headline}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kSurface, fontSize: 13)),
                             ),
                           ),
                         ]),
@@ -104,7 +106,7 @@ class _StorePageState extends State<StorePage> {
                   ),
                 ),
               if (products.isEmpty)
-                SliverFillRemaining(hasScrollBody: false, child: EmptyState(icon: Icons.inventory_2_outlined, title: t.t('no_orders')))
+                SliverFillRemaining(hasScrollBody: false, child: EmptyState(icon: Zi.pack, title: t.t('no_orders')))
               else
                 SliverPadding(
                   padding: const EdgeInsets.all(16),

@@ -43,7 +43,7 @@ Future<ProductFilters?> showFilterSheet(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    backgroundColor: Colors.white,
+    backgroundColor: kSurface,
     builder: (_) => _FilterSheet(current: current, brands: brands, allowPrice: allowPrice, allowSale: allowSale),
   );
 }
@@ -96,7 +96,7 @@ class _FilterSheetState extends State<_FilterSheet> {
         child: SingleChildScrollView(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             Row(children: [
-              Expanded(child: Text(t.t('filters'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800))),
+              Expanded(child: Text(t.t('filters'), style: serif(20))),
               TextButton(
                 onPressed: () {
                   _min.clear();
@@ -108,7 +108,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             ]),
             if (widget.brands.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(t.t('brand'), style: const TextStyle(fontWeight: FontWeight.w700)),
+              Text(t.t('brand'), style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               Wrap(spacing: 8, runSpacing: 8, children: [
                 ChoiceChip(
@@ -128,7 +128,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             ],
             if (widget.allowPrice) ...[
               const SizedBox(height: 16),
-              Text(t.t('price_range'), style: const TextStyle(fontWeight: FontWeight.w700)),
+              Text(t.t('price_range'), style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               Row(children: [
                 Expanded(child: TextField(controller: _min, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: t.t('price_min'), prefixText: '৳ '))),

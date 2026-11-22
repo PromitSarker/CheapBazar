@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme.dart';
+import '../icons.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -31,7 +33,7 @@ class AccountScreen extends StatelessWidget {
         ]),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(t.t('cancel'))),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(t.t('delete'), style: const TextStyle(color: Color(0xFFDC2626)))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(t.t('delete'), style: const TextStyle(color: Color(0xFFB3382C)))),
         ],
       ),
     );
@@ -69,8 +71,8 @@ class AccountScreen extends StatelessWidget {
         else ...[
           Card(
             child: ListTile(
-              leading: CircleAvatar(backgroundColor: const Color(0xFF123B32), child: Text(s.user!.name.isEmpty ? '?' : s.user!.name[0].toUpperCase(), style: const TextStyle(color: Colors.white))),
-              title: Text(s.user!.name, style: const TextStyle(fontWeight: FontWeight.w800)),
+              leading: CircleAvatar(backgroundColor: const Color(0xFF3B4733), child: Text(s.user!.name.isEmpty ? '?' : s.user!.name[0].toUpperCase(), style: const TextStyle(color: kSurface))),
+              title: Text(s.user!.name, style: const TextStyle(fontWeight: FontWeight.w600)),
               subtitle: Text(s.user!.email),
             ),
           ),
@@ -78,11 +80,11 @@ class AccountScreen extends StatelessWidget {
             const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: const Color(0xFFFFFBEB), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFFDE68A))),
+              decoration: BoxDecoration(color: const Color(0xFFFFFBEB), borderRadius: BorderRadius.circular(kRadius), border: Border.all(color: const Color(0xFFFDE68A))),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(t.t('shop_owner_notice'), style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
-                SelectableText(api.baseUrl, style: const TextStyle(color: Color(0xFF1E7A57))),
+                SelectableText(api.baseUrl, style: const TextStyle(color: Color(0xFF56653F))),
               ]),
             ),
           ],
@@ -90,17 +92,17 @@ class AccountScreen extends StatelessWidget {
           Card(
             child: Column(children: [
               ListTile(
-                leading: const Icon(Icons.workspace_premium_outlined),
+                leading: const Icon(Zi.pro),
                 title: Text(t.t('buyer_pro')),
                 subtitle: Text(s.pro?.active == true ? t.t('pro_active', {'d': s.pro?.currentPeriodEnd == null ? '' : '${s.pro!.currentPeriodEnd!.day}/${s.pro!.currentPeriodEnd!.month}/${s.pro!.currentPeriodEnd!.year}'}) : t.t('pro_inactive')),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: const Icon(Zi.chevron),
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProScreen())).then((_) => s.refresh()),
               ),
               const Divider(height: 1),
               ListTile(
-                leading: Badge(isLabelVisible: s.unread > 0, label: Text('${s.unread}'), child: const Icon(Icons.notifications_none_rounded)),
+                leading: Badge(isLabelVisible: s.unread > 0, label: Text('${s.unread}'), child: const Icon(Zi.bell)),
                 title: Text(t.t('notifications')),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: const Icon(Zi.chevron),
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())).then((_) => s.refreshUnread()),
               ),
             ]),
@@ -114,10 +116,10 @@ class AccountScreen extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 10),
             child: Card(
               child: ListTile(
-                leading: const Icon(Icons.place_outlined),
+                leading: const Icon(Zi.place),
                 title: Text(t.t('loc_your_location')),
                 subtitle: Text(loc.shortLabel(t.isBn, nearMe: t.t('loc_near_me'), notSet: t.t('loc_set'))),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: const Icon(Zi.chevron),
                 onTap: () => showLocationSheet(context),
               ),
             ),
@@ -125,7 +127,7 @@ class AccountScreen extends StatelessWidget {
         }),
         Card(
           child: ListTile(
-            leading: const Icon(Icons.language),
+            leading: const Icon(Zi.language),
             title: Text(t.t('language')),
             trailing: SegmentedButton<String>(
               segments: [ButtonSegment(value: 'en', label: Text(t.t('english'))), ButtonSegment(value: 'bn', label: Text(t.t('bangla')))],
@@ -139,7 +141,7 @@ class AccountScreen extends StatelessWidget {
         Card(
           child: Column(children: [
             ListTile(
-              leading: const Icon(Icons.info_outline),
+              leading: const Icon(Zi.info),
               title: Text(t.t('about')),
               subtitle: Text('${t.t('app_name')} · ${t.t('version')} ${AppConfig.version} (${AppConfig.build})'),
               onTap: () => launchUrl(Uri.parse(api.baseUrl), mode: LaunchMode.externalApplication),
@@ -150,11 +152,11 @@ class AccountScreen extends StatelessWidget {
         ),
         if (s.loggedIn) ...[
           const SizedBox(height: 14),
-          OutlinedButton.icon(onPressed: () => s.logout(), icon: const Icon(Icons.logout), label: Text(t.t('logout'))),
+          OutlinedButton.icon(onPressed: () => s.logout(), icon: const Icon(Zi.logout), label: Text(t.t('logout'))),
           if (s.user!.isBuyer)
             TextButton(
               onPressed: () => _confirmDelete(context),
-              child: Text(t.t('delete_account'), style: const TextStyle(color: Color(0xFFDC2626))),
+              child: Text(t.t('delete_account'), style: const TextStyle(color: Color(0xFFB3382C))),
             ),
         ],
       ]),
