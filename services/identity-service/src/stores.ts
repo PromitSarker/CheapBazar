@@ -1,6 +1,7 @@
 import { HttpError } from "../../../packages/service-kit";
 import { publish } from "../../../packages/event-bus";
 import { parseCoords, districtById, nearestDistrict } from "../../../packages/geo";
+import bcrypt from "bcryptjs";
 import type { Db } from "./db";
 
 export const TEMPLATES = ["classic", "modern"] as const;
@@ -192,4 +193,86 @@ export async function listStores(db: Db, q: { ids?: string; q?: string; limit?: 
     take: Math.min(Number(q.limit) || 100, 500),
   });
   return rows.map((s) => ({ ...shape(s), owner: s.owner }));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Direct-payment details. Deliberately NOT part of `shape`/`eventData`: they are never published on
+// events or returned by tenant resolution; only the owner and a signed-in buyer's checkout can read them.
+// ---------------------------------------------------------------------------------------------
+
+/** Local Bangladesh mobile number (01XXXXXXXXX). Accepts +880 / 880 / spaces / dashes. Returns null when it is not one. */
+export function normalizeMsisdn(raw: unknown): string | null {
+  let d = String(raw ?? "").replace(/[\s\-()]/g, "");
+  if (d.startsWith("+880")) d = "0" + d.slice(4);
+  else if (d.startsWith("880") && d.length === 13) d = "0" + d.slice(3);
+  return /^01[3-9][0-9]{8}$/.test(d) ? d : null;
+}
+
+const PAY_FIELDS = [
+  ["bkash", "payBkash", "bKash"],
+  ["nagad", "payNagad", "Nagad"],
+  ["rocket", "payRocket", "Rocket"],
+] as const;
+
+const payShape = (s: any) => ({
+  storeId: s.id, slug: s.slug, storeName: s.name,
+  bkash: s.payBkash ?? null, nagad: s.payNagad ?? null, rocket: s.payRocket ?? null,
+  banglaQrUrl: s.banglaQrUrl ?? null,
+  hasAny: !!(s.payBkash || s.payNagad || s.payRocket || s.banglaQrUrl),
+  updatedAt: s.payUpdatedAt ?? null,
+});
+
+// Password re-entry throttle: changing where buyers send money must not be a free password oracle.
+const payAttempts = new Map<string, { n: number; resetAt: number }>();
+function payThrottle(actor: string, now = Date.now()) {
+  const h = payAttempts.get(actor);
+  if (!h || h.resetAt <= now) { payAttempts.set(actor, { n: 1, resetAt: now + 10 * 60_000 }); return; }
+  if (++h.n > 8) throw new HttpError(429, "Too many attempts. Please wait a few minutes.", "RATE_LIMITED");
+}
+
+export async function getPayDetails(db: Db, ref: { id?: string; slug?: string }) {
+  const s = ref.id ? await db.store.findUnique({ where: { id: ref.id } }) : await db.store.findUnique({ where: { slug: String(ref.slug ?? "").toLowerCase() } });
+  if (!s) throw new HttpError(404, "Store not found", "NOT_FOUND");
+  return payShape(s);
+}
+
+/**
+ * Owner sets their direct-payment details. Each field is optional: omit = unchanged, ""/null = remove.
+ * Any actual change needs the owner's current password (a hijacked session must not be able to redirect payments).
+ */
+export async function setPayDetails(db: Db, storeId: string, b: any) {
+  const actorId = String(b.actorId ?? "");
+  const isAdmin = b.actorIsAdmin === true;
+  const cur = await db.store.findUnique({ where: { id: storeId } });
+  if (!cur) throw new HttpError(404, "Store not found", "NOT_FOUND");
+  if (!isAdmin && cur.ownerId !== actorId) throw new HttpError(403, "You do not own this store.", "FORBIDDEN");
+
+  const data: Record<string, any> = {};
+  for (const [key, col, label] of PAY_FIELDS) {
+    if (b[key] === undefined) continue;
+    const raw = b[key];
+    if (raw === null || String(raw).trim() === "") { data[col] = null; continue; }
+    const n = normalizeMsisdn(raw);
+    if (!n) throw new HttpError(400, `${label}: enter a Bangladesh mobile number like 01712345678.`, "VALIDATION");
+    data[col] = n;
+  }
+  if (b.banglaQrUrl !== undefined) {
+    const v = b.banglaQrUrl === null || b.banglaQrUrl === "" ? null : String(b.banglaQrUrl);
+    if (v !== null && !LOGO_RE.test(v)) throw new HttpError(400, "The Bangla QR must be an uploaded PNG, JPEG, GIF or WebP image.", "VALIDATION");
+    data.banglaQrUrl = v;
+  }
+  const changed = Object.keys(data).filter((k) => (cur as any)[k] !== data[k]);
+  if (changed.length === 0) return payShape(cur);
+
+  if (!isAdmin) {
+    payThrottle(actorId);
+    const owner = await db.user.findUnique({ where: { id: cur.ownerId } });
+    const ok = owner && String(b.password ?? "") !== "" && (await bcrypt.compare(String(b.password), owner.passwordHash));
+    if (!ok) throw new HttpError(401, "Enter your current password to change payment details.", "BAD_CREDENTIALS");
+    payAttempts.delete(actorId);
+  }
+  const s = await db.store.update({ where: { id: storeId }, data: { ...data, payUpdatedAt: new Date() } });
+  // Audit trail: which fields changed and who did it (numbers themselves stay out of the logs).
+  console.log(`[identity] pay-details store=${storeId} fields=${changed.join(",")} by=${isAdmin ? "admin:" : "owner:"}${actorId}`);
+  return payShape(s);
 }

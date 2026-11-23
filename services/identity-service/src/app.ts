@@ -2,7 +2,7 @@ import { Router, createServer, HttpError, requireFields, envInt } from "../../..
 import { HttpTransport, registerEventRoute, startRelay, outboxStats, type Transport } from "../../../packages/event-bus";
 import { createDb, type Db } from "./db";
 import { changeRole, cleanupSessions, deleteBuyerAccount, login, logout, register, toPublicUser, verifySession } from "./auth";
-import { createStore, listStores, resolveTenant, setKyc, updateStore } from "./stores";
+import { createStore, getPayDetails, listStores, resolveTenant, setKyc, setPayDetails, updateStore } from "./stores";
 
 export function buildRouter(db: Db): Router {
   const r = new Router();
@@ -53,6 +53,10 @@ export function buildRouter(db: Db): Router {
     return resolveTenant(db, { slug: s.slug });
   });
   r.patch("/stores/:id", ({ params, body }) => updateStore(db, params.id, body));
+  // Direct-payment details (bKash/Nagad/Rocket numbers + Bangla QR). Internal only: the web tier decides who may read them.
+  r.get("/stores/:id/pay", ({ params }) => getPayDetails(db, { id: params.id }));
+  r.patch("/stores/:id/pay", ({ params, body }) => setPayDetails(db, params.id, body));
+  r.get("/pay/by-slug/:slug", ({ params }) => getPayDetails(db, { slug: params.slug }));
   r.patch("/stores/:id/kyc", ({ params, body }) => {
     requireFields(body, ["admin"]);
     return setKyc(db, params.id, body.kycVerified === true, String(body.admin));

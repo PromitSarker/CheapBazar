@@ -253,3 +253,53 @@ test("shops created before location existed have none until the owner sets it", 
   assert.equal(after.hasLocation, true);
   assert.equal(after.district, "sylhet");
 });
+
+test("direct-pay details: numbers normalised, QR must be an uploaded image, password needed to change, never leaked via tenant resolution", async () => {
+  const seller = await reg("SELLER");
+  const store = await api.post("/stores", { latitude: 23.78, longitude: 90.41, ownerId: seller.user.id, name: "Pay Shop", slug: `pay-${Math.random().toString(36).slice(2, 7)}` });
+  const none = await api.get(`/stores/${store.id}/pay`);
+  assert.equal(none.hasAny, false);
+  assert.equal(none.bkash, null);
+
+  // a change needs the owner's password
+  await expectErr(api.patch(`/stores/${store.id}/pay`, { actorId: seller.user.id, bkash: "01712345678" }), "BAD_CREDENTIALS", 401);
+  await expectErr(api.patch(`/stores/${store.id}/pay`, { actorId: seller.user.id, bkash: "01712345678", password: "wrong-password-1" }), "BAD_CREDENTIALS", 401);
+
+  const ok = await api.patch(`/stores/${store.id}/pay`, { actorId: seller.user.id, password: PW, bkash: "+880 1712-345678", nagad: "01912345678", banglaQrUrl: "/uploads/qr-1.png" });
+  assert.equal(ok.bkash, "01712345678", "+880 and separators are normalised to the local 11-digit form");
+  assert.equal(ok.nagad, "01912345678");
+  assert.equal(ok.rocket, null);
+  assert.equal(ok.banglaQrUrl, "/uploads/qr-1.png");
+  assert.equal(ok.hasAny, true);
+
+  // validation: not a BD mobile number, not an uploaded image
+  await expectErr(api.patch(`/stores/${store.id}/pay`, { actorId: seller.user.id, password: PW, rocket: "12345" }), "VALIDATION", 400);
+  await expectErr(api.patch(`/stores/${store.id}/pay`, { actorId: seller.user.id, password: PW, rocket: "01212345678" }), "VALIDATION", 400); // 012 is not a mobile prefix
+  await expectErr(api.patch(`/stores/${store.id}/pay`, { actorId: seller.user.id, password: PW, banglaQrUrl: "https://evil.example/qr.png" }), "VALIDATION", 400);
+  await expectErr(api.patch(`/stores/${store.id}/pay`, { actorId: seller.user.id, password: PW, banglaQrUrl: "/uploads/x.svg" }), "VALIDATION", 400);
+  const still = await api.get(`/stores/${store.id}/pay`);
+  assert.equal(still.bkash, "01712345678", "a rejected update changes nothing");
+
+  // an unchanged save does not even need the password; omitted fields are untouched
+  const same = await api.patch(`/stores/${store.id}/pay`, { actorId: seller.user.id, bkash: "01712345678" });
+  assert.equal(same.nagad, "01912345678");
+
+  // only the owner can change it
+  const other = await reg("SELLER");
+  await expectErr(api.patch(`/stores/${store.id}/pay`, { actorId: other.user.id, password: PW, bkash: "01812345678" }), "FORBIDDEN", 403);
+
+  // readable by slug for the checkout; removing one field keeps the rest
+  const bySlug = await api.get(`/pay/by-slug/${store.slug}`);
+  assert.equal(bySlug.storeId, store.id);
+  const removed = await api.patch(`/stores/${store.id}/pay`, { actorId: seller.user.id, password: PW, bkash: "", banglaQrUrl: null });
+  assert.equal(removed.bkash, null);
+  assert.equal(removed.banglaQrUrl, null);
+  assert.equal(removed.nagad, "01912345678");
+
+  // the details never ride along with tenant resolution or the store record
+  for (const body of [await api.get(`/tenants/resolve?slug=${store.slug}`), await api.get(`/stores/${store.id}`)]) {
+    const text = JSON.stringify(body);
+    assert.ok(!text.includes("01912345678") && !/payNagad|banglaQr/i.test(text), "pay details must not leak: " + text);
+  }
+  await expectErr(api.get(`/pay/by-slug/no-such-shop`), "NOT_FOUND", 404);
+});

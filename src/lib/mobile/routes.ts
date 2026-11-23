@@ -12,6 +12,7 @@ import { getStorefrontViaServices } from "@/lib/bff/storefront";
 import { productViaServices, suggestViaServices, searchViaServices, storeDirectoryWithLocation, marketplaceAds, buyerProPlan, buyerProStatus, myProPayments, submitProPayment, type Tab } from "@/lib/bff/browse";
 import { categoriesWithCounts, homeShelves } from "@/lib/bff/catalog";
 import { myOrdersViaServices, cancelMyOrderViaServices } from "@/lib/bff/orders";
+import { payDetailsBySlug } from "@/lib/bff/pay";
 import { inboxViaServices, markReadViaServices, unreadCountViaServices } from "@/lib/bff/notifications";
 import { sponsoredForStorefront } from "@/lib/bff/ads";
 import { admobConfig } from "@/lib/adnetwork";
@@ -27,6 +28,7 @@ const orderByIp = new RateLimiter(10, 10 * 60_000);
 const orderByPhone = new RateLimiter(5, 10 * 60_000);
 const lookupLimit = new RateLimiter(30, 10 * 60_000);
 const suggestLimit = new RateLimiter(90, 60_000);
+const payInfoLimit = new RateLimiter(30, 10 * 60_000);
 
 /** The buyer's position from `?lat=&lng=` (null when missing or not a point in Bangladesh). Never stored. */
 const locOf = (ctx: Ctx): Coords | null => parseCoords(ctx.query.get("lat"), ctx.query.get("lng"));
@@ -247,6 +249,25 @@ router.get("/stores/:slug", async (ctx) => {
 });
 
 // ---------------------------------------------------------- checkout
+
+/**
+ * How to pay this seller directly (bKash / Nagad / Rocket numbers and a Bangla QR), for the checkout and order screens.
+ * Retail only, signed-in buyers only (so the numbers are not scrapable from the public store page) and rate-limited.
+ * The platform only displays these; nothing about the payment itself is recorded.
+ */
+router.get("/stores/:slug/pay", async (ctx) => {
+  const user = await needUser(ctx);
+  if (!payInfoLimit.allow(user.id)) throw new ApiError(429, "Too many requests. Please wait a few minutes.", "RATE_LIMITED");
+  const slug = ctx.params.slug.toLowerCase();
+  const p = await payDetailsBySlug(slug);
+  if (!p) throw new ApiError(404, "Store not found.", "NOT_FOUND");
+  await assertShopVisible(slug, locOf(ctx));
+  return {
+    store: { name: p.storeName, slug: p.slug },
+    bkash: p.bkash, nagad: p.nagad, rocket: p.rocket, banglaQrUrl: p.banglaQrUrl,
+    available: p.hasAny,
+  };
+});
 
 router.post("/orders", async (ctx: Ctx) => {
   const b = ctx.body;

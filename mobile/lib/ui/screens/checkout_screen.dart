@@ -8,10 +8,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/api_client.dart';
 import '../../models/models.dart';
+import '../../models/pay_info.dart';
 import '../../state/cart.dart';
 import '../../state/l10n.dart';
 import '../../state/session.dart';
 import '../widgets/common.dart';
+import '../widgets/pay_sheet.dart';
 import 'order_detail_screen.dart';
 
 String _newKey() {
@@ -36,6 +38,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _city = TextEditingController(text: 'Dhaka');
   final String _idempotencyKey = _newKey(); // one key per checkout attempt: a double tap never orders twice
   bool _busy = false;
+  PayInfo? _pay; // the seller's direct-payment details, when they have set them up
+  bool _payNow = false; // buyer chose to pay the seller directly (the order itself is placed as usual)
 
   @override
   void initState() {
@@ -46,6 +50,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _email.text = user.email;
     }
     _restore();
+    if (widget.group.orderType == 'RETAIL') _loadPay();
+  }
+
+  Future<void> _loadPay() async {
+    final info = await fetchPayInfo(context, widget.group.storeSlug);
+    if (mounted && info != null) setState(() => _pay = info);
   }
 
   Future<void> _restore() async {
@@ -95,7 +105,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (!mounted) return;
       context.read<CartController>().removeGroup(g.storeSlug, g.orderType);
       context.read<SessionController>().refreshUnread();
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => OrderSuccessScreen(order: order)));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => OrderSuccessScreen(order: order, payNow: _payNow)));
     } catch (e) {
       if (mounted) {
         setState(() => _busy = false);
@@ -156,6 +166,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           const SizedBox(height: 12),
           TextFormField(controller: _email, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: t.t('email_optional'))),
           const SizedBox(height: 16),
+          if (_pay != null) ...[
+            Text(t.t('pay_choice_title'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 10),
+            _PayChoice(selected: !_payNow, title: t.t('pay_cod'), subtitle: t.t('cod_note'), onTap: () => setState(() => _payNow = false)),
+            const SizedBox(height: 8),
+            _PayChoice(selected: _payNow, title: t.t('pay_direct'), subtitle: t.t('pay_direct_sub'), onTap: () => setState(() => _payNow = true)),
+            const SizedBox(height: 16),
+          ],
+          if (_pay == null)
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(color: const Color(0xFFEEF1E6), borderRadius: BorderRadius.circular(kRadius), border: Border.all(color: const Color(0xFFC9D3B3))),
@@ -177,8 +196,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 }
 
 class OrderSuccessScreen extends StatelessWidget {
-  const OrderSuccessScreen({super.key, required this.order});
+  const OrderSuccessScreen({super.key, required this.order, this.payNow = false});
   final Order order;
+
+  /// The buyer chose "pay the seller directly": the payment pop-up opens by itself.
+  final bool payNow;
 
   @override
   Widget build(BuildContext context) {
@@ -212,6 +234,7 @@ class OrderSuccessScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 26),
+              PayNowButton(order: order, autoOpen: payNow),
               FilledButton(
                 onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order, lookupPhone: order.buyerPhone))),
                 child: Text(t.t('view_order')),
@@ -220,6 +243,41 @@ class OrderSuccessScreen extends StatelessWidget {
               OutlinedButton(onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst), child: Text(t.t('continue_shopping'))),
             ]),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PayChoice extends StatelessWidget {
+  const _PayChoice({required this.selected, required this.title, required this.subtitle, required this.onTap});
+  final bool selected;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? kSoftMint : kSurface,
+      borderRadius: BorderRadius.circular(kRadius),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(kRadius),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(kRadius), border: Border.all(color: selected ? kAccent : kLine)),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(selected ? Zi.checkCircle : Zi.radioOff, color: selected ? kAccent : kMuted),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.w600, color: kInk)),
+                const SizedBox(height: 2),
+                Text(subtitle, style: const TextStyle(color: kMuted, height: 1.35, fontSize: 13)),
+              ]),
+            ),
+          ]),
         ),
       ),
     );

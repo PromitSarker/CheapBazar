@@ -7,6 +7,7 @@ import '../../api/api_client.dart';
 import '../../models/models.dart';
 import '../../state/l10n.dart';
 import '../widgets/common.dart';
+import '../widgets/pay_sheet.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   const OrderDetailScreen({super.key, required this.order, this.lookupPhone});
@@ -150,8 +151,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
             ),
           ],
+          const SizedBox(height: 14),
+          PayNowButton(order: o),
           if (o.canCancel) ...[
-            const SizedBox(height: 18),
+            const SizedBox(height: 8),
             OutlinedButton(
               onPressed: _busy ? null : _cancel,
               style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFB3382C)),

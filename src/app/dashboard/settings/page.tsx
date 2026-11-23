@@ -1,5 +1,6 @@
 import { requireStore } from "@/lib/tenant";
-import { updateStore, saveLocation } from "./actions";
+import { updateStore, saveLocation, savePayDetails } from "./actions";
+import { payDetailsForStore } from "@/lib/bff/pay";
 import ShopLocationField from "@/components/location/ShopLocationField";
 import { servicesEnabled } from "@/lib/bff/client";
 import { THEME_PRESETS, themeOrDefault } from "@/lib/storefront-theme";
@@ -10,6 +11,10 @@ const ERRORS: Record<string, string> = {
   "domain-taken": "That custom domain is already registered to another store.",
   logo: "The logo must be a PNG, JPEG, GIF or WebP image under 5 MB.",
   location: "Pin your shop on the map, inside Bangladesh, then save.",
+  "pay-password": "That password is not correct. Payment details were not changed.",
+  "pay-invalid": "Enter each number as a Bangladesh mobile number, like 01712345678.",
+  "pay-qr": "The Bangla QR must be a PNG, JPEG, GIF or WebP image under 5 MB.",
+  "pay-throttled": "Too many attempts. Please wait a few minutes and try again.",
 };
 
 export default async function SettingsPage({ searchParams }: { searchParams: { error?: string, success?: string } }) {
@@ -17,6 +22,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
   const error = searchParams.error ? ERRORS[searchParams.error] : undefined;
   const success = searchParams.success === "1";
   const locationSaved = searchParams.success === "location";
+  const paySaved = searchParams.success === "pay";
+  const pay = servicesEnabled() ? await payDetailsForStore(store.id).catch(() => null) : null;
 
   return (
     <div>
@@ -24,6 +31,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
       
       {error && <p className="error">{error}</p>}
       {locationSaved && <p className="success" style={{ color: 'green', marginBottom: '1rem', padding: '0.5rem', backgroundColor: '#e6ffe6', borderRadius: '4px' }}>Shop location saved.</p>}
+      {paySaved && <p className="success" style={{ color: 'green', marginBottom: '1rem', padding: '0.5rem', backgroundColor: '#e6ffe6', borderRadius: '4px' }}>Payment details saved.</p>}
       {success && <p className="success" style={{ color: 'green', marginBottom: '1rem', padding: '0.5rem', backgroundColor: '#e6ffe6', borderRadius: '4px' }}>Settings updated successfully.</p>}
 
       <form action={updateStore} className="stack" style={{ maxWidth: '600px' }}>
@@ -133,6 +141,51 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
           <form action={saveLocation} className="stack" style={{ margin: 0 }}>
             <ShopLocationField defaults={{ latitude: store.latitude, longitude: store.longitude, district: store.district, address: store.address }} />
             <button type="submit" className="button">Save location</button>
+          </form>
+        </section>
+      )}
+
+      {servicesEnabled() && pay && (
+        <section id="pay" className="card" style={{ maxWidth: 600, marginTop: "2.5rem", padding: "1.25rem", scrollMarginTop: 80 }}>
+          <h2 style={{ marginTop: 0 }}>Receive payments</h2>
+          <p className="muted" style={{ marginTop: 0 }}>
+            Buyers in the app can pay you directly before delivery. They see these numbers and your Bangla QR in a pop-up and send the money
+            themselves. CheapBazar does not process, hold or check these payments, so confirm each one in your own bKash, Nagad or Rocket app.
+          </p>
+          <form action={savePayDetails} className="stack" style={{ margin: 0 }} autoComplete="off">
+            <label>
+              bKash number
+              <input type="tel" name="bkash" inputMode="numeric" placeholder="01712345678" defaultValue={pay.bkash ?? ""} maxLength={20} />
+            </label>
+            <label>
+              Nagad number
+              <input type="tel" name="nagad" inputMode="numeric" placeholder="01712345678" defaultValue={pay.nagad ?? ""} maxLength={20} />
+            </label>
+            <label>
+              Rocket number
+              <input type="tel" name="rocket" inputMode="numeric" placeholder="01712345678" defaultValue={pay.rocket ?? ""} maxLength={20} />
+            </label>
+
+            <div className="brand-field">
+              <strong>Bangla QR</strong>
+              {pay.banglaQrUrl && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={pay.banglaQrUrl} alt="Your Bangla QR" style={{ width: 160, height: 160, objectFit: "contain", border: "1px solid #ddd", borderRadius: 8, background: "#fff" }} />
+              )}
+              <input type="file" name="banglaQr" accept="image/png,image/jpeg,image/gif,image/webp" aria-label="Upload your Bangla QR image" />
+              {pay.banglaQrUrl && (
+                <label style={{ flexDirection: "row", alignItems: "center", gap: "0.5rem", fontWeight: 400 }}>
+                  <input type="checkbox" name="removeBanglaQr" value="1" /> Remove the current QR
+                </label>
+              )}
+              <small className="muted">One Bangla QR works with every bank and wallet app. PNG, JPEG, GIF or WebP, up to 5 MB. Leave a field empty to hide that option.</small>
+            </div>
+
+            <label>
+              Your current password
+              <input type="password" name="password" autoComplete="current-password" placeholder="Needed to change payment details" />
+            </label>
+            <button type="submit" className="button">Save payment details</button>
           </form>
         </section>
       )}

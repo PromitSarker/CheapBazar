@@ -58,6 +58,13 @@ model Store {
   address           String?   // street / area text shown to buyers
   district          String?   // district id from packages/geo (e.g. "dhaka")
   locationUpdatedAt DateTime?
+  // How buyers can pay this seller directly (shown in the app; the platform never touches or tracks this money).
+  // Local 11-digit mobile numbers (01XXXXXXXXX) and one uploaded Bangla QR image. All optional.
+  payBkash     String?
+  payNagad     String?
+  payRocket    String?
+  banglaQrUrl  String?
+  payUpdatedAt DateTime?
   ownerId      String   @unique
   owner        User     @relation(fields: [ownerId], references: [id])
   createdAt    DateTime @default(now())

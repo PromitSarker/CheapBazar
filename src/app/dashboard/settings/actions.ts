@@ -8,6 +8,7 @@ import { servicesEnabled } from "@/lib/bff/client";
 import { getCurrentStore } from "@/lib/tenant";
 import { updateStoreViaServices } from "@/lib/bff/wallet";
 import { saveStoreLocationViaServices } from "@/lib/bff/portal";
+import { savePayDetailsViaServices } from "@/lib/bff/pay";
 import { parseCoords } from "../../../../packages/geo";
 import { presetHex } from "@/lib/storefront-theme";
 import { validateImage, UploadError } from "@/lib/security/uploads";
@@ -99,4 +100,43 @@ export async function saveLocation(formData: FormData) {
   if (!parseCoords(location.latitude, location.longitude)) redirect("/dashboard/settings?error=location#location");
   const r = await saveStoreLocationViaServices(mine.id, user.id, location);
   redirect(r === "ok" ? "/dashboard/settings?success=location#location" : `/dashboard/settings?error=${r === "location" ? "location" : "invalid"}#location`);
+}
+
+/**
+ * "Receive payments" form (services path): the numbers buyers can pay to and an optional Bangla QR image.
+ * Needs the seller's current password, because this decides where buyers send money.
+ */
+export async function savePayDetails(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (!servicesEnabled()) redirect("/dashboard/settings");
+  const mine = await getCurrentStore();
+  if (!mine) redirect("/onboarding");
+
+  const input: { bkash: string; nagad: string; rocket: string; banglaQrUrl?: string | null } = {
+    bkash: String(formData.get("bkash") || "").trim(),
+    nagad: String(formData.get("nagad") || "").trim(),
+    rocket: String(formData.get("rocket") || "").trim(),
+  };
+  const qr = formData.get("banglaQr");
+  if (qr instanceof File && qr.size > 0) {
+    const buffer = Buffer.from(await qr.arrayBuffer());
+    let ext: string;
+    try {
+      ext = validateImage(buffer).ext;
+    } catch (e) {
+      if (e instanceof UploadError) redirect("/dashboard/settings?error=pay-qr#pay");
+      throw e;
+    }
+    const filename = crypto.randomUUID() + ext;
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    await fs.mkdir(uploadDir, { recursive: true });
+    await fs.writeFile(path.join(uploadDir, filename), buffer);
+    input.banglaQrUrl = `/uploads/${filename}`;
+  } else if (formData.get("removeBanglaQr") === "1") {
+    input.banglaQrUrl = null;
+  }
+
+  const r = await savePayDetailsViaServices(mine.id, user.id, String(formData.get("password") || ""), input);
+  redirect(r === "ok" ? "/dashboard/settings?success=pay#pay" : `/dashboard/settings?error=pay-${r}#pay`);
 }
