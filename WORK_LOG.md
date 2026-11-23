@@ -298,3 +298,9 @@ Built the first part of the web-tier ("BFF") layer. Nothing here switches the li
 - **Tests:** identity 14 pass (1 new), `tsc` web + services clean, `flutter analyze` clean, Flutter 81 pass (6 new in `test/pay_direct_test.dart`), `scripts/e2e-pay.sh` 13 checks pass (throwaway identity DB `pay_identity` + dev web on :3200, every other service URL points at a dead port).
 - **Known trade-off:** the seller still sees a COD amount to collect even if the buyer already paid; the pop-up tells buyers to use the order number as reference and to show the payment message on delivery. A small "I have paid" tag would fix it but was left out on purpose.
 - **To go live:** `npm run db:push:identity` against identity_db (additive), restart `cb-identity`, `next build` + `pm2 restart cheapbazar`, then build/publish the APK (version is already 1.3.0+6 in code, not yet published; latest.json still says 1.2.2+5). Old APKs keep working (they only ever send COD).
+
+### 2026-11-23: seller payment details DEPLOYED
+- Backup `~/backups/cheapbazar/20261123-071424` taken first. `feat/seller-pay-details` fast-forwarded into the live branch (`feat/app-update-new-server`, now at 09779e1; not pushed to GitHub).
+- `identity_db`: additive `prisma db push` (5 nullable `Store` columns, no data-loss prompts; 16 users / 7 stores intact). `cb-identity` restarted, `next build` (31 s), `cheapbazar` restarted. Public checks: site 200, `/api/m/v1/stores/<slug>/pay` signed-out -> 401.
+- APK **1.3.0+6** built (release key, same signing cert SHA-256 6579e6a3... as 1.2.1/1.2.2) and published: `/downloads/latest.json` -> `cheapbazar-1.3.0-6.apk`, 39,665,966 bytes, sha256 69676846.... Includes the Zen UI + AdMob test-id build from main plus the pay pop-up.
+- Rollback: `git -C ~/E-Bazar-Unified reset --hard a745aa1` + `next build` + `pm2 restart cheapbazar` (the extra Store columns are harmless to the old code); to un-publish the APK, rewrite `downloads/latest.json` to the 1.2.2+5 entry.
