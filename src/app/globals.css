@@ -1669,7 +1669,8 @@ select:disabled, input:disabled { color: var(--text-secondary); background: var(
    ========================================================================== */
 a { color: var(--link); }
 a:hover { color: var(--evergreen); }
-a.button, a.button:hover { color: var(--button-text); }
+/* solid buttons only: outline buttons keep their own (evergreen) text, else it is off-white on a white card */
+a.button:not(.button-outline), a.button:not(.button-outline):hover { color: var(--button-text); }
 .brand, .brand:hover { color: var(--evergreen); }
 
 /* Primary action: solid evergreen, warm-white label (~12:1), green hover */
